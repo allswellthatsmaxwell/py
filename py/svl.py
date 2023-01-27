@@ -6,9 +6,10 @@ import whisper
 
 from pathlib import Path
 import os
+import json
+
 
 from typing import List
-
 
 
 def get_files_list(logs_dir: Path):
@@ -18,7 +19,7 @@ def get_files_list(logs_dir: Path):
 def view_csv(csv_file: Path):
     """ returns the first 4 lines of a csv file. If the file has less than 4 lines, returns all the lines."""
     with open(csv_file) as f:
-        lines = f.readlines()
+        lines = [f"    {line}" for line in f.readlines()]
         return "".join(lines[:4])
     
         
@@ -40,11 +41,8 @@ class TranscriptLogger:
     Output a JSON object where each key is a file name and each value is the log entry for that file.
     If the user is not trying to log anything, output an empty JSON object.
     
-## Relevant Files ##
-    {relevant_files}
-    
-## Samples of Relevant File contents ##
-    {content_previews}
+## Relevant files, and samples of their contents ##
+{content_previews}
 
 ### Transcript ###
     {transcript}
@@ -58,26 +56,32 @@ class TranscriptLogger:
         self.logs_dir = logs_dir
         self.files = files
         self.llm = llm
+        self.completion = None
 
 
     @property
     def _prompt_template(self):
-        return PromptTemplate(input_variables=["relevant_files", "content_previews", "transcript"],
+        return PromptTemplate(input_variables=["content_previews", "transcript"],
                               template=self._prompt_text)
         
     @property
     def _content_previews(self):
-        return "\n".join([f"{f}:\n{view_csv(f)}" for f in self._relevant_files])
+        heads = [f"    {f}:\n\n{view_csv(f)}" for f in self._relevant_files]
+        
+        return "\n".join(heads).replace('"', '\\"')
         
     @property
     def _prompt(self):
-        return self._prompt_template.format(relevant_files=self._relevant_files, 
-                                            content_previews=self._content_previews,
+        return self._prompt_template.format(content_previews=self._content_previews,
                                             transcript=self.transcript_text)
         
-    @property
-    def completion(self):        
-        return self.llm(self._prompt)
+    def get_completion(self):
+        if not self.completion:
+            self.completion = self.llm(self._prompt)        
+        return self.completion
+    
+    def get_json_completion(self):
+        return json.loads(self.get_completion())
     
     @property
     def _relevant_files(self) -> List[str]:
