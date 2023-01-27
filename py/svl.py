@@ -1,5 +1,6 @@
 
 from langchain.llms import OpenAI
+from langchain import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.agents import initialize_agent, Tool, ZeroShotAgent, AgentExecutor
 
@@ -58,30 +59,37 @@ class TranscriptLogger:
 
 ### Transcript ###
     {transcript}
+    
+### Scratchpad ###
+    {agent_scratchpad}
 """
 
     
-    def __init__(self, transcript: str, logs_dir: Path, llm: OpenAI) -> None:
+    def __init__(self, transcript: str, logs_dir: Path, llm: OpenAI, files=None) -> None:
         self.transcript = transcript
         self.logs_dir = logs_dir
+        self.files = files
         self.llm = llm
-        self.agent = initialize_agent(TOOLS, llm, agent="zero-shot-react-description", verbose=True)
+        chain = LLMChain(llm=llm, prompt=self.prompt_template)
+        self.agent = ZeroShotAgent(llm_chain=chain, tools=TOOLS)
+
 
     @property
-    def prompt(self):
+    def prompt_template(self):
         return ZeroShotAgent.create_prompt(
             TOOLS, 
             prefix=self.prompt_prefix, 
             suffix=self.prompt_suffix, 
-            input_variables=["files", "transcript", "agent_scratchpad"])
+            input_variables=["relevant_files", "transcript", "agent_scratchpad"])
         
     def write_to_files(self):
         agent_executor = AgentExecutor.from_agent_and_tools(agent=self.agent, tools=TOOLS, verbose=True)
         agent_executor.run(transcript=self.transcript, relevant_files=self.relevant_files)
     
     def relevant_files(self):
-        files_finder = LogFilesFinder(self.transcript, Path(self.logs_dir), self.llm)
-        return files_finder.relevant_files
+        if not self.files:
+            self.files = LogFilesFinder(self.transcript, Path(self.logs_dir), self.llm).relevant_files
+        return self.files
     
 
 class LogFilesFinder:
