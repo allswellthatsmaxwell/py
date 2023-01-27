@@ -1,13 +1,14 @@
 
 from langchain.llms import OpenAI
-from langchain import LLMChain
 from langchain.prompts import PromptTemplate
-from langchain.agents import initialize_agent, Tool, ZeroShotAgent, AgentExecutor
 
 import whisper
 
 from pathlib import Path
 import os
+
+from typing import List
+
 
 
 def get_files_list(logs_dir: Path):
@@ -18,7 +19,7 @@ def view_csv(csv_file: Path):
     """ returns the first 4 lines of a csv file. If the file has less than 4 lines, returns all the lines."""
     with open(csv_file) as f:
         lines = f.readlines()
-        return "\n".join(lines[:4])
+        return "".join(lines[:4])
     
         
 def append_to_csv(csv_file: Path, row: str):
@@ -27,69 +28,63 @@ def append_to_csv(csv_file: Path, row: str):
         f.write("\n")
     
 
-TOOLS = [
-    Tool(
-        name="list_files",
-        func=get_files_list,
-        description="Lists all the log files that currently exist for the user."),
-    Tool(name = "view_csv",
-         func = view_csv,
-         description="Shows the header and the first few lines of a csv file. Useful for seeing how the csv is formatted and what fields it has."),
-    Tool(name="append_to_csv",
-         func=append_to_csv,
-         description="Appends a row to a csv file. Useful for adding a new log entry to a csv file.")
-    ]
-
-
 class TranscriptLogger:
-    prompt_prefix = """
+    _prompt_text = """
 ## Instructions ##
     Your objective is to write log entries for a user, based on an audio transcript.
     The user who recorded the audio is trying to log something, or multiple somethings. It is also possible the transcript is not trying to log anything.
     If it's trying to log something, write a log entry for each thing the user is trying to log.
     I will give you a list of files that correspond to topics that can be logged to. Log the right thing to the right file.
     
-    For now, do not actually write to disk. Instead, just report what you would add to each file.
-"""
-
-    prompt_suffix = """
-
-## relevant files ##
+## Output Structure ##
+    Output a JSON object where each key is a file name and each value is the log entry for that file.
+    If the user is not trying to log anything, output an empty JSON object.
+    
+## Relevant Files ##
     {relevant_files}
+    
+## Samples of Relevant File contents ##
+    {content_previews}
 
 ### Transcript ###
     {transcript}
     
-### Scratchpad ###
-    {agent_scratchpad}
+### Output ###
 """
 
     
-    def __init__(self, transcript: str, logs_dir: Path, llm: OpenAI, files=None) -> None:
-        self.transcript = transcript
+    def __init__(self, transcript_text: str, logs_dir: Path, llm: OpenAI, files=None) -> None:
+        self.transcript_text = transcript_text
         self.logs_dir = logs_dir
         self.files = files
         self.llm = llm
-        chain = LLMChain(llm=llm, prompt=self.prompt_template)
-        self.agent = ZeroShotAgent(llm_chain=chain, tools=TOOLS)
 
 
     @property
-    def prompt_template(self):
-        return ZeroShotAgent.create_prompt(
-            TOOLS, 
-            prefix=self.prompt_prefix, 
-            suffix=self.prompt_suffix, 
-            input_variables=["relevant_files", "transcript", "agent_scratchpad"])
+    def _prompt_template(self):
+        return PromptTemplate(input_variables=["relevant_files", "content_previews", "transcript"],
+                              template=self._prompt_text)
         
-    def write_to_files(self):
-        agent_executor = AgentExecutor.from_agent_and_tools(agent=self.agent, tools=TOOLS, verbose=True)
-        agent_executor.run(transcript=self.transcript, relevant_files=self.relevant_files)
+    @property
+    def _content_previews(self):
+        return "\n".join([f"{f}:\n{view_csv(f)}" for f in self._relevant_files])
+        
+    @property
+    def _prompt(self):
+        return self._prompt_template.format(relevant_files=self._relevant_files, 
+                                            content_previews=self._content_previews,
+                                            transcript=self.transcript_text)
+        
+    @property
+    def completion(self):        
+        return self.llm(self._prompt)
     
-    def relevant_files(self):
+    @property
+    def _relevant_files(self) -> List[str]:
         if not self.files:
-            self.files = LogFilesFinder(self.transcript, Path(self.logs_dir), self.llm).relevant_files
-        return self.files
+            self.files = LogFilesFinder(self.transcript_text, Path(self.logs_dir), self.llm).relevant_files
+        return [os.path.join(self.logs_dir, f.strip())
+                for f in self.files.split(',')]
     
 
 class LogFilesFinder:
