@@ -1,27 +1,87 @@
 
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
-from langchain.agents import initialize_agent, Tool
+from langchain.agents import initialize_agent, Tool, ZeroShotAgent, AgentExecutor
 
 import whisper
 
 from pathlib import Path
 import os
 
+
 def get_files_list(logs_dir: Path):
     return ", ".join([f"{f}" for f in os.listdir(logs_dir)])
 
+
+def view_csv(csv_file: Path):
+    """ returns the first 4 lines of a csv file. If the file has less than 4 lines, returns all the lines."""
+    with open(csv_file) as f:
+        lines = f.readlines()
+        return "\n".join(lines[:4])
+    
+        
+def append_to_csv(csv_file: Path, row: str):
+    with open(csv_file, 'a') as f:
+        f.write(row)
+        f.write("\n")
+    
+
 TOOLS = [
     Tool(
-        name = "list_files",
-        func = get_files_list,
-        description = "Lists all the log files that currently exist for the user."
-    )]
+        name="list_files",
+        func=get_files_list,
+        description="Lists all the log files that currently exist for the user."),
+    Tool(name = "view_csv",
+         func = view_csv,
+         description="Shows the header and the first few lines of a csv file. Useful for seeing how the csv is formatted and what fields it has."),
+    Tool(name="append_to_csv",
+         func=append_to_csv,
+         description="Appends a row to a csv file. Useful for adding a new log entry to a csv file.")
+    ]
 
 
 class TranscriptLogger:
-    def __init__(self, transcript: str) -> None:
+    prompt_prefix = """
+## Instructions ##
+    Your objective is to write log entries for a user, based on an audio transcript.
+    The user who recorded the audio is trying to log something, or multiple somethings. It is also possible the transcript is not trying to log anything.
+    If it's trying to log something, write a log entry for each thing the user is trying to log.
+    I will give you a list of files that correspond to topics that can be logged to. Log the right thing to the right file.
+    
+    For now, do not actually write to disk. Instead, just report what you would add to each file.
+"""
+
+    prompt_suffix = """
+
+## relevant files ##
+    {relevant_files}
+
+### Transcript ###
+    {transcript}
+"""
+
+    
+    def __init__(self, transcript: str, logs_dir: Path, llm: OpenAI) -> None:
         self.transcript = transcript
+        self.logs_dir = logs_dir
+        self.llm = llm
+        self.agent = initialize_agent(TOOLS, llm, agent="zero-shot-react-description", verbose=True)
+
+    @property
+    def prompt(self):
+        return ZeroShotAgent.create_prompt(
+            TOOLS, 
+            prefix=self.prompt_prefix, 
+            suffix=self.prompt_suffix, 
+            input_variables=["files", "transcript", "agent_scratchpad"])
+        
+    def write_to_files(self):
+        agent_executor = AgentExecutor.from_agent_and_tools(agent=self.agent, tools=TOOLS, verbose=True)
+        agent_executor.run(transcript=self.transcript, relevant_files=self.relevant_files)
+    
+    def relevant_files(self):
+        files_finder = LogFilesFinder(self.transcript, Path(self.logs_dir), self.llm)
+        return files_finder.relevant_files
     
 
 class LogFilesFinder:
@@ -44,9 +104,9 @@ class LogFilesFinder:
 ## Files that correspond to the transcript ##
 """
 
-    def __init__(self, transcript_text: str, log_files_dir: Path, llm: OpenAI) -> None:
+    def __init__(self, transcript_text: str, logs_dir: Path, llm: OpenAI) -> None:
         self.transcript_text = transcript_text
-        self.log_files_dir = log_files_dir
+        self.log_files_dir = logs_dir
         self.llm = llm
         self.prompt_template = PromptTemplate(input_variables=["files", "transcript"],
                                               template=self.prompt_text)
@@ -60,7 +120,7 @@ class LogFilesFinder:
         return self.prompt_template.format(files=self.file_options, transcript=self.transcript_text)
     
     @property
-    def recommended_files(self):
+    def relevant_files(self):
         return self.llm(self.prompt)
     
     
