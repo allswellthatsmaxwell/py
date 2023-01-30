@@ -1,10 +1,14 @@
+import * as React from 'react';
+import { StyleSheet, Text, View, Button } from 'react-native';
+import { Audio } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import RNFS from 'react-native-fs';
 
 export default function App() {
   return (
     <View style={styles.container}>
       <Text>Structured Voice Logger?!</Text>
+      <AudioRecorder />
       <StatusBar style="auto" />
     </View>
   );
@@ -18,3 +22,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+const audioSaveDirectory = `${RNFS.ExternalDirectoryPath}/recordings`;
+
+
+
+// makes a button to record audio
+function AudioRecorder() {
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [recording, setRecording] = React.useState();
+
+  
+  async function startRecording() {
+    try {
+      console.log('Requesting permissions..');
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      console.log('Starting recording..');
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      console.log('Recording started');
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }
+  }
+
+  async function stopRecording() {
+    console.log('Stopping recording..');
+    setRecording(undefined);
+    await recording.stopAndUnloadAsync();
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+    });
+    const uri = recording.getURI();
+    console.log('Recording stopped and stored at', uri);
+  }
+
+  async function saveRecording() {
+    console.log('Saving recording..');
+    try {
+      await RNFS.mkdir(appDirectory);
+      const filePath = `${audioSaveDirectory}/recording.m4a`;
+      await RNFS.copyFile(recording.getURI(), filePath);
+      console.log('Recording saved to', filePath);
+    } catch (err) {
+      console.error('Failed to save recording', err);
+    }
+  }
+
+  // records, then saves the recording. The recording button
+  // changes to a stop button when recording.
+  return (
+    <View>
+      <Button
+        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+        onPress={async () => {
+          if (isRecording) {
+            await stopRecording();
+          } else {
+            await startRecording();
+          }
+          setIsRecording(!isRecording);
+        }
+      }
+      />
+      <Button
+        title="Save Recording"
+        onPress={async () => {
+          await saveRecording();
+        }
+      }
+      />
+    </View>
+  );
+}
