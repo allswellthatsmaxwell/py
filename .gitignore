@@ -1,2 +1,7 @@
 /__pycache__
 /log1.wav
+node_modules
+yarn.lock
+package-lock.json
+babel.config.js
+.expo
