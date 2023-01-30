@@ -4,6 +4,7 @@ import { Audio } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
 import RNFS from 'react-native-fs';
 
+
 export default function App() {
   return (
     <View style={styles.container}>
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const audioSaveDirectory = `${RNFS.ExternalDirectoryPath}/recordings`;
+// const audioSaveDirectory = `${RNFS.ExternalDirectoryPath}/recordings`;
 
 
 
@@ -60,21 +61,30 @@ function AudioRecorder() {
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
     });
-    const uri = recording.getURI();
-    console.log('Recording stopped and stored at', uri);
+    const audioFile = recording.getURI();
+
+    // set the path where you want to save the recording
+    const path = RNFS.DocumentDirectoryPath + '/recordings/recording.m4a';
+    RNFS.copyFile(audioFile, path)
+      .then(() => {
+        console.log('Recording saved at:', path);
+      })
+      .catch((err) => {
+        console.error('Failed to save recording', err);
+      });
   }
 
-  async function saveRecording() {
-    console.log('Saving recording..');
-    try {
-      await RNFS.mkdir(appDirectory);
-      const filePath = `${audioSaveDirectory}/recording.m4a`;
-      await RNFS.copyFile(recording.getURI(), filePath);
-      console.log('Recording saved to', filePath);
-    } catch (err) {
-      console.error('Failed to save recording', err);
-    }
-  }
+  // async function saveRecording() {
+  //   console.log('Saving recording..');
+  //   try {
+  //     await RNFS.mkdir(appDirectory);
+  //     const filePath = `${audioSaveDirectory}/recording.m4a`;
+  //     await RNFS.copyFile(recording.getURI(), filePath);
+  //     console.log('Recording saved to', filePath);
+  //   } catch (err) {
+  //     console.error('Failed to save recording', err);
+  //   }
+  // }
 
   // records, then saves the recording. The recording button
   // changes to a stop button when recording.

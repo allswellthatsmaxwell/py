@@ -7,3 +7,5 @@ babel.config.js
 .expo
 yarn.lock/
 yarn-error.log
+removed/node_modules
+test_recordings/
