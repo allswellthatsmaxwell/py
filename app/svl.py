@@ -136,12 +136,12 @@ def read_file(filename, chunk_size=5242880):
             if not data:
                 break
             yield data
-            
-            
+
+
 class Transcriber:
     headers = { "Authorization": os.environ["ASSEMBLY_AI_API_KEY"] }
     
-    def __init__(self, audio_dir: Path, audio_extension='.m4a') -> None:
+    def __init__(self, audio_dir: Path=None, audio_extension='.m4a') -> None:
         self.audio_dir = audio_dir
         self.audio_extension = audio_extension
     
