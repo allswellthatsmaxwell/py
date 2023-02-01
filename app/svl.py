@@ -141,7 +141,6 @@ def read_file(filename, chunk_size=5242880):
             
             
 class Transcriber:
-    
     headers = { "Authorization": os.environ["ASSEMBLY_AI_API_KEY"] }
     
     def __init__(self, audio_dir: Path, audio_extension='.m4a') -> None:

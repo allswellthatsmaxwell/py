@@ -1,8 +1,10 @@
+$.ajaxSetup({ cache: false });
+
 import * as React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { Audio } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
-import RNFS from 'react-native-fs';
+// import RNFS from 'react-native-fs';
 
 
 export default function App() {
@@ -53,6 +55,29 @@ function AudioRecorder() {
       console.error('Failed to start recording', err);
     }
   }
+  
+  async function sendRecording(recording) {
+    try {
+      console.log('Sending recording to server...');
+  
+      const formData = new FormData();
+      formData.append('audio', {
+        uri: recording.getURI(),
+        type: 'audio/wav',
+        name: 'recording.wav'
+      });
+  
+      const response = await fetch('http://localhost:8000/upload', {
+        method: 'POST',
+        body: formData
+      });
+  
+      console.log('Recording sent successfully');
+    } catch (err) {
+      console.error('Failed to send recording', err);
+    }
+  }
+
 
   async function stopRecording() {
     console.log('Stopping recording..');
@@ -61,17 +86,20 @@ function AudioRecorder() {
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
     });
-    const audioFile = recording.getURI();
+    
+    sendRecording(recording);
+
+    // const audioFile = recording.getURI();
 
     // set the path where you want to save the recording
-    const path = RNFS.DocumentDirectoryPath + '/recordings/recording.m4a';
-    RNFS.copyFile(audioFile, path)
-      .then(() => {
-        console.log('Recording saved at:', path);
-      })
-      .catch((err) => {
-        console.error('Failed to save recording', err);
-      });
+    // const path = RNFS.DocumentDirectoryPath + '/recordings/recording.m4a';
+    // RNFS.copyFile(audioFile, path)
+    //   .then(() => {
+    //     console.log('Recording saved at:', path);
+    //   })
+    //   .catch((err) => {
+    //     console.error('Failed to save recording', err);
+    //   });
   }
 
   // async function saveRecording() {
