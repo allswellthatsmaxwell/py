@@ -1,4 +1,3 @@
-$.ajaxSetup({ cache: false });
 
 import * as React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
@@ -67,7 +66,7 @@ function AudioRecorder() {
         name: 'recording.wav'
       });
   
-      const response = await fetch('http://localhost:8000/upload', {
+      const response = await fetch('http://localhost:5000/upload', {
         method: 'POST',
         body: formData
       });

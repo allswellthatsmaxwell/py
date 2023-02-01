@@ -9,3 +9,4 @@ yarn.lock/
 yarn-error.log
 removed/node_modules
 test_recordings/
+dev_app_data/

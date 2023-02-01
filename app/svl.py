@@ -2,8 +2,6 @@
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 
-import whisper
-
 from pathlib import Path
 import os
 import json
