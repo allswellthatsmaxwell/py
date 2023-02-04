@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 // import FileSystem from 'expo-file-system';
 import * as FileSystem from 'expo-file-system';
 
+
 export default function App() {
   return (
     <View style={styles.container}>
@@ -38,6 +39,13 @@ function AudioRecorder() {
   
   async function startRecording() {
     try {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          console.log("Microphone access granted");
+        })
+        .catch(function(error) {
+          console.error("Microphone access denied", error);
+      });
       console.log('Requesting permissions..');
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
@@ -58,7 +66,6 @@ function AudioRecorder() {
   
   async function sendRecording(recording) {
     try {
-      console.log('Sending recording to server...');
   
       const formData = new FormData();
       formData.append('audio', {
@@ -98,7 +105,7 @@ function AudioRecorder() {
     
     const uri = recording.getURI();
     console.log('Recording stopped and stored at', uri);
-    
+
     sendRecording(recording);
   }
 

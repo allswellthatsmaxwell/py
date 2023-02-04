@@ -1,4 +1,4 @@
-from flask import request, Blueprint, Flask
+from flask import request, Blueprint, Flask, make_response
 from . import filesystem#, svl
 import os
 
@@ -7,6 +7,7 @@ app_routes = Blueprint("app_routes", __name__)
 
 filesystem = filesystem.FileSystem("/mnt/c/Users/allsw/projects/structured-voice-logging/dev_app_data")
 
+ 
 @app_routes.route("/upload", methods=["POST"])
 def recording():
     # saves an audio file to the filesystem, returns the filename
@@ -20,4 +21,6 @@ def recording():
     destpath = f"{dest_dir}/rec1.mp4"
     filesystem.save(destpath, audio_data)
     # transcription = svl.Transcriber()
-    return destpath
+    response = make_response(destpath)
+    response.headers['Permissions-Policy'] = 'microphone=(self)'
+    return response
