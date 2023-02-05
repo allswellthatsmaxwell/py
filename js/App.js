@@ -27,21 +27,21 @@ const styles = StyleSheet.create({
 });
 
 
-  // a button that starts red and alternates between red and blue on click
-  function ChangeColor() {
-    const [color, setColor] = React.useState('red');
-    return (
-      <View>
-        <Button
-          title="Change Color"
-          color={color}
-          onPress={() => {
-            setColor(color === 'red' ? 'blue' : 'red');
-          }}
-        />
-      </View>
-    );
-  }
+// a button that starts red and alternates between red and blue on click
+function ChangeColor() {
+  const [color, setColor] = React.useState('red');
+  return (
+    <View>
+      <Button
+        title="Change Color"
+        color={color}
+        onPress={() => {
+          setColor(color === 'red' ? 'blue' : 'red');
+        }}
+      />
+    </View>
+  );
+}
 
 
 // makes a button to record audio
@@ -68,45 +68,49 @@ function AudioRecorder() {
       console.error('Failed to start recording', err);
     }
   }
-  
 
-  // a button that starts red and turns blue when pressed
-  async function changeColor() {
-    if (this.state.color == 'red') {
-      this.setState({color: 'blue'});
-    } else {
-      this.setState({color: 'red'});
-    }
+  async function playRecording() {
+    // plays the recording in a way that will work on an iOS device
+    console.log('Playing recording..');
+    const { sound } = await recording.createNewLoadedSoundAsync();
+    await sound.playAsync();
+
+    // this is a hack to make sure the sound plays
+    // setTimeout(() => {
+    //   sound.unloadAsync();
+    // }
+    // , 1000);
+
   }
-
 
   
   async function sendRecording(recording) {
-    try {
-  
-      const formData = new FormData();
-      formData.append('audio', {
-        uri: recording.getURI(),
-        type: 'audio/m4a',
-        name: 'recording.m4a'
-      });
-      
-      for (var [key, value] of formData.entries()) {
-        console.log(key, value);
+    // sends the recording in a way that will work on an iOS device.,
+    // the endpoint is a python flask server hosted on pythonanywhere.com, URL https://spherecatcher.pythonanywhere.com/upload
+    playRecording();
+    const uri = recording.getURI();
+    const uriParts = uri.split('.');
+    const fileType = uriParts[uriParts.length - 1];
+    const formData = new FormData();
+    formData.append('file', {
+      uri,
+      name: `recording.${fileType}`,
+      type: `audio/${fileType}`,
+    });
+    const options = {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
+      },
+    };
+    // does the POST and logs the response from the server, whether it's an error or a success
+    fetch('https://spherecatcher.pythonanywhere.com/upload', options)
+      .then((responseJson) => {
+        console.log(responseJson);
       }
-  
-      const response = await fetch('http://localhost:5000/upload', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'content-type': 'multipart/form-data',
-        },        
-      });
-  
-      console.log('Recording sent successfully');
-    } catch (err) {
-      console.error('Failed to send recording', err);
-    }
+    );
   }
 
 
