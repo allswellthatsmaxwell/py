@@ -11,20 +11,29 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "jsEngine": "hermes",
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/27e7e20e-3414-4f58-b309-8183d7b855a8"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.spherecatcher.structuredvoicelogger",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.spherecatcher.structuredvoicelogger"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,6 +43,7 @@
         "projectId": "27e7e20e-3414-4f58-b309-8183d7b855a8"
       }
     },
-    "owner": "sphere-catcher"
+    "owner": "sphere-catcher",
+    "runtimeVersion": "exposdk:47.0.0"
   }
 }

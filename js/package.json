@@ -1,12 +1,11 @@
 {
   "name": "structured-voice-logger",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
   "proxy": "http://localhost:5000",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -22,7 +21,10 @@
     "react-native-fs": "^2.20.0",
     "react-native-web": "~0.18.7",
     "typescript": "^4.6.3",
-    "expo-file-system": "~15.1.1"
+    "expo-file-system": "~15.1.1",
+    "expo-updates": "~0.15.6",
+    "expo-splash-screen": "~0.17.5",
+    "expo-dev-client": "~2.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3"

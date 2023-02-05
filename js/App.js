@@ -4,8 +4,6 @@ import { StyleSheet, Text, View, Button } from 'react-native';
 import { Audio } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
 // import RNFS from 'react-native-fs';
-// import FileSystem from 'expo-file-system';
-import * as FileSystem from 'expo-file-system';
 
 
 export default function App() {
@@ -13,6 +11,7 @@ export default function App() {
     <View style={styles.container}>
       <Text>Structured Voice Logger?!</Text>
       <AudioRecorder />
+      <ChangeColor />
       <StatusBar style="auto" />
     </View>
   );
@@ -27,8 +26,22 @@ const styles = StyleSheet.create({
   },
 });
 
-// uses expo-file-system to specify the recordings directory
-const audioSaveDirectory = `${FileSystem.documentDirectory}/recordings`;
+
+  // a button that starts red and alternates between red and blue on click
+  function ChangeColor() {
+    const [color, setColor] = React.useState('red');
+    return (
+      <View>
+        <Button
+          title="Change Color"
+          color={color}
+          onPress={() => {
+            setColor(color === 'red' ? 'blue' : 'red');
+          }}
+        />
+      </View>
+    );
+  }
 
 
 // makes a button to record audio
@@ -38,31 +51,35 @@ function AudioRecorder() {
 
   
   async function startRecording() {
+    // request microphone permissions in a way that works on an iOS device
     try {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function(stream) {
-          console.log("Microphone access granted");
-        })
-        .catch(function(error) {
-          console.error("Microphone access denied", error);
-      });
-      console.log('Requesting permissions..');
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
-
-      console.log('Starting recording..');
       const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
+        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
       );
       setRecording(recording);
       console.log('Recording started');
+      await recording.startAsync();
     } catch (err) {
       console.error('Failed to start recording', err);
     }
   }
+  
+
+  // a button that starts red and turns blue when pressed
+  async function changeColor() {
+    if (this.state.color == 'red') {
+      this.setState({color: 'blue'});
+    } else {
+      this.setState({color: 'red'});
+    }
+  }
+
+
   
   async function sendRecording(recording) {
     try {
@@ -101,67 +118,14 @@ function AudioRecorder() {
       allowsRecordingIOS: true,
     });
     
-    // saveRecording(recording);
-    
     const uri = recording.getURI();
     console.log('Recording stopped and stored at', uri);
 
     sendRecording(recording);
   }
 
-  async function drawRecording(recording) {
-    // draws the sound wave of the recording
-  
-    function drawWaveform(data) {
-      // draw the waveform
-      const canvas = document.getElementById('waveform');
-      const canvasCtx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-      const barWidth = width / data.length;
-      let barHeight;
-      let x = 0;
-  
-      for (let i = 0; i < data.length; i++) {
-        barHeight = data[i] / 2;
-  
-        canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
-        canvasCtx.fillRect(x, height - barHeight / 2, barWidth, barHeight);
-  
-        x += barWidth + 1;
-      }
-    }
 
-    const { sound, status } = await recording.createNewLoadedSoundAsync({
-      isLooping: true,
-      isMuted: false,
-      volume: 1.0,
-      rate: 1.0,
-      shouldCorrectPitch: true,
-    });
-    const data = await sound.getPeakPCMAsync();
-    drawWaveform(data);
-  }
-
-
-  async function saveRecording(recording) {
-    console.log('Saving recording..');
-    try {
-      await FileSystem.makeDirectoryAsync(audioSaveDirectory, {
-        intermediates: true,
-      });
-      const filePath = `${audioSaveDirectory}/recording.m4a`;
-      await FileSystem.moveAsync({
-        from: recording.getURI(),
-        to: filePath,
-      });
-      console.log('Recording saved to', filePath);
-    } catch (err) {
-      console.error('Failed to save recording', err);
-    }
-  }
-
-  // records, then saves the recording. The recording button
+  // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
     <View>
@@ -174,13 +138,6 @@ function AudioRecorder() {
             await startRecording();
           }
           setIsRecording(!isRecording);
-        }
-      }
-      />
-      <Button
-        title="Save Recording"
-        onPress={async () => {
-          await saveRecording();
         }
       }
       />
