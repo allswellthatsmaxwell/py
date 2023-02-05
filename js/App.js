@@ -9,7 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Structured Voice Logger?!</Text>
+      <Text>Structured Voice Logger</Text>
       <AudioRecorder />
       <ChangeColor />
       <StatusBar style="auto" />
@@ -74,19 +74,11 @@ function AudioRecorder() {
     console.log('Playing recording..');
     const { sound } = await recording.createNewLoadedSoundAsync();
     await sound.playAsync();
-
-    // this is a hack to make sure the sound plays
-    // setTimeout(() => {
-    //   sound.unloadAsync();
-    // }
-    // , 1000);
-
   }
 
   
   async function sendRecording(recording) {
-    // sends the recording in a way that will work on an iOS device.,
-    // the endpoint is a python flask server hosted on pythonanywhere.com, URL https://spherecatcher.pythonanywhere.com/upload
+    // sends the recording in a way that will work on an iOS device.
     playRecording();
     const uri = recording.getURI();
     const uriParts = uri.split('.');
@@ -96,6 +88,7 @@ function AudioRecorder() {
       uri,
       name: `recording.${fileType}`,
       type: `audio/${fileType}`,
+      extension: fileType,
     });
     const options = {
       method: 'POST',
