@@ -22,7 +22,7 @@ def recording():
     dest_dir = os.path.join(filesystem.root, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
     
-    destpath = f"{dest_dir}/rec1.mp4"
+    destpath = f"{dest_dir}/rec1.m4a"
     filesystem.save(destpath, audio_data)
     # transcription = svl.Transcriber()
     response = make_response(destpath)
