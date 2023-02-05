@@ -18,7 +18,6 @@ def recording():
     audio_data = audio_file.read()
     extension = audio_file.filename.split(".")[-1]
     app.logger.info(f"extension: {extension}")
-    extension = 'm4a'
     
     dest_dir = os.path.join(filesystem.root, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
