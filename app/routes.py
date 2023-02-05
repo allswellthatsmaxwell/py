@@ -1,6 +1,7 @@
 from flask import request, Blueprint, Flask, make_response
-from . import filesystem#, svl
 import os
+
+import filesystem
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
