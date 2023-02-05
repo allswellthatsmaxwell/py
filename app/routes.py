@@ -16,10 +16,8 @@ def recording():
     
     audio_file = request.files['file']
     audio_data = audio_file.read()
-    # prints the audio data as a string, and its length
-    print(audio_data)
     
-    app.logger.info(audio_data)
+    # app.logger.info(audio_data)
     
     dest_dir = os.path.join(filesystem.root, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
