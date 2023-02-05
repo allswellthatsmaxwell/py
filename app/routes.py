@@ -13,7 +13,11 @@ filesystem = filesystem.FileSystem(root="/home/spherecatcher/structured-voice-lo
 def recording():
     # saves an audio file to the filesystem, returns the filename
     print("Entering routes.recording...")
-    audio_data = request.data
+    
+    audio_file = request.files['file']
+    audio_data = audio_file.read()
+    # prints the audio data as a string, and its length
+    print(audio_data)
     
     app.logger.info(audio_data)
     
