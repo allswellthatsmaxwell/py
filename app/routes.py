@@ -6,7 +6,7 @@ from . import filesystem
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
 
-filesystem = filesystem.FileSystem(root="/home/spherecatcher/structured-voice-logging/dev_app_data")
+filesystem = filesystem.FileSystem(root="root/structured-voice-logging/dev_app_data")
 
  
 @app_routes.route("/upload", methods=["POST"])
@@ -23,8 +23,10 @@ def recording():
     os.makedirs(dest_dir, exist_ok=True)
     
     destpath = f"{dest_dir}/rec1.{extension}"
+    app.logger.info(f"Writing to '{destpath}'...", end=" ")
     with open(destpath, "wb") as f:
         f.write(audio_data)
+    app.logger.info("done.")
      
     response = make_response(destpath)
     return response
