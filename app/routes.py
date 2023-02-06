@@ -1,7 +1,7 @@
 from flask import request, Blueprint, Flask, make_response
 import os
 
-import filesystem
+from . import filesystem
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
