@@ -1,5 +1,6 @@
 from flask import request, Blueprint, Flask, make_response
 import os
+from typing import Dict
 
 from . import filesystem, transcriber
 
@@ -31,16 +32,16 @@ def recording():
         f.write(audio_data)
     app.logger.info("Done writing.")
      
-    response = make_response(destpath)
     
     app.logger.info("Transcribing.")
-    transcribe(destpath)
+    transcript_data = transcribe(destpath)
     app.logger.info("Done transcribing.")
+    transcript_text = transcript_data["text"]
     
-    return response
+    return make_response(transcript_text)
 
 
-def transcribe(audio_file: str) -> str:
+def transcribe(audio_file: str) -> Dict:
     ts = transcriber.Transcriber(audio_dir=f"{filesystem.root}/recordings")
     transcript = ts.transcribe(audio_file)
     app.logger.info(f'transcript: "{transcript}"')
