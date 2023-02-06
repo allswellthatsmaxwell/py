@@ -1,5 +1,6 @@
 import os, requests
 from typing import Dict
+from pathlib import Path
 
 
 def read_file(filename, chunk_size=5242880):
