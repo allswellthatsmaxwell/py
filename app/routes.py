@@ -6,7 +6,9 @@ from . import filesystem
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
 
-filesystem = filesystem.FileSystem(root="root/structured-voice-logging/dev_app_data")
+HOMEDIR = os.path.expanduser("~")
+
+filesystem = filesystem.FileSystem(root=f"{HOMEDIR}/structured-voice-logging/dev_app_data")
 
  
 @app_routes.route("/upload", methods=["POST"])
