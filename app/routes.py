@@ -46,7 +46,7 @@ def recording():
     # return make_response(task.id)
 
 
-@app.task
+@mq.task
 def transcribe(audio_file: str) -> Dict:
     ts = transcriber.Transcriber(audio_dir=f"{filesystem.root}/recordings")
     transcript = ts.transcribe(audio_file)
