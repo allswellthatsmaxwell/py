@@ -1,14 +1,15 @@
 from flask import request, Blueprint, Flask, make_response
 import os
 
-from . import filesystem
+from . import filesystem, transcriber
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
 
 HOMEDIR = os.path.expanduser("~")
+APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
 
-filesystem = filesystem.FileSystem(root=f"{HOMEDIR}/structured-voice-logging/dev_app_data")
+filesystem = filesystem.FileSystem(root=APPDATA_PATH)
 
  
 @app_routes.route("/upload", methods=["POST"])
@@ -28,9 +29,18 @@ def recording():
     app.logger.info(f"Writing to '{destpath}'.")
     with open(destpath, "wb") as f:
         f.write(audio_data)
-    app.logger.info("Done.")
+    app.logger.info("Done writing.")
      
     response = make_response(destpath)
+    
+    app.logger.info("Transcribing.")
+    transcribe(destpath)
+    app.logger.info("Done transcribing.")
+    
     return response
 
 
+def transcribe(audio_file: str) -> str:
+    ts = transcriber.Transcriber(audio_dir=f"{filesystem.root}/recordings")
+    transcript = ts.transcribe(audio_file)
+    app.logger.info(f'transcript: "{transcript}"')
