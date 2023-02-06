@@ -23,12 +23,10 @@ def recording():
     os.makedirs(dest_dir, exist_ok=True)
     
     destpath = f"{dest_dir}/rec1.{extension}"
-    # saves the .m4a audio data to destpath
     with open(destpath, "wb") as f:
         f.write(audio_data)
-        
-    
-    
      
     response = make_response(destpath)
     return response
+
+
