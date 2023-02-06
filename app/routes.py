@@ -23,10 +23,10 @@ def recording():
     os.makedirs(dest_dir, exist_ok=True)
     
     destpath = f"{dest_dir}/rec1.{extension}"
-    app.logger.info(f"Writing to '{destpath}'...", end=" ")
+    app.logger.info(f"Writing to '{destpath}'.")
     with open(destpath, "wb") as f:
         f.write(audio_data)
-    app.logger.info("done.")
+    app.logger.info("Done.")
      
     response = make_response(destpath)
     return response
