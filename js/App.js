@@ -10,7 +10,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>Structured Voice Logger</Text>
-      <AudioRecorder />
+      <AudioRecorder />      
       <ChangeColor />
       <StatusBar style="auto" />
     </View>
@@ -25,6 +25,57 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+function listenForTranscription() {
+  // Create a new WebSocket instance
+  const socket = new WebSocket("ws://159.65.244.4:5555/transcription");
+
+  // Connection opened
+  socket.addEventListener("open", (event) => {
+    socket.send("Start listening for transcription");
+  });
+
+  // Listen for messages
+  socket.addEventListener("message", (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "transcription") {
+      // Update UI with transcription text
+      document.getElementById("transcription-text").innerText = data.text;
+      // Close the socket
+      socket.close();
+    }
+  });
+}
+
+// // listens for the transcript
+// const socket = new WebSocket('ws://159.65.244.4:5555/transcription_status');
+
+// socket.onopen = function (event) {
+//   console.log('WebSocket connection opened: ', event);
+// };
+
+// socket.onmessage = function (event) {
+//   console.log('Message received from server: ', event.data);
+//   document.getElementById('message-container').innerHTML = event.data;
+// };
+
+// socket.onerror = function (error) {
+//   console.error('WebSocket error: ', error);
+// };
+
+// socket.onclose = function (event) {
+//   console.log('WebSocket connection closed: ', event);
+// };
+
+// // a box that displays the transcript
+// function Transcript() {
+//   return (
+//     <View>
+//       <Text id="message-container" />
+//     </View>
+//   );
+// }
+
 
 
 // a button that starts red and alternates between red and blue on click
@@ -42,6 +93,7 @@ function ChangeColor() {
     </View>
   );
 }
+
 
 
 // makes a button to record audio
@@ -98,12 +150,19 @@ function AudioRecorder() {
         'Content-Type': 'multipart/form-data',
       },
     };
-    // does the POST and logs the response from the server, whether it's an error or a success
-    fetch('https://spherecatcher.pythonanywhere.com/upload', options)
-      .then((responseJson) => {
-        console.log(responseJson);
-      }
-    );
+
+    // does the POST and logs the response from the server, whether it's an error or a success.
+    // also returns the response as a JSON object.
+    fetch('http://159.65.244.4:5555/upload', options)
+      .then((response) => response.json())
+      .then((response) => {
+        console.log('Success:', response);
+        return response;
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        return error;
+      });      
   }
 
 
@@ -141,3 +200,4 @@ function AudioRecorder() {
     </View>
   );
 }
+
