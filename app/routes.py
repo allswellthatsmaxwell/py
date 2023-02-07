@@ -39,11 +39,11 @@ def recording():
     
     transcript = transcribe(destpath)
     app.logger.info(f'transcript: "{transcript}"')
-    return make_response(transcript["text"])
+    # return make_response(transcript["text"])
      
-    # task = transcribe.apply_async(args=[destpath])
-    # app.logger.info(f"Transcribing. Task ID: {task.id}")
-    # return make_response(task.id)
+    task = transcribe.apply_async(args=[destpath])
+    app.logger.info(f"Transcribing. Task ID: {task.id}")
+    return make_response(task.id)
 
 
 @mq.task
