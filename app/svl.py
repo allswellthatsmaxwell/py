@@ -94,15 +94,23 @@ class LogFilesFinder:
     prompt_text = """
 ## Instructions
     Your objective is to report which of a list of files corresponds to an audio transcript. 
-    The user who recorded the audio is trying to log something, or multiple somethings, and the files I'll give you correspond to topics that can be logged to.
+    The user who recorded the audio is trying to log something, or multiple somethings, 
+    and the files I'll give you correspond to topics that can be logged to.
 
-    The user may be trying to log multiple things at once. If so, report every file that corresponds to a topic that can be logged to. 
-    Report only the files that the user is trying to log to, separated by a comma, and nothing more.
+    There are multiple different cases you have to handle:
+    
+    ### Proper logging attempt, single corresponding file.
+        If the transcript is trying to log something, and a file exists that corresponds to what the user is trying to log,
+        output the name of that file, and nothing else.
+    
+    ### Proper logging attempt, multiple corresponding files.
+    The user may be trying to log multiple things at once. 
+    If so, report every file that corresponds to a topic that can be logged to, separated by a comma, and nothing more.
     
     ### Proper logging attempt, no corresponding file
         If there is no appropriate file, or there are no files at all,
         but the transcript could potentially be logging something, 
-        suggest a filename that would be appropriate for what they are trying to log.
+        create and report a filename that would be appropriate for what they are trying to log.
 
 ## files for the existing log topics
     {files}
