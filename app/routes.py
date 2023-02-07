@@ -38,8 +38,8 @@ def recording():
     app.logger.info("Done writing.")
     
     transcript = transcribe(destpath)
-    app.logger.info(f'transcript: "{transcript}"')
-    # return make_response(transcript["text"])
+    text = transcript['text']
+    app.logger.info(f'transcript: "{text}"')
      
     task = transcribe.apply_async(args=[destpath])
     app.logger.info(f"Transcribing. Task ID: {task.id}")

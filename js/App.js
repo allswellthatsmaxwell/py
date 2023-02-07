@@ -3,15 +3,15 @@ import * as React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { Audio } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
-// import RNFS from 'react-native-fs';
 
 
 export default function App() {
   return (
     <View style={styles.container}>
       <Text>Structured Voice Logger</Text>
-      <AudioRecorder />      
+      <AudioRecorder />
       <ChangeColor />
+      <Text id="transcription-text"></Text>
       <StatusBar style="auto" />
     </View>
   );
@@ -25,57 +25,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-
-function listenForTranscription() {
-  // Create a new WebSocket instance
-  const socket = new WebSocket("ws://159.65.244.4:5555/transcription");
-
-  // Connection opened
-  socket.addEventListener("open", (event) => {
-    socket.send("Start listening for transcription");
-  });
-
-  // Listen for messages
-  socket.addEventListener("message", (event) => {
-    const data = JSON.parse(event.data);
-    if (data.type === "transcription") {
-      // Update UI with transcription text
-      document.getElementById("transcription-text").innerText = data.text;
-      // Close the socket
-      socket.close();
-    }
-  });
-}
-
-// // listens for the transcript
-// const socket = new WebSocket('ws://159.65.244.4:5555/transcription_status');
-
-// socket.onopen = function (event) {
-//   console.log('WebSocket connection opened: ', event);
-// };
-
-// socket.onmessage = function (event) {
-//   console.log('Message received from server: ', event.data);
-//   document.getElementById('message-container').innerHTML = event.data;
-// };
-
-// socket.onerror = function (error) {
-//   console.error('WebSocket error: ', error);
-// };
-
-// socket.onclose = function (event) {
-//   console.log('WebSocket connection closed: ', event);
-// };
-
-// // a box that displays the transcript
-// function Transcript() {
-//   return (
-//     <View>
-//       <Text id="message-container" />
-//     </View>
-//   );
-// }
-
 
 
 // a button that starts red and alternates between red and blue on click
@@ -93,8 +42,6 @@ function ChangeColor() {
     </View>
   );
 }
-
-
 
 // makes a button to record audio
 function AudioRecorder() {
@@ -131,7 +78,7 @@ function AudioRecorder() {
   
   async function sendRecording(recording) {
     // sends the recording in a way that will work on an iOS device.
-    playRecording();
+    // playRecording();
     const uri = recording.getURI();
     const uriParts = uri.split('.');
     const fileType = uriParts[uriParts.length - 1];
@@ -153,8 +100,11 @@ function AudioRecorder() {
 
     // does the POST and logs the response from the server, whether it's an error or a success.
     // also returns the response as a JSON object.
-    fetch('http://159.65.244.4:5555/upload', options)
-      .then((response) => response.json())
+    return fetch('http://159.65.244.4:5555/upload', options)
+      .then((response) => {
+        console.log('Response from upload: ', response.text);
+        response.json()
+      })
       .then((response) => {
         console.log('Success:', response);
         return response;
@@ -177,7 +127,9 @@ function AudioRecorder() {
     const uri = recording.getURI();
     console.log('Recording stopped and stored at', uri);
 
-    sendRecording(recording);
+    const taskId = await sendRecording(recording);
+    console.log("Task ID: ", taskId);
+    listenForTranscription(taskId);
   }
 
 
@@ -201,3 +153,24 @@ function AudioRecorder() {
   );
 }
 
+
+function listenForTranscription(taskId) {
+  // Create a new WebSocket instance
+  const socket = new WebSocket("ws://159.65.244.4:5555/transcription/${taskId}");
+
+  // Connection opened
+  socket.addEventListener("open", (event) => {
+    socket.send("Start listening for transcription");
+  });
+
+  // Listen for messages
+  socket.addEventListener("message", (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "transcription") {
+      // Update UI with transcription text
+      document.getElementById("transcription-text").innerText = data.text;
+      // Close the socket
+      socket.close();
+    }
+  });
+}
