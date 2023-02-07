@@ -2,3 +2,5 @@ flask_cors
 requests
 celery
 Redis
+langchain
+openai

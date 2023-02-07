@@ -89,6 +89,9 @@ class TranscriptLogger:
                 for f in self.files.split(',')]
     
 
+# TODO 2/6: Make a separate prompt to handle the zero-files case, and use it when there are no files. 
+# easier to write the prompts that way, and saves tokens.
+
 class LogFilesFinder:
     
     prompt_text = """

@@ -6,16 +6,21 @@ import { StatusBar } from 'expo-status-bar';
 
 
 export default function App() {
+  const [transcriptionText, setTranscriptionText] = React.useState('...');
+  const [topics, setTopics] = React.useState('___');
+
   return (
     <View style={styles.container}>
       <Text>Structured Voice Logger</Text>
-      <AudioRecorder />
+      <AudioRecorder updateText={setTranscriptionText} updateTopics={setTopics} />
       <ChangeColor />
-      <Text id="transcription-text"></Text>
+      <Text id="transcription-text">{transcriptionText}</Text>
+
       <StatusBar style="auto" />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -25,6 +30,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
 
 
 // a button that starts red and alternates between red and blue on click
@@ -44,7 +50,7 @@ function ChangeColor() {
 }
 
 // makes a button to record audio
-function AudioRecorder() {
+function AudioRecorder({ updateText, updateTopics}) {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recording, setRecording] = React.useState();
 
@@ -74,7 +80,6 @@ function AudioRecorder() {
     const { sound } = await recording.createNewLoadedSoundAsync();
     await sound.playAsync();
   }
-
   
   async function sendRecording(recording) {
     // sends the recording in a way that will work on an iOS device.
@@ -100,19 +105,16 @@ function AudioRecorder() {
 
     // does the POST and logs the response from the server, whether it's an error or a success.
     // also returns the response as a JSON object.
-    return fetch('http://159.65.244.4:5555/upload', options)
-      .then((response) => {
-        console.log('Response from upload: ', response.text);
-        response.json()
-      })
-      .then((response) => {
-        console.log('Success:', response);
-        return response;
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        return error;
-      });      
+    try {
+      const response = await fetch('http://159.65.244.4:5555/upload', options);
+      const jsonResponse = await response.json();
+      console.log('Text received:', jsonResponse.text);
+      updateText(jsonResponse.text);
+      return jsonResponse;
+    } catch (error) {
+      console.error('Error:', error);
+      return error;
+    }
   }
 
 
@@ -127,11 +129,24 @@ function AudioRecorder() {
     const uri = recording.getURI();
     console.log('Recording stopped and stored at', uri);
 
-    const taskId = await sendRecording(recording);
-    console.log("Task ID: ", taskId);
-    listenForTranscription(taskId);
+    const jsonResponseTranscript = await sendRecording(recording);
+    // hits the topics endpoint with the text from the response
+    getTopics(jsonResponseTranscript.text);
   }
 
+  async function getTopics(text) {
+    const response = await fetch(`http://159.65.244.4:5555/topics`, {
+      method: 'POST',
+      body: JSON.stringify({text: text}),
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    const jsonResponse = await response.json();
+    console.log('Topics received:', jsonResponse.topics);
+    updateTopics(jsonResponse.topics);
+  }
 
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
