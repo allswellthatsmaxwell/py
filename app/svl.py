@@ -102,16 +102,19 @@ class LogFilesFinder:
 
 ## files for the existing log topics ##
     {files}
- 
+
  ## Transcript ##
     {transcript}
 
 ## Files that correspond to the transcript ##
 """
 
-    def __init__(self, transcript_text: str, logs_dir: Path, llm: OpenAI) -> None:
+    def __init__(self, transcript_text: str, logs_dir: Path, llm: OpenAI = None) -> None:
         self.transcript_text = transcript_text
         self.log_files_dir = logs_dir
+        os.makedirs(self.log_files_dir, exist_ok=True)
+        if llm is None:
+            llm = OpenAI()
         self.llm = llm
         self.prompt_template = PromptTemplate(input_variables=["files", "transcript"],
                                               template=self.prompt_text)
@@ -125,7 +128,7 @@ class LogFilesFinder:
         return self.prompt_template.format(files=self.file_options, transcript=self.transcript_text)
     
     @property
-    def relevant_files(self):
+    def relevant_files(self) -> str:
         return self.llm(self.prompt)
 
 

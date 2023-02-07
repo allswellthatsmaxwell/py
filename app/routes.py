@@ -3,7 +3,8 @@ from flask import request, Blueprint, Flask, make_response
 import os
 from typing import Dict
 
-from . import filesystem, transcriber
+from . import filesystem, transcription
+from .svl import LogFilesFinder
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
@@ -11,13 +12,14 @@ app_routes = Blueprint("app_routes", __name__)
 
 HOMEDIR = os.path.expanduser("~")
 APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
+LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 
 filesystem = filesystem.FileSystem(root=APPDATA_PATH)
 
- 
+
 @app_routes.route("/upload", methods=["POST"])
 def recording():
-    # saves an audio file to the filesystem, returns the filename
+    # saves an audio file to the filesystem, returns the transcription
     print("Entering routes.recording...")
     
     audio_file = request.files['file']
@@ -41,8 +43,18 @@ def recording():
     return make_response(transcript)
 
 
+# an endpoint that takes a transcript and returns a list of topics
+@app_routes.route("/topics", methods=["POST"])
+def topics():
+    transcript = request.get_json()
+    text = transcript['text']
+    file_finder = LogFilesFinder(text, LOGFILES_DIR)
+    topics = {'topics': file_finder.relevant_files}
+    return make_response(topics)
+
+
 def transcribe(audio_file: str) -> Dict:
-    ts = transcriber.Transcriber(audio_dir=f"{filesystem.root}/recordings")
-    transcript = ts.transcribe(audio_file)
+    transcriber = transcription.Transcriber(audio_dir=f"{filesystem.root}/recordings")
+    transcript = transcriber.transcribe(audio_file)
     app.logger.info(f'transcript: "{transcript}"')
     return transcript
