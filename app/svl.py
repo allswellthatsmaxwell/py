@@ -100,13 +100,9 @@ class LogFilesFinder:
     Report only the files that the user is trying to log to, separated by a comma, and nothing more.
     
     ### Proper logging attempt, no corresponding file
-        If there is no appropriate file, but the transcript could potentially be logging something, 
-        suggest a filename that would be appropriate.
-        
-    ### Improper logging attempt    
-        If you can't identify anything the transcript might be trying to log, 
-        regardless of whether there is a corresponding file,
-        report "NO_TOPIC_IDENTIFIED_IN_TRANSCRIPT", and nothing else.
+        If there is no appropriate file, or there are no files at all,
+        but the transcript could potentially be logging something, 
+        suggest a filename that would be appropriate for what they are trying to log.
 
 ## files for the existing log topics
     {files}
@@ -116,6 +112,11 @@ class LogFilesFinder:
 
 ## Files that correspond to the transcript ##
 """
+    
+# ### Improper logging attempt    
+#     If you can't identify anything the transcript might be trying to log, 
+#     regardless of whether there is a corresponding file,
+#     report "NO_TOPIC_IDENTIFIED_IN_TRANSCRIPT", and nothing else.
 
     def __init__(self, transcript_text: str, logs_dir: Path, llm: OpenAI = None) -> None:
         self.transcript_text = transcript_text
