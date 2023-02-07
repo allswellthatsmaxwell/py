@@ -38,7 +38,7 @@ def recording():
     text = transcript['text']
     app.logger.info(f'transcript: "{text}"')
      
-    return make_response(text)
+    return make_response(transcript)
 
 
 def transcribe(audio_file: str) -> Dict:
