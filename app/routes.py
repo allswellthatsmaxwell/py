@@ -39,7 +39,7 @@ def recording():
     transcript = transcribe(destpath)
     text = transcript['text']
     app.logger.info(f'transcript: "{text}"')
-     
+
     return make_response(transcript)
 
 

@@ -40,8 +40,8 @@ class TranscriptLogger:
     If the user is not trying to log anything, output an empty JSON object.
     
 ## Relevant files, and samples of their contents ##
-{content_previews}
-
+    {content_previews}
+ 
 ### Transcript ###
     {transcript}
     
@@ -87,57 +87,64 @@ class TranscriptLogger:
             self.files = LogFilesFinder(self.transcript_text, Path(self.logs_dir), self.llm).relevant_files
         return [os.path.join(self.logs_dir, f.strip())
                 for f in self.files.split(',')]
-    
 
-# TODO 2/6: Make a separate prompt to handle the zero-files case, and use it when there are no files. 
-# easier to write the prompts that way, and saves tokens.
 
-class LogFilesFinder:
+class TopicCreatorPrompt:
+    input_variables = ["transcript"]
     
-    prompt_text = """
-## Instructions
-    Your objective is to report which of a list of files corresponds to an audio transcript. 
-    The user who recorded the audio is trying to log something, or multiple somethings, 
-    and the files I'll give you correspond to topics that can be logged to.
+    prompt_text =  """
+# Context
+    You're helping behind the scenes for a personal logging app. People log things they want to keep track of, 
+    by recording audio. I'll give you the transcript for some audio, and you will output a good topic name 
+    (or multiple topic names, if the user is trying to log multiple things at once). Output the topic name as a .csv file, 
+    with all-lowercase and underscores instead of spaces, and .csv extension.
+# Examples
+    {transcript: "walked two miles today", topics: "walking_distance.csv"}
+    {transcript: "woke up at 10am", topics: "wake_up_time.csv"}
+    {transcript: "went to bed at 2am and woke up at 10am", topics: "wake_up_time.csv, hours_slept.csv"}
+    {transcript: "ate 400 calories", topics: "calories.csv"}
 
-    There are multiple different cases you have to handle:
-    
-    ### Proper logging attempt, single corresponding file.
-        If the transcript is trying to log something, and a file exists that corresponds to what the user is trying to log,
-        output the name of that file, and nothing else.
-    
-    ### Proper logging attempt, multiple corresponding files.
-    The user may be trying to log multiple things at once. 
-    If so, report every file that corresponds to a topic that can be logged to, separated by a comma, and nothing more.
-    
-    ### Proper logging attempt, no corresponding file
-        If there is no appropriate file, or there are no files at all,
-        but the transcript could potentially be logging something, 
-        create and report a filename that would be appropriate for what they are trying to log.
-
-## files for the existing log topics
-    {files}
-
- ## Transcript
+# Transcript
     {transcript}
-
-## Files that correspond to the transcript ##
+# Topics
 """
-    
+
+class TopicMatcherPrompt:
+    input_variables = ["transcript", "files"]
+        
+    prompt_text = """
+    ## Context
+        Your objective is to report which of a list of files corresponds to an audio transcript. 
+        The user who recorded the audio is trying to log something, or multiple somethings, 
+        and the files I'll give you correspond to topics that can be logged to. If the user is only trying to log one thing,
+        report one file, and if the user is trying to log multiple things, report multiple files.
+
+    ## files for the existing log topics
+        {files}
+
+    ## Transcript
+        {transcript}
+
+    ## corresponding files
+    """
+
 # ### Improper logging attempt    
 #     If you can't identify anything the transcript might be trying to log, 
 #     regardless of whether there is a corresponding file,
 #     report "NO_TOPIC_IDENTIFIED_IN_TRANSCRIPT", and nothing else.
 
+
+class LogFilesFinder:
     def __init__(self, transcript_text: str, logs_dir: Path, llm: OpenAI = None) -> None:
         self.transcript_text = transcript_text
         self.log_files_dir = logs_dir
         os.makedirs(self.log_files_dir, exist_ok=True)
+        self.prompt = TopicCreatorPrompt() if is_empty_directory(self.log_files_dir) else TopicMatcherPrompt()
         if llm is None:
-            llm = OpenAI()
+            llm = OpenAI(temperature=0)
         self.llm = llm
-        self.prompt_template = PromptTemplate(input_variables=["files", "transcript"],
-                                              template=self.prompt_text)
+        self.prompt_template = PromptTemplate(input_variables=self.prompt.input_variables,
+                                              template=self.prompt.prompt_text)
         
     @property
     def file_options(self):
@@ -153,3 +160,6 @@ class LogFilesFinder:
 
 
 
+def is_empty_directory(path: Path):
+    # returns true iff the directory has 0 csv files
+    return len([f for f in os.listdir(path) if f.endswith(".csv")]) == 0
