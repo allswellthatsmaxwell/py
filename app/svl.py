@@ -98,11 +98,21 @@ class TopicCreatorPrompt:
     by recording audio. I'll give you the transcript for some audio, and you will output a good topic name 
     (or multiple topic names, if the user is trying to log multiple things at once). Output the topic name as a .csv file, 
     with all-lowercase and underscores instead of spaces, and .csv extension.
+# If there's no matching topic
+    If the transcript doesn't match any existing topics, output a new topic name, well-suited for the transcript.
 # Examples
-    {transcript: "walked two miles today", topics: "walking_distance.csv"}
-    {transcript: "woke up at 10am", topics: "wake_up_time.csv"}
-    {transcript: "went to bed at 2am and woke up at 10am", topics: "wake_up_time.csv, hours_slept.csv"}
-    {transcript: "ate 400 calories", topics: "calories.csv"}
+    {transcript: "walked two miles today", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "walking_distance.csv"}
+    {transcript: "woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "wake_up_time.csv"}
+    {transcript: "went to bed at 2am and woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "wake_up_time.csv, hours_slept.csv"}
+    {transcript: "ate 400 calories", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "calories.csv"}
+    {transcript: "Today I ate three apples", existing: "alcoholic_beverages.csv, wake_up_time.csv", 
+     topics: "apples.csv"}
+    
+    
 
 # Transcript
     {transcript}
@@ -113,20 +123,39 @@ class TopicMatcherPrompt:
     input_variables = ["transcript", "files"]
         
     prompt_text = """
-    ## Context
-        Your objective is to report which of a list of files corresponds to an audio transcript. 
-        The user who recorded the audio is trying to log something, or multiple somethings, 
-        and the files I'll give you correspond to topics that can be logged to. If the user is only trying to log one thing,
-        report one file, and if the user is trying to log multiple things, report multiple files.
+# Context
+    Your objective is to report which of a list of files corresponds to an audio transcript. 
+    The user who recorded the audio is trying to log something, or multiple somethings, 
+    and the files I'll give you correspond to topics that can be logged to. If the user is only trying to log one thing,
+    report one file, and if the user is trying to log multiple things, report multiple files.
+    
+# If there's no matching topic
+    If the transcript doesn't match any existing topics, output a new topic name, well-suited to the transcript.
+    
+# Examples
+    {transcript: "walked two miles today", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "walking_distance.csv"}
+    {transcript: "woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "wake_up_time.csv"}
+    {transcript: "went to bed at 2am and woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "wake_up_time.csv, hours_slept.csv"}
+    {transcript: "ate 400 calories", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "calories.csv"}
+    {transcript: "Today I ate three apples", existing: "alcoholic_beverages.csv, wake_up_time.csv", 
+     topics: "apples.csv"}
+    {transcript: "Today I ate three apples", existing: "", 
+     topics: "apples.csv"}
+    {transcript: "Today I ate three apples and two oranges", existing: "", 
+     topics: "apples.csv, "oranges.csv"}
 
-    ## files for the existing log topics
-        {files}
+# files for the existing log topics
+    {files}
 
-    ## Transcript
-        {transcript}
+# Transcript
+    {transcript}
 
-    ## corresponding files
-    """
+# topics
+"""
 
 # ### Improper logging attempt    
 #     If you can't identify anything the transcript might be trying to log, 
@@ -139,7 +168,8 @@ class LogFilesFinder:
         self.transcript_text = transcript_text
         self.log_files_dir = logs_dir
         os.makedirs(self.log_files_dir, exist_ok=True)
-        self.prompt = TopicCreatorPrompt() if is_empty_directory(self.log_files_dir) else TopicMatcherPrompt()
+        # self.prompt = TopicCreatorPrompt() if is_empty_directory(self.log_files_dir) else TopicMatcherPrompt()
+        self.prompt = TopicMatcherPrompt()
         if llm is None:
             llm = OpenAI(temperature=0)
         self.llm = llm

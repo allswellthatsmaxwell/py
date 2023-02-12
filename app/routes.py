@@ -2,6 +2,7 @@ from flask import request, Blueprint, Flask, make_response
 
 import os
 from typing import Dict
+import celery
 
 from . import filesystem, transcription
 from .svl import LogFilesFinder
@@ -36,12 +37,18 @@ def recording():
         f.write(audio_data)
     app.logger.info("Done writing.")
     
+    task = transcribe_task.apply_async(args=[destpath])
+    app.logger.info(f'Transcription task started with task_id: {task.id}')
+
+    return make_response({'task_id': task.id})
+
+@celery.task
+def transcribe_task(destpath):
     transcript = transcribe(destpath)
     text = transcript['text']
     app.logger.info(f'transcript: "{text}"')
 
-    return make_response(transcript)
-
+    return transcript
 
 # an endpoint that takes a transcript and returns a list of topics
 @app_routes.route("/topics", methods=["POST"])
