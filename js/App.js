@@ -6,13 +6,71 @@ import { StatusBar } from 'expo-status-bar';
 // imports useEffect hook
 import { useEffect } from 'react';
 
-const firebase = require("firebase");
-// Required for side-effects
-require("firebase/firestore");
+import { initializeApp } from "firebase";
+import * as firebase from 'firebase';
+
+// import { signInWithGoogle, signUpWithGoogle } from './authorization.js';
+
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBnn9Joa2K68y2u8yLvwFjAJgUcNOmODCk",
+  authDomain: "structured-voice-logger.firebaseapp.com",
+  projectId: "structured-voice-logger",
+  storageBucket: "structured-voice-logger.appspot.com",
+  messagingSenderId: "127564426167",
+  appId: "1:127564426167:web:77ff9ba27098012917d632",
+  measurementId: "G-5SDFE3KY7B"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.firestore();
+
+// Get the authentication service
+var auth = firebase.auth();
+
 
 export default function App() {
   const [transcriptionText, setTranscriptionText] = React.useState('...');
   const [topics, setTopics] = React.useState('___');
+  const [user, setUser] = React.useState(null);
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    });
+  }, []);
+
+  const handleSignInWithGoogle = async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+      const result = await firebase.auth().signInWithPopup(provider);
+      setUser(result.user);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSignUpWithGoogle = async () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+      const result = await firebase.auth().createUserWithPopup(provider);
+      setUser(result.user);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -21,6 +79,18 @@ export default function App() {
       <ChangeColor />
       <Text id="transcription-text">{transcriptionText}</Text>
       <Text id="topics-text">{topics}</Text>
+
+      {user ? (
+        <View>
+          <Text>Welcome {user.displayName}</Text>
+          <Button title="Sign Out" onPress={() => firebase.auth().signOut()} />
+        </View>
+      ) : (
+        <View>
+          <Button title="Sign In with Google" onPress={handleSignInWithGoogle} />
+          <Button title="Sign Up with Google" onPress={handleSignUpWithGoogle} />
+        </View>
+      )}
 
       <StatusBar style="auto" />
     </View>
