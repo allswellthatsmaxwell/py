@@ -1,0 +1,5 @@
+android/
+ios/
+dist/
+../questions.txt
+metro.config.js
