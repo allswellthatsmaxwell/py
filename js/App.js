@@ -24,6 +24,32 @@ export default function App() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
+
+// a button that starts red and alternates between red and blue on click
+function ChangeColor() {
+  const [color, setColor] = React.useState('red');
+  return (
+    <View>
+      <Button
+        title="Change Color"
+        color={color}
+        onPress={() => {
+          setColor(color === 'red' ? 'blue' : 'red');
+        }}
+      />
+    </View>
+  );
+}
+
 
 function AudioRecorder({updateText, updateTopics}) {
   const [isRecording, setIsRecording] = React.useState(false);
@@ -96,6 +122,21 @@ function AudioRecorder({updateText, updateTopics}) {
     updateTopics(topics);
   }
 
+  async function getTopics(text) {
+    const response = await fetch(`http://159.65.244.4:5555/topics`, {
+      method: 'POST',
+      body: JSON.stringify({text: text}),
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    const jsonResponse = await response.json();
+    console.log('Topics received:', jsonResponse.topics);
+    return jsonResponse.topics;
+  }
+
+  
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
@@ -116,19 +157,6 @@ function AudioRecorder({updateText, updateTopics}) {
   );
 }
 
-  async function getTopics(text) {
-    const response = await fetch(`http://159.65.244.4:5555/topics`, {
-      method: 'POST',
-      body: JSON.stringify({text: text}),
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
-    const jsonResponse = await response.json();
-    console.log('Topics received:', jsonResponse.topics);
-    return jsonResponse.topics;
-  }
 
 function listenForTranscription(taskId) {
   // Create a new WebSocket instance
@@ -149,34 +177,6 @@ function listenForTranscription(taskId) {
       socket.close();
     }
   });
-}
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
-
-
-// a button that starts red and alternates between red and blue on click
-function ChangeColor() {
-  const [color, setColor] = React.useState('red');
-  return (
-    <View>
-      <Button
-        title="Change Color"
-        color={color}
-        onPress={() => {
-          setColor(color === 'red' ? 'blue' : 'red');
-        }}
-      />
-    </View>
-  );
 }
 
 
