@@ -169,12 +169,12 @@ class LogFilesFinder:
         self.log_files_dir = logs_dir
         os.makedirs(self.log_files_dir, exist_ok=True)
         # self.prompt = TopicCreatorPrompt() if is_empty_directory(self.log_files_dir) else TopicMatcherPrompt()
-        self.prompt_template = TopicMatcherPrompt().prompt_text
+        prompt = TopicMatcherPrompt()
         if llm is None:
             llm = OpenAI(temperature=0)
         self.llm = llm
-        self.prompt_template = PromptTemplate(input_variables=self.prompt.input_variables,
-                                              template=self.prompt.prompt_text)
+        self.prompt_template = PromptTemplate(input_variables=prompt.input_variables,
+                                              template=prompt.prompt_text)
         
     @property
     def file_options(self):
