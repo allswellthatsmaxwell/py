@@ -133,20 +133,20 @@ class TopicMatcherPrompt:
     If the transcript doesn't match any existing topics, output a new topic name, well-suited to the transcript.
     
 # Examples
-    {transcript: "walked two miles today", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "walking_distance.csv"}
-    {transcript: "woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "wake_up_time.csv"}
-    {transcript: "went to bed at 2am and woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "wake_up_time.csv, hours_slept.csv"}
-    {transcript: "ate 400 calories", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "calories.csv"}
-    {transcript: "Today I ate three apples", existing: "alcoholic_beverages.csv, wake_up_time.csv", 
-     topics: "apples.csv"}
-    {transcript: "Today I ate three apples", existing: "", 
-     topics: "apples.csv"}
-    {transcript: "Today I ate three apples and two oranges", existing: "", 
-     topics: "apples.csv, "oranges.csv"}
+    [transcript: "walked two miles today", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "walking_distance.csv"]
+    [transcript: "woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "wake_up_time.csv"]
+    [transcript: "went to bed at 2am and woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "wake_up_time.csv, hours_slept.csv"]
+    [transcript: "ate 400 calories", existing: "walking_distance.csv, wake_up_time.csv", 
+     topics: "calories.csv"]
+    [transcript: "Today I ate three apples", existing: "alcoholic_beverages.csv, wake_up_time.csv", 
+     topics: "apples.csv"]
+    [transcript: "Today I ate three apples", existing: "", 
+     topics: "apples.csv"]
+    [transcript: "Today I ate three apples and two oranges", existing: "", 
+     topics: "apples.csv, "oranges.csv"]
 
 # files for the existing log topics
     {files}
