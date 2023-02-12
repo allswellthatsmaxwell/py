@@ -11,6 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "dependencies": {
+      "firebase": "8.8.1"
+    },
     "jsEngine": "hermes",
     "updates": {
       "fallbackToCacheTimeout": 0,

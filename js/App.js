@@ -6,6 +6,9 @@ import { StatusBar } from 'expo-status-bar';
 // imports useEffect hook
 import { useEffect } from 'react';
 
+const firebase = require("firebase");
+// Required for side-effects
+require("firebase/firestore");
 
 export default function App() {
   const [transcriptionText, setTranscriptionText] = React.useState('...');
