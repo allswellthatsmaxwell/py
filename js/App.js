@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import { Audio } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
 // imports useEffect hook
@@ -41,6 +41,8 @@ export default function App() {
   const [transcriptionText, setTranscriptionText] = React.useState('...');
   const [topics, setTopics] = React.useState('___');
   const [user, setUser] = React.useState(null);
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged(user => {
@@ -72,6 +74,25 @@ export default function App() {
     }
   };
 
+  const handleSignInWithEmailAndPassword = async () => {
+    try {
+      const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+      setUser(result.user);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSignUpWithEmailAndPassword = async () => {
+
+    try {
+      const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      setUser(result.user);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text>Structured Voice Logger</Text>
@@ -87,8 +108,21 @@ export default function App() {
         </View>
       ) : (
         <View>
-          <Button title="Sign In with Google" onPress={handleSignInWithGoogle} />
-          <Button title="Sign Up with Google" onPress={handleSignUpWithGoogle} />
+          <TextInput
+            placeholder="Email"
+            onChangeText={setEmail}
+            value={email}
+          />
+          <TextInput
+            placeholder="Password"
+            onChangeText={setPassword}
+            value={password}
+            secureTextEntry
+          />
+          <Button title="Sign In" onPress={handleSignInWithEmailAndPassword} />
+          <Button title="Sign Up" onPress={handleSignUpWithEmailAndPassword} />
+          {/* <Button title="Sign In with Google" onPress={handleSignInWithGoogle} />
+          <Button title="Sign Up with Google" onPress={handleSignUpWithGoogle} /> */}
         </View>
       )}
 

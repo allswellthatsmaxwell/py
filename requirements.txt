@@ -4,3 +4,4 @@ celery
 Redis
 langchain
 openai
+firebase_admin
