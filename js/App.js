@@ -212,6 +212,7 @@ function AudioRecorder({updateText, updateTopics}) {
   }
 
   async function stopRecording() {
+    const timestamp = firebase.firestore.FieldValue.serverTimestamp()
     console.log('Stopping recording..');
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
@@ -223,17 +224,36 @@ function AudioRecorder({updateText, updateTopics}) {
     console.log('Recording stopped and stored at', uri);
 
     const jsonResponseTranscript = await sendRecording(recording);
-    // updates the transcription text asynchonously
     updateText(jsonResponseTranscript.text);
     const userId = firebase.auth().currentUser.uid;
-    const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');    
+    // topics is a comma separated string
     const topics = await getTopics(jsonResponseTranscript.text);
+    updateTopics(topics);
+
+    const entryAddPromises = topics.split(',').map(async (topic) => {
+      const topicsCollection = firebase.firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('topics')
+        .doc(topic)
+        .collection('entries');
+      topicsCollection.add({
+        transcript: jsonResponseTranscript.text,
+        timestamp: timestamp,
+        number: 42,
+      });
+      console.log('Added entry to topic', topic);
+
+    });
+    await Promise.all(entryAddPromises);
+
+    const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');      
     transcriptsCollection.add({
       text: jsonResponseTranscript.text,
       topics: topics,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      timestamp: timestamp,
     });
-    updateTopics(topics);
+    console.log('Added transcript to user', userId);
   }
 
   async function getTopics(text) {
