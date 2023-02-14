@@ -103,7 +103,7 @@ export default function App() {
 
       {user ? (
         <View>
-          <Text>Welcome {user.displayName}</Text>
+          <Text>Welcome, {user.email}.</Text>
           <Button title="Sign Out" onPress={() => firebase.auth().signOut()} />
         </View>
       ) : (
@@ -225,7 +225,14 @@ function AudioRecorder({updateText, updateTopics}) {
     const jsonResponseTranscript = await sendRecording(recording);
     // updates the transcription text asynchonously
     updateText(jsonResponseTranscript.text);
+    const userId = firebase.auth().currentUser.uid;
+    const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');    
     const topics = await getTopics(jsonResponseTranscript.text);
+    transcriptsCollection.add({
+      text: jsonResponseTranscript.text,
+      topics: topics,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    });
     updateTopics(topics);
   }
 
