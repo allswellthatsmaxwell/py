@@ -67,7 +67,7 @@ export default function App() {
       {user ? (
         <View>
           <Text>Welcome, {user.email}.</Text>
-          {/* <TopicsList userId={user.uid} />      */}
+          <TopicsList userId={user.uid} />     
           <Button title="Sign Out" onPress={() => firebase.auth().signOut()} />          
         </View>
       ) : (
@@ -77,6 +77,7 @@ export default function App() {
     </View>
   );
 }
+
 
 function TopicsList({ userId }) {
   const [topicsList, setTopicsList] = React.useState([]);

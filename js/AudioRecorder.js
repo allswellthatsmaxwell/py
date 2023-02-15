@@ -78,18 +78,22 @@ function AudioRecorder({updateText, updateTopics}) {
     updateTopics(topics);
 
     const entryAddPromises = topics.split(',').map(async (topic) => {
-      const topicsCollection = firebase.firestore()
-        .collection('users')
-        .doc(userId)
-        .collection('topics')
-        .doc(topic)
-        .collection('entries');
-      topicsCollection.add({
-        transcript: jsonResponseTranscript.text,
-        timestamp: timestamp,
-        number: 42,
-      });
-      console.log('Added entry to topic', topic);
+      // create the topic if it doesn't exist
+        const topicCollection = firebase.firestore().collection('users').doc(userId).collection('topics');
+        const topicDoc = await topicCollection.doc(topic).get();
+        if (!topicDoc.exists) {
+            topicCollection.doc(topic).set({
+                timestamp: timestamp,
+            });
+        }
+        // add the entry to the topic
+        const topicEntriesCollection = topicCollection.doc(topic).collection('entries');
+        topicEntriesCollection.add({
+            transcript: jsonResponseTranscript.text,
+            timestamp: timestamp,
+            number: 42
+        });
+        console.log('Added entry to topic', topic);
     });
     await Promise.all(entryAddPromises);
 
