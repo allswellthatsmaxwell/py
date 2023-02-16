@@ -122,7 +122,7 @@ class TopicCreatorPrompt:
 class TopicMatcherPrompt:
     input_variables = ["transcript", "files"]
         
-    prompt_text = """Complete the final entry.
+    prompt_text = """Complete the final entry, and only the final entry. Do not add any entries.
 {{transcript: "walked two miles today", existing: "walking distance, wake up time", topics: walking distance}}
 {{transcript: "woke up at 10am", existing: walking distance, wake up time, topics: wake up time}}
 {{transcript: "went to bed at 2am and woke up at 10am", existing: "walking distance, wake up time", topics: wake up time, hours slept}}
