@@ -159,12 +159,15 @@ class LogFilesFinder:
 
     @property
     def prompt(self):
-        return self.prompt_template.format(files=self.file_options, transcript=self.transcript_text)
+        p = self.prompt_template.format(files=self.file_options, transcript=self.transcript_text)
+        print(p)
+        return p
     
     @property
     def relevant_files(self) -> str:
         completion = self.llm(self.prompt)
-        completion = "{" + completion
+        completion = completion.strip().strip('}').strip('{')
+        completion = "{" + completion + "}"
         print(completion)
         return completion.strip()
         
