@@ -130,7 +130,7 @@ class TopicMatcherPrompt:
 {{transcript: "Today I ate three apples", existing: "alcoholic beverages, wake up time", topics: apples}}
 {{transcript: "Today I ate three apples", existing: "", topics: apples}}
 {{transcript: "Today I ate three apples and two oranges", existing: "", topics: apples, oranges}}
-{{transcript: "I listened to rap music for two and a half hours today", existing: "", topics: "rap music listening time"}}
+{{transcript: "I listened to rap music for two and a half hours today", existing: "", topics: rap music listening time}}
 {{transcript: "{transcript}", existing: "{files}", topics:"""
 
 # ### Improper logging attempt    
