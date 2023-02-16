@@ -123,14 +123,15 @@ class TopicMatcherPrompt:
     input_variables = ["transcript", "files"]
         
     prompt_text = """Complete the final entry, and only the final entry. Do not add any entries.
-{{transcript: "walked two miles today", existing: "walking distance, wake up time", topics: walking distance}}
-{{transcript: "woke up at 10am", existing: walking distance, wake up time, topics: wake up time}}
-{{transcript: "went to bed at 2am and woke up at 10am", existing: "walking distance, wake up time", topics: wake up time, hours slept}}
-{{transcript: "ate 400 calories", existing: "walking distance, wake up time", topics: calories}}
-{{transcript: "Today I ate three apples", existing: "alcoholic beverages, wake up time", topics: apples}}
-{{transcript: "Today I ate three apples", existing: "", topics: apples}}
-{{transcript: "Today I ate three apples and two oranges", existing: "", topics: apples, oranges}}
-{{transcript: "I listened to rap music for two and a half hours today", existing: "", topics: rap music listening time}}
+{{transcript: "walked two miles today", existing: "walking distance, wake up time", topics: {{"walking distance": 2}}}}
+{{transcript: "woke up at 09:42 A.m", existing: walking distance, wake up time, topics: {{"wake up time": "09:42"}}}}
+{{transcript: "woke up at twelve thirty pm", existing: walking distance, wake up time, topics: {{"wake up time": "12:30"}}}}
+{{transcript: "went to bed at 2am and woke up at 10am", existing: "walking distance, wake up time", topics: {{"wake up time": "02:00", "hours slept": 8}}}}
+{{transcript: "ate four hundred calories", existing: "walking distance, wake up time", topics: {{"calories": 400}}}}
+{{transcript: "Today I ate three apples", existing: "alcoholic beverages, wake up time", topics: {{"apples": 3}}}}
+{{transcript: "Today I ate 7 apples", existing: "", topics: {{"apples": 7}}}}
+{{transcript: "Today I ate three apples and two oranges", existing: "", topics: {{"apples": 3, "oranges": 2}}}}
+{{transcript: "I listened to rap music for two and a half hours today", existing: "", topics: {{"rap music listening time": 2.5}}}}
 {{transcript: "{transcript}", existing: "{files}", topics:"""
 
 # ### Improper logging attempt    
@@ -163,7 +164,9 @@ class LogFilesFinder:
     @property
     def relevant_files(self) -> str:
         completion = self.llm(self.prompt)
-        return completion.strip('}').strip()
+        completion = "{" + completion
+        print(completion)
+        return completion.strip()
         
 
 
