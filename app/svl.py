@@ -122,40 +122,14 @@ class TopicCreatorPrompt:
 class TopicMatcherPrompt:
     input_variables = ["transcript", "files"]
         
-    prompt_text = """
-# Context
-    Your objective is to report which of a list of files corresponds to an audio transcript. 
-    The user who recorded the audio is trying to log something, or multiple somethings, 
-    and the files I'll give you correspond to topics that can be logged to. If the user is only trying to log one thing,
-    report one file, and if the user is trying to log multiple things, report multiple files.
-    
-# If there's no matching topic
-    If the transcript doesn't match any existing topics, output a new topic name, well-suited to the transcript.
-    
-# Examples
-    [transcript: "walked two miles today", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "walking_distance.csv"]
-    [transcript: "woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "wake_up_time.csv"]
-    [transcript: "went to bed at 2am and woke up at 10am", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "wake_up_time.csv, hours_slept.csv"]
-    [transcript: "ate 400 calories", existing: "walking_distance.csv, wake_up_time.csv", 
-     topics: "calories.csv"]
-    [transcript: "Today I ate three apples", existing: "alcoholic_beverages.csv, wake_up_time.csv", 
-     topics: "apples.csv"]
-    [transcript: "Today I ate three apples", existing: "", 
-     topics: "apples.csv"]
-    [transcript: "Today I ate three apples and two oranges", existing: "", 
-     topics: "apples.csv, "oranges.csv"]
-
-# files for the existing log topics
-    {files}
-
-# Transcript
-    {transcript}
-
-# topics
-"""
+    prompt_text = """{{transcript: "walked two miles today", existing: "walking distance, wake up time", topics: "walking distance"}}
+{{transcript: "woke up at 10am", existing: "walking distance, wake up time", topics: "wake up time"}}
+{{transcript: "went to bed at 2am and woke up at 10am", existing: "walking distance, wake up time", topics: "wake up time, hours slept"}}
+{{transcript: "ate 400 calories", existing: "walking distance, wake up time", topics: "calories"}}
+{{transcript: "Today I ate three apples", existing: "alcoholic beverages, wake up time", topics: "apples"}}
+{{transcript: "Today I ate three apples", existing: "", topics: "apples"}}
+{{transcript: "Today I ate three apples and two oranges", existing: "", topics: "apples, oranges"}}
+{{transcript: "{transcript}", existing: "{files}", topics:"""
 
 # ### Improper logging attempt    
 #     If you can't identify anything the transcript might be trying to log, 
@@ -186,7 +160,8 @@ class LogFilesFinder:
     
     @property
     def relevant_files(self) -> str:
-        return self.llm(self.prompt)
+        completion = self.llm(self.prompt)
+        completion.strip('}').strip()
 
 
 
