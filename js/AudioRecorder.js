@@ -126,7 +126,7 @@ function AudioRecorder({updateText, updateTopics}) {
   return (
     <View>
       <Button
-        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+        title={isRecording ? 'Stop Recording' : 'Record'}
         onPress={async () => {
           if (isRecording) {
             await stopRecording();            

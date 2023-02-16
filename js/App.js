@@ -36,10 +36,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 20,
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
   },
+  topContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 30,
+  },
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eee',
+    padding: 20,
+  },
+  flatList: {
+    maxHeight: '50%',
+    width: '100%',
+  },
 });
-
 
 export default function App() {
   const [transcriptionText, setTranscriptionText] = React.useState('...');
@@ -58,16 +82,20 @@ export default function App() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text>Structured Voice Logger</Text>
+    <View style={styles.topContainer}>
       <AudioRecorder updateText={setTranscriptionText} updateTopics={setTopics} />
       <Text id="transcription-text">{transcriptionText}</Text>
       <Text id="topics-text">{topics}</Text>
 
-      {user ? (
-        <View>
-          <Text>Welcome, {user.email}.</Text>
-          <TopicsList userId={user.uid} />     
+      {user && (
+        <View style={styles.centerContainer}>
+          <TopicsList userId={user.uid} />
+        </View>
+      )}
+
+      {user ? ( 
+        <View style={styles.bottomContainer}>
+          <Text>Signed in as {user.email}.</Text>          
           <Button title="Sign Out" onPress={() => firebase.auth().signOut()} />          
         </View>
       ) : (
@@ -102,11 +130,14 @@ function TopicsList({ userId }) {
 
   return (
     <View>
-      <Text>Topics:</Text>
+      <Text>Your logs</Text>
       <FlatList
         data={topicsList}
         renderItem={({ item }) => <Text>{item}</Text>}
         keyExtractor={(item) => item}
+        style={styles.flatList}//{{ height: 200, width: '100%', marginTop: 10 }}
+        contentContainerStyle={{ backgroundColor: 'lightgray', padding: 10 }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
