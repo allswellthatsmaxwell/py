@@ -162,7 +162,8 @@ class LogFilesFinder:
     @property
     def relevant_files(self) -> str:
         completion = self.llm(self.prompt)
-        completion.strip('}').strip()
+        return completion.strip('}').strip()
+        
 
 
 
