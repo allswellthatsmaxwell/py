@@ -82,27 +82,26 @@ export default function App() {
   }, []);
 
   return (
-    <View style={styles.topContainer}>
-      <AudioRecorder updateText={setTranscriptionText} updateTopics={setTopics} />
-      <Text id="transcription-text">{transcriptionText}</Text>
-      <Text id="topics-text">{topics}</Text>
-
-      {user && (
+    user ? (
+      <View style={styles.topContainer}>
+        <AudioRecorder updateText={setTranscriptionText} updateTopics={setTopics} />
+        <Text id="transcription-text">{transcriptionText}</Text>
+        <Text id="topics-text">{topics}</Text>
+  
         <View style={styles.centerContainer}>
           <TopicsList userId={user.uid} />
         </View>
-      )}
 
-      {user ? ( 
         <View style={styles.bottomContainer}>
           <Text>Signed in as {user.email}.</Text>          
           <Button title="Sign Out" onPress={() => firebase.auth().signOut()} />          
         </View>
-      ) : (
+      </View>
+    ) : (
+      <View style={styles.centerContainer}>
         <SignUpOrSignIn />
-      )}      
-      <StatusBar style="auto" />
-    </View>
+      </View>
+    )
   );
 }
 

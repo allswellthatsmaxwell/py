@@ -22,7 +22,8 @@ function SignUpOrSignIn() {
         const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
         setUser(result.user);
       } catch (error) {
-        console.error(error);
+        // display a toast with the error message
+        
       }
     };
   
