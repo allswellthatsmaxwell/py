@@ -123,13 +123,13 @@ class TopicMatcherPrompt:
     input_variables = ["transcript", "files"]
         
     prompt_text = """Complete the final entry.
-{{transcript: "walked two miles today", existing: "walking distance, wake up time", topics: "walking distance"}}
-{{transcript: "woke up at 10am", existing: "walking distance, wake up time", topics: "wake up time"}}
-{{transcript: "went to bed at 2am and woke up at 10am", existing: "walking distance, wake up time", topics: "wake up time, hours slept"}}
-{{transcript: "ate 400 calories", existing: "walking distance, wake up time", topics: "calories"}}
-{{transcript: "Today I ate three apples", existing: "alcoholic beverages, wake up time", topics: "apples"}}
-{{transcript: "Today I ate three apples", existing: "", topics: "apples"}}
-{{transcript: "Today I ate three apples and two oranges", existing: "", topics: "apples, oranges"}}
+{{transcript: "walked two miles today", existing: "walking distance, wake up time", topics: walking distance}}
+{{transcript: "woke up at 10am", existing: walking distance, wake up time, topics: wake up time}}
+{{transcript: "went to bed at 2am and woke up at 10am", existing: "walking distance, wake up time", topics: wake up time, hours slept}}
+{{transcript: "ate 400 calories", existing: "walking distance, wake up time", topics: calories}}
+{{transcript: "Today I ate three apples", existing: "alcoholic beverages, wake up time", topics: apples}}
+{{transcript: "Today I ate three apples", existing: "", topics: apples}}
+{{transcript: "Today I ate three apples and two oranges", existing: "", topics: apples, oranges}}
 {{transcript: "{transcript}", existing: "{files}", topics:"""
 
 # ### Improper logging attempt    
