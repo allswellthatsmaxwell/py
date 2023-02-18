@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Button, TextInput, FlatList, TouchableOpacity }
 import { StatusBar } from 'expo-status-bar';
 // imports useEffect hook
 import { useEffect } from 'react';
-import { Table, Row, Col } from 'react-native-table-component';
+import { Table, Row, Rows } from 'react-native-table-component';
 
 
 import * as firebase from 'firebase';
@@ -185,21 +185,18 @@ function LogsList({ userId, topic }) {
     };
   }, [userId, topic]);
 
+  
+  const tableHead = ['Time', 'Value'];
+  const tableData = logsList.map(
+    log => [log.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}),
+            log.number]);
+
   return (
-    <View>
-      <FlatList
-        data={logsList}
-        renderItem={({ item }) => (
-          <View style={{ marginVertical: 5, flexDirection: 'row'}}>
-            <Text>{item.number}</Text>
-            <Text>{item.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true})}</Text>
-          </View>
-        )}
-        keyExtractor={(item) => item.id}
-        style={{ height: 200, width: '100%' }} // {styles.flatList}
-        contentContainerStyle={{ backgroundColor: 'lightgray', padding: 10 }}
-        showsVerticalScrollIndicator={false}
-      />
+    <View style={{ height: 100, width: 200 }}>
+      <Table style={{ width: '100%' }} borderStyle={{ borderWidth: 1, borderColor: '#bbb' }}>
+        <Row data={tableHead} style={{ backgroundColor: '#f1f8ff'}} textStyle={{ margin: 1 }}/>
+        <Rows data={tableData} textStyle={{ margin: 1 }} />
+      </Table>
     </View>
   );
 }
