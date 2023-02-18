@@ -1,9 +1,10 @@
-
 import * as React from 'react';
-import { StyleSheet, Text, View, Button, TextInput, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput, FlatList, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 // imports useEffect hook
 import { useEffect } from 'react';
+import { Table, Row, Col } from 'react-native-table-component';
+
 
 import * as firebase from 'firebase';
 
@@ -32,13 +33,6 @@ if (!firebase.apps.length) {
 
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 20,
-  },
   centerContainer: {
     flex: 1,
     alignItems: 'center',
@@ -109,6 +103,9 @@ export default function App() {
 function TopicsList({ userId }) {
   const [topicsList, setTopicsList] = React.useState([]);
 
+  // state to keep track of the selected topic
+  const [selectedTopic, setSelectedTopic] = React.useState(null);
+
   useEffect(() => {
     const topicsCollection = firebase.firestore()
       .collection('users')
@@ -127,14 +124,79 @@ function TopicsList({ userId }) {
     };
   }, [userId]);
 
+  const handleTopicPress = (topic) => {
+    setSelectedTopic(topic);
+  };
+
+  const handleBackPress = () => {
+    setSelectedTopic(null);
+  };
+
+  // if a topic is selected, show the logs from that topic
+  if (selectedTopic) {
+    return (
+      <View style={styles.topContainer}>
+        <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
+        <Button title="Back to Topics" onPress={handleBackPress} />
+        <LogsList userId={userId} topic={selectedTopic} />
+      </View>
+    );
+  }
+
+  // if no topic is selected, show the list of topics
   return (
     <View>
       <Text>Your logs</Text>
       <FlatList
         data={topicsList}
-        renderItem={({ item }) => <Text>{item}</Text>}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => handleTopicPress(item)}>
+            <Text>{item}</Text>
+          </TouchableOpacity>
+        )}
         keyExtractor={(item) => item}
-        style={styles.flatList}//{{ height: 200, width: '100%', marginTop: 10 }}
+        style={styles.flatList}
+        contentContainerStyle={{ backgroundColor: 'lightgray', padding: 10 }}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+}
+
+function LogsList({ userId, topic }) {
+  const [logsList, setLogsList] = React.useState([]);
+
+  useEffect(() => {
+    const logsCollection = firebase.firestore()
+      .collection('users')
+      .doc(userId)
+      .collection('topics')
+      .doc(topic)
+      .collection('entries');
+
+    const unsubscribe = logsCollection.onSnapshot((snapshot) => {
+      const logs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      console.log("Logs: ", logs);
+      setLogsList(logs);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [userId, topic]);
+
+  return (
+    <View>
+      <FlatList
+        data={logsList}
+        renderItem={({ item }) => (
+          <View style={{ marginVertical: 5, flexDirection: 'row'}}>
+            <Text>{item.number}</Text>
+            <Text>{item.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true})}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id}
+        style={{ height: 200, width: '100%' }} // {styles.flatList}
         contentContainerStyle={{ backgroundColor: 'lightgray', padding: 10 }}
         showsVerticalScrollIndicator={false}
       />
