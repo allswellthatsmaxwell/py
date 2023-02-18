@@ -137,8 +137,8 @@ function TopicsList({ userId }) {
     return (
       <View style={styles.topContainer}>
         <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
-        <Button title="Back to Topics" onPress={handleBackPress} />
         <LogsList userId={userId} topic={selectedTopic} />
+        <Button title="Back" onPress={handleBackPress} />
       </View>
     );
   }
@@ -186,13 +186,18 @@ function LogsList({ userId, topic }) {
   }, [userId, topic]);
 
   
-  const tableHead = ['Time', 'Value'];
+  const tableHead = ['Date', 'Time', 'Value'];
+  // formats like "July 6, 11:36 PM"
+  const time_format = {hour: '2-digit', minute:'2-digit', hour12: true};
+  const day_format = {month: 'short', day: 'numeric', year: 'numeric'};
   const tableData = logsList.map(
-    log => [log.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}),
-            log.number]);
+    log => [
+      log.timestamp.toDate().toLocaleDateString([], day_format),
+      log.timestamp.toDate().toLocaleTimeString([], time_format),
+      log.number]);
 
   return (
-    <View style={{ height: 100, width: 200 }}>
+    <View style={{ height: 100, width: 300 }}>
       <Table style={{ width: '100%' }} borderStyle={{ borderWidth: 1, borderColor: '#bbb' }}>
         <Row data={tableHead} style={{ backgroundColor: '#f1f8ff'}} textStyle={{ margin: 1 }}/>
         <Rows data={tableData} textStyle={{ margin: 1 }} />
