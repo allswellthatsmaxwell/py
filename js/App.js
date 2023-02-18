@@ -174,12 +174,24 @@ function LogsList({ userId, topic }) {
       .doc(topic)
       .collection('entries');
 
+    const transactionFunction = async (transaction, doc) => {
+      const logRef = logsCollection.doc(doc.id);
+      const log = await transaction.get(logRef);
+      return { id: log.id, ...log.data() };
+    };
+  
     const unsubscribe = logsCollection.onSnapshot((snapshot) => {
-      const logs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.log("Logs: ", logs);
-      setLogsList(logs);
+      firebase.firestore().runTransaction(async (transaction) => {
+        const logs = [];
+        for (const doc of snapshot.docs) {
+          const log = await transactionFunction(transaction, doc);
+          logs.push(log);
+        }
+        console.log("Logs: ", logs);
+        setLogsList(logs);
+      });
     });
-
+    
     return () => {
       unsubscribe();
     };
@@ -189,7 +201,7 @@ function LogsList({ userId, topic }) {
   const tableHead = ['Date', 'Time', 'Value'];
   // formats like "July 6, 11:36 PM"
   const time_format = {hour: '2-digit', minute:'2-digit', hour12: true};
-  const day_format = {month: 'short', day: 'numeric', year: 'numeric'};
+  const day_format = {month: 'short', day: 'numeric'};
   const tableData = logsList.map(
     log => [
       log.timestamp.toDate().toLocaleDateString([], day_format),
