@@ -78,18 +78,16 @@ function AudioRecorder({updateText, updateTopics}) {
     console.log('Added entry to topic', topic);
   }
 
-  async function writeResultsToDB(jsonResponseTranscript, topics, timestamp, userId) {
+
+  async function writeTopicsToDB(jsonResponseTranscript, topics, timestamp, userId) {
     const topicsDict = JSON.parse(topics);
 
     const entryAddPromises = Object.entries(topicsDict).map(async ([topic, value]) => {
       await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp, userId);
     });
-    await Promise.all(entryAddPromises);
-
-    const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');      
-    transcriptsCollection.add({text: jsonResponseTranscript.text, topics: topics, timestamp: timestamp});
-    console.log('Added transcript to user', userId);
+    return await Promise.all(entryAddPromises);
   }
+
 
   async function stopRecording() {
     const timestamp = firebase.firestore.FieldValue.serverTimestamp()
@@ -108,8 +106,15 @@ function AudioRecorder({updateText, updateTopics}) {
     const topics = await getTopics(jsonResponseTranscript.text);
     updateTopics(topics);
 
-    await writeResultsToDB(jsonResponseTranscript, topics, timestamp, userId);
+    await writeTopicsToDB(jsonResponseTranscript, topics, timestamp, userId);
+    
+    const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');      
+    return await transcriptsCollection.add({text: jsonResponseTranscript.text, topics: topics, timestamp: timestamp})
+      .then((docRef) => {
+        console.log('Transcript written with ID: ', docRef.id);
+      })
   }
+
 
   async function getTopics(text) {
     const response = await fetch(`http://159.65.244.4:5555/topics`, {

@@ -61,9 +61,12 @@ const styles = StyleSheet.create({
 
 export default function App() {
   const [transcriptionText, setTranscriptionText] = React.useState('...');
-  const [topics, setTopics] = React.useState('___');
+  const [recordedTopics, setRecordedTopics] = React.useState('___');
 
-  const [user, setUser] = React.useState(null);
+  const [user, setUser] = React.useState(null);  
+  // state to keep track of the selected topic
+  const [selectedTopic, setSelectedTopic] = React.useState(null);
+
   
   useEffect(() => {
     firebase.auth().onAuthStateChanged(user => {
@@ -78,12 +81,15 @@ export default function App() {
   return (
     user ? (
       <View style={styles.topContainer}>
-        <AudioRecorder updateText={setTranscriptionText} updateTopics={setTopics} />
-        <Text id="transcription-text">{transcriptionText}</Text>
-        <Text id="topics-text">{topics}</Text>
-  
+        {!selectedTopic && (
+          <View>
+            <AudioRecorder updateText={setTranscriptionText} updateTopics={setRecordedTopics} />
+            <Text id="transcription-text" style={{ textAlign: 'center'}}>{transcriptionText}</Text>
+            <Text id="recorded-topics-text" style={{ textAlign: 'center'}}>{recordedTopics}</Text>
+          </View>
+        )}
         <View style={styles.centerContainer}>
-          <TopicsList userId={user.uid} />
+          <TopicsList userId={user.uid} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
         </View>
 
         <View style={styles.bottomContainer}>
@@ -100,11 +106,9 @@ export default function App() {
 }
 
 
-function TopicsList({ userId }) {
+function TopicsList({ userId, selectedTopic, setSelectedTopic }) {
   const [topicsList, setTopicsList] = React.useState([]);
 
-  // state to keep track of the selected topic
-  const [selectedTopic, setSelectedTopic] = React.useState(null);
 
   useEffect(() => {
     const topicsCollection = firebase.firestore()
@@ -174,24 +178,12 @@ function LogsList({ userId, topic }) {
       .doc(topic)
       .collection('entries');
 
-    const transactionFunction = async (transaction, doc) => {
-      const logRef = logsCollection.doc(doc.id);
-      const log = await transaction.get(logRef);
-      return { id: log.id, ...log.data() };
-    };
-  
     const unsubscribe = logsCollection.onSnapshot((snapshot) => {
-      firebase.firestore().runTransaction(async (transaction) => {
-        const logs = [];
-        for (const doc of snapshot.docs) {
-          const log = await transactionFunction(transaction, doc);
-          logs.push(log);
-        }
-        console.log("Logs: ", logs);
-        setLogsList(logs);
-      });
+      const logs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      console.log("Logs: ", logs);
+      setLogsList(logs);
     });
-    
+
     return () => {
       unsubscribe();
     };
