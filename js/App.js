@@ -50,16 +50,16 @@ export default function App() {
         });
     }, []);
 
-    
+
     function RecordingElements() {
         return (
-        <View>
-            <AudioRecorder updateText={setTranscriptionText} updateTopics={setRecordedTopics} />
-            <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>
-            <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>
-        </View>);
+            <View>
+                <AudioRecorder updateText={setTranscriptionText} updateTopics={setRecordedTopics} />
+                <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>
+                <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>
+            </View>);
     }
-    
+
     function AuthStatusElements() {
         return (
             <View>
@@ -69,25 +69,31 @@ export default function App() {
         );
     }
 
-    return (
-        user ? (
+    function HomePage() {
+        return (
             <View style={styles.topContainer}>
                 {!selectedTopic && <RecordingElements />}
-            
+
                 <View style={styles.bottomContainer}>
                     <AuthStatusElements />
                 </View>
-                
+
                 <View style={styles.centerContainer}>
                     <TopicsList userId={user.uid} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
                 </View>
-
-                
-            </View>
-        ) : (
-            <View style={styles.centerContainer}>
-                <SignUpOrSignIn />
             </View>
         )
+    }
+
+    function LoginPage() {
+        return (
+            <View style={styles.centerContainer}>
+                <SignUpOrSignIn />
+            </View >
+        )
+    }
+
+    return (
+        user ? <HomePage /> : <LoginPage />
     );
 }
