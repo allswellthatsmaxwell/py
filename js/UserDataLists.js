@@ -10,44 +10,34 @@ import { getStyles } from './styles.js';
 
 styles = getStyles();
 
-export function TopicsList({ userId, selectedTopic, setSelectedTopic }) {
+export function TopicsList({ userId, setSelectedTopic }) {
     const [topicsList, setTopicsList] = React.useState([]);
 
     const handleTopicPress = (topic) => {
         setSelectedTopic(topic);
     };
 
-    const handleBackPress = () => {
-        setSelectedTopic(null);
-    };
-
     function ListOfTopics() {
+        const renderSeparator = () => {
+            return (
+                <View style={{ height: 1, backgroundColor: 'gray' }} />
+            );
+        }
+
         return (
-            <View>
-                <Text>Your logs</Text>
+            <View style={styles.centerContainer}>
                 <FlatList
                     data={topicsList}
                     renderItem={({ item }) => (
                         <TouchableOpacity onPress={() => handleTopicPress(item)}>
-                            <Text style={styles.rowText}>{item}<AntDesign name="right" size={20} /></Text>
-
+                            <Text style={styles.rowText}>{item}</Text>
                         </TouchableOpacity>
                     )}
                     keyExtractor={(item) => item}
                     style={styles.flatList}
-                    contentContainerStyle={{ backgroundColor: '#f1f8ff', padding: 10 }}
                     showsVerticalScrollIndicator={false}
+                    ItemSeparatorComponent={renderSeparator}
                 />
-            </View>
-        );
-    }
-
-    function EntriesForTopic() {
-        return (
-            <View style={styles.topContainer}>
-                <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
-                <LogsList userId={userId} topic={selectedTopic} />
-                <Button title="Back" onPress={handleBackPress} />
             </View>
         );
     }
@@ -70,17 +60,30 @@ export function TopicsList({ userId, selectedTopic, setSelectedTopic }) {
         };
     }, [userId]);
 
-    if (selectedTopic) {
-        // if a topic is selected, show the logs from that topic
-        return EntriesForTopic();
-    } else {
-        // if no topic is selected, show the list of topics
-        return ListOfTopics();
-    }
+    return ListOfTopics();
 }
 
 
-export function LogsList({ userId, topic }) {
+export function EntriesForTopic({userId, selectedTopic}) {
+    
+    const handleBackPress = () => {
+        setSelectedTopic(null);
+    };
+
+    return (
+        <View>
+            <View style={styles.topContainer}>
+                <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
+                <LogsList userId={userId} topic={selectedTopic} />
+            </View>
+            <View style={styles.bottomLeftCornerContainer}>
+                <Button title="<" onPress={handleBackPress} />
+            </View>
+        </View>
+    );
+}
+
+function LogsList({ userId, topic }) {
     const [logsList, setLogsList] = React.useState([]);
 
     useEffect(() => {

@@ -7,7 +7,7 @@ import * as firebase from 'firebase';
 
 import SignUpOrSignIn from './Authentication.js';
 import AudioRecorder from './AudioRecorder.js';
-import { TopicsList } from './UserDataLists.js';
+import { TopicsList, EntriesForTopic } from './UserDataLists.js';
 import { getStyles } from './styles.js';
 
 styles = getStyles();
@@ -72,14 +72,23 @@ export default function App() {
     function HomePage() {
         return (
             <View style={styles.topContainer}>
-                {!selectedTopic && <RecordingElements />}
+                <View>
+                    {!selectedTopic ? (
+                        <View>
+                            <View style={styles.topContainer}>
+                                <RecordingElements />
+                            </View>
+                            <View style={styles.centerContainer}>
+                                <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
+                            </View>
+                        </View>
+                    ) : (
+                        <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} />
+                    )}
+                </View>
 
                 <View style={styles.bottomContainer}>
                     <AuthStatusElements />
-                </View>
-
-                <View style={styles.centerContainer}>
-                    <TopicsList userId={user.uid} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
                 </View>
             </View>
         )

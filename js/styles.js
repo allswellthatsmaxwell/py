@@ -2,6 +2,11 @@ import { StyleSheet } from 'react-native';
 
 export function getStyles() {
     return StyleSheet.create({
+        container: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
         header: {
             backgroundColor: '#f1f8ff'
         },
@@ -19,7 +24,7 @@ export function getStyles() {
             backgroundColor: '#f1f8ff'
         },
         rowText: {
-            fontSize: 16,
+            fontSize: 20,
             color: 'black',
             margin: 1
         },
@@ -46,6 +51,12 @@ export function getStyles() {
         flatList: {
             maxHeight: '50%',
             width: '100%',
+        },
+        bottomLeftCornerContainer: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: '100%'
         },
     });
 }
