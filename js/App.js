@@ -83,7 +83,7 @@ export default function App() {
                             </View>
                         </View>
                     ) : (
-                        <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} />
+                        <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
                     )}
                 </View>
 

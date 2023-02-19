@@ -64,8 +64,8 @@ export function TopicsList({ userId, setSelectedTopic }) {
 }
 
 
-export function EntriesForTopic({userId, selectedTopic}) {
-    
+export function EntriesForTopic({ userId, selectedTopic, setSelectedTopic }) {
+
     const handleBackPress = () => {
         setSelectedTopic(null);
     };
@@ -76,8 +76,10 @@ export function EntriesForTopic({userId, selectedTopic}) {
                 <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
                 <LogsList userId={userId} topic={selectedTopic} />
             </View>
-            <View style={styles.bottomLeftCornerContainer}>
-                <Button title="<" onPress={handleBackPress} />
+            <View style={styles.topLeftCornerContainer}>
+                <TouchableOpacity onPress={handleBackPress}>
+                    <AntDesign name="left" size={36} color="blue" />
+                </TouchableOpacity>
             </View>
         </View>
     );

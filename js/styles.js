@@ -58,5 +58,10 @@ export function getStyles() {
             left: 0,
             width: '100%'
         },
+        topLeftCornerContainer: {
+            position: 'absolute',
+            top: 10,
+            left: 0
+        },
     });
 }
