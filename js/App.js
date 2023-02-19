@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Text, View, Button, TextInput, FlatList, TouchableOpacity } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { Text, View, Button, TouchableOpacity, Modal } from 'react-native';
 import { useEffect } from 'react';
+import { FontAwesome } from "@expo/vector-icons";
 
 import * as firebase from 'firebase';
 
@@ -60,11 +60,28 @@ export default function App() {
             </View>);
     }
 
+
     function AuthStatusElements() {
+        const [showMenu, setShowMenu] = React.useState(false);
+
+        const handlePress = () => {
+            setShowMenu(!showMenu);
+        };
+
         return (
             <View>
-                <Text>Signed in as {user.email}.</Text>
-                <Button title="Sign Out" onPress={() => firebase.auth().signOut()} />
+                <TouchableOpacity onPress={handlePress}>
+                    <FontAwesome name="user-circle" size={24} color="black" />
+                </TouchableOpacity>
+                <Modal visible={showMenu} animationType="fade" transparent={true}>
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <Text>Signed in as {user.email}.</Text>
+                            <Button title="Sign Out" onPress={() => firebase.auth().signOut()} />
+                            <Button title="Close" onPress={handlePress} />
+                        </View>
+                    </View>
+                </Modal>
             </View>
         );
     }
@@ -72,22 +89,23 @@ export default function App() {
     function HomePage() {
         return (
             <View style={styles.topContainer}>
-                <View>
-                    {!selectedTopic ? (
-                        <View>
-                            <View style={styles.topContainer}>
-                                <RecordingElements />
-                            </View>
-                            <View style={styles.centerContainer}>
-                                <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
-                            </View>
+                {!selectedTopic ? (
+                    <View>
+                        <View style={styles.topContainer}>
+                            <RecordingElements />
                         </View>
-                    ) : (
-                        <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
-                    )}
-                </View>
+                        <View style={styles.centerContainer}>
+                            <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
+                        </View>
+                    </View>
+                ) : (
+                    <View style={styles.topContainer}>
+                    <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic}
+                        setSelectedTopic={setSelectedTopic} />
+                    </View>
+                )}
 
-                <View style={styles.bottomContainer}>
+                <View style={styles.topRightCornerContainer}>
                     <AuthStatusElements />
                 </View>
             </View>
