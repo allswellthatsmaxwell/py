@@ -4,7 +4,9 @@ export function getStyles() {
     return StyleSheet.create({
         container: {
             flex: 1,
-            alignItems: 'center'
+            alignItems: 'center',
+            marginBottom: 0,
+            marginTop: 0,
         },
         header: {
             backgroundColor: '#f1f8ff'
@@ -65,7 +67,6 @@ export function getStyles() {
             flex: 1,
             alignItems: 'center',
             justifyContent: 'flex-end',
-            
             paddingBottom: 0,
         },
         // bottomContainer: {
