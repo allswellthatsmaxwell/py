@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Text, View, Button, TouchableOpacity, Modal } from 'react-native';
 import { useEffect } from 'react';
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from 'firebase';
 
@@ -38,6 +38,11 @@ export default function App() {
     const [user, setUser] = React.useState(null);
     // state to keep track of the selected topic
     const [selectedTopic, setSelectedTopic] = React.useState(null);
+
+
+    const handleBackPress = () => {
+        setSelectedTopic(null);
+    };
 
 
     useEffect(() => {
@@ -89,8 +94,8 @@ export default function App() {
     function HomePage() {
         return (
             <View style={styles.container}>
-                <View style={styles.headerContainer}>
-                    <Text style={styles.headerText}>My App</Text>
+                <View 
+                  style={styles.headerContainer}>
                 </View>
                 {!selectedTopic ? (
                     <View>

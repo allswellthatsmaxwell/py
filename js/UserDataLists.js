@@ -71,21 +71,26 @@ export function EntriesForTopic({ userId, selectedTopic, setSelectedTopic }) {
     };
 
     return (
-        <View style={styles.centerContainer}>
+        <View style={styles.container}>
             <View style={styles.topContainer}>
                 <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
                 <LogsList userId={userId} topic={selectedTopic} />
             </View>
             <View style={styles.topLeftCornerContainer}>
-                <View>
-                    <TouchableOpacity onPress={handleBackPress}>
-                        <Feather name="arrow-left-circle" size={36} color="black" />
-                        {/* <FontAwesome name="user-circle" size={24} color="black" /> */}
-                    </TouchableOpacity>
-                </View>
+                <BackButton />
             </View>
         </View>
     );
+
+    function BackButton() {
+        return (
+            <View>
+                <TouchableOpacity onPress={handleBackPress}>
+                    <Feather name="arrow-left-circle" size={36} color="black" />
+                </TouchableOpacity>
+            </View>
+        );
+    }
 }
 
 function LogsList({ userId, topic }) {

@@ -67,7 +67,7 @@ export function getStyles() {
         },
         topLeftCornerContainer: {
             position: 'absolute',
-            top: 50,
+            top: 0,
             left: 0
         },
         topRightCornerFirstPositionContainer: {
