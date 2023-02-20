@@ -67,8 +67,8 @@ export function getStyles() {
         },
         topLeftCornerContainer: {
             position: 'absolute',
-            top: 0,
-            left: 0
+            top: 50,
+            left: 40
         },
         topRightCornerFirstPositionContainer: {
             position: 'absolute',
@@ -77,8 +77,8 @@ export function getStyles() {
         },
         topRightCornerSecondPositionContainer: {
             position: 'absolute',
-            top: 60,
-            right: 0
+            top: 50,
+            right: 50
         },
         centeredView: {
             flex: 1,

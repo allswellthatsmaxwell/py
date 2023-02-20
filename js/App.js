@@ -66,6 +66,15 @@ export default function App() {
     }
 
 
+    function BackButton() {
+        return (
+            <TouchableOpacity onPress={handleBackPress}>
+                <Feather name="arrow-left-circle" size={36} color="black" />
+            </TouchableOpacity>
+        );
+    }
+
+
     function AuthStatusElements() {
         const [showMenu, setShowMenu] = React.useState(false);
 
@@ -91,29 +100,38 @@ export default function App() {
         );
     }
 
+    function MainDisplay() {
+        return (
+            <View>
+                <View style={styles.topContainer}>
+                    <RecordingElements />
+                </View>
+                <View style={styles.centerContainer}>
+                    <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
+                </View>
+            </View>
+        )
+    }
+
     function HomePage() {
         return (
             <View style={styles.container}>
-                <View 
-                  style={styles.headerContainer}>
-                </View>
+                {/* <View
+                    style={styles.headerContainer}>
+                </View> */}
                 {!selectedTopic ? (
-                    <View>
-                        <View style={styles.topContainer}>
-                            <RecordingElements />
-                        </View>
-                        <View style={styles.centerContainer}>
-                            <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
-                        </View>
-                    </View>
+                    <MainDisplay />
                 ) : (
-                    <View>
-                        <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
-                    </View>
+                    <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} />
                 )}
                 <View style={styles.topRightCornerFirstPositionContainer}>
                     <AuthStatusElements />
                 </View>
+                {selectedTopic &&
+                    <View style={styles.topLeftCornerContainer}>
+                        <BackButton />
+                    </View>
+                }
             </View>
         );
     }
