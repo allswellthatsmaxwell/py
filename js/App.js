@@ -116,13 +116,14 @@ export default function App() {
     function HomePage() {
         return (
             <View style={styles.container}>
-                {/* <View
-                    style={styles.headerContainer}>
-                </View> */}
+                <View style={styles.headerContainer}></View>
                 {!selectedTopic ? (
                     <MainDisplay />
                 ) : (
-                    <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} />
+                    <View>
+                        <View style={styles.headerContainer}></View>
+                        <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} />
+                    </View>
                 )}
                 <View style={styles.topRightCornerFirstPositionContainer}>
                     <AuthStatusElements />

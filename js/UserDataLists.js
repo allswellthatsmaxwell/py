@@ -66,7 +66,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
 
 export function EntriesForTopic({ userId, selectedTopic }) {
     return (
-        <View style={styles.container}>
+        <View style={styles.topContainer}>
             <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
             <LogsList userId={userId} topic={selectedTopic} />
         </View>
