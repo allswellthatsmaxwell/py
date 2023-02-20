@@ -104,10 +104,11 @@ export default function App() {
         return (
             <View>
                 <View style={styles.topContainer}>
-                    <RecordingElements />
-                </View>
-                <View style={styles.centerContainer}>
                     <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
+                </View>
+                
+                <View style={styles.centerContainer}>
+                    <RecordingElements />
                 </View>
             </View>
         )
@@ -117,6 +118,7 @@ export default function App() {
         return (
             <View style={styles.container}>
                 <View style={styles.headerContainer}></View>
+                
                 {!selectedTopic ? (
                     <MainDisplay />
                 ) : (
@@ -125,6 +127,7 @@ export default function App() {
                         <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} />
                     </View>
                 )}
+
                 <View style={styles.topRightCornerFirstPositionContainer}>
                     <AuthStatusElements />
                 </View>

@@ -4,8 +4,7 @@ export function getStyles() {
     return StyleSheet.create({
         container: {
             flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
+            alignItems: 'center'
         },
         header: {
             backgroundColor: '#f1f8ff'
@@ -13,7 +12,7 @@ export function getStyles() {
         headerContainer: {
             backgroundColor: '#EECBAD',
             width: '100%',
-            height: 200,
+            height: 100,
             alignItems: 'center',
             justifyContent: 'center',
         },
@@ -43,18 +42,38 @@ export function getStyles() {
         topContainer: {
             flex: 1,
             alignItems: 'center',
-            justifyContent: 'center',
-            paddingTop: 30,
+            justifyContent: 'flex-start',
+            paddingTop: 0,
         },
+        // topContainer: {
+        //     position: 'absolute',
+        //     top: 0,
+        //     right: 0,
+        //     alignItems: 'center',
+        //     justifyContent: 'center'
+        // },
+        // bottomContainer: {
+        //     position: 'absolute',
+        //     bottom: 0,
+        //     width: '100%',
+        //     alignItems: 'center',
+        //     justifyContent: 'center',
+        //     backgroundColor: '#eee',
+        //     padding: 20,
+        // },
         bottomContainer: {
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
+            flex: 1,
             alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#eee',
-            padding: 20,
+            justifyContent: 'flex-end',
+            
+            paddingBottom: 0,
         },
+        // bottomContainer: {
+        //     flex: 1,
+        //     alignItems: 'center',
+        //     position: 'absolute',
+        //     bottom: 0,
+        // },
         flatList: {
             maxHeight: '50%',
             width: '100%',
