@@ -71,7 +71,7 @@ export default function App() {
         return (
             <View>
                 <TouchableOpacity onPress={handlePress}>
-                    <FontAwesome name="user-circle" size={24} color="black" />
+                    <FontAwesome name="user-circle" size={34} color="black" />
                 </TouchableOpacity>
                 <Modal visible={showMenu} animationType="fade" transparent={true}>
                     <View style={styles.centeredView}>
@@ -88,7 +88,10 @@ export default function App() {
 
     function HomePage() {
         return (
-            <View style={styles.topContainer}>
+            <View style={styles.container}>
+                <View style={styles.headerContainer}>
+                    <Text style={styles.headerText}>My App</Text>
+                </View>
                 {!selectedTopic ? (
                     <View>
                         <View style={styles.topContainer}>
@@ -99,17 +102,15 @@ export default function App() {
                         </View>
                     </View>
                 ) : (
-                    <View style={styles.topContainer}>
-                    <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic}
-                        setSelectedTopic={setSelectedTopic} />
+                    <View>
+                        <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
                     </View>
                 )}
-
-                <View style={styles.topRightCornerContainer}>
+                <View style={styles.topRightCornerFirstPositionContainer}>
                     <AuthStatusElements />
                 </View>
             </View>
-        )
+        );
     }
 
     function LoginPage() {

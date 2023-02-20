@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useEffect } from 'react';
 import { Table, Row, Rows } from 'react-native-table-component';
-import { Text, View, FlatList, TouchableOpacity} from 'react-native';
+import { Text, View, FlatList, TouchableOpacity } from 'react-native';
 import * as firebase from 'firebase';
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Feather } from "@expo/vector-icons";
 
 
 import { getStyles } from './styles.js';
@@ -71,15 +71,18 @@ export function EntriesForTopic({ userId, selectedTopic, setSelectedTopic }) {
     };
 
     return (
-        <View>
+        <View style={styles.centerContainer}>
             <View style={styles.topContainer}>
                 <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
                 <LogsList userId={userId} topic={selectedTopic} />
             </View>
             <View style={styles.topLeftCornerContainer}>
-                <TouchableOpacity onPress={handleBackPress}>
-                    <AntDesign name="left" size={36} color="blue" />
-                </TouchableOpacity>
+                <View>
+                    <TouchableOpacity onPress={handleBackPress}>
+                        <Feather name="arrow-left-circle" size={36} color="black" />
+                        {/* <FontAwesome name="user-circle" size={24} color="black" /> */}
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );

@@ -10,9 +10,16 @@ export function getStyles() {
         header: {
             backgroundColor: '#f1f8ff'
         },
+        headerContainer: {
+            backgroundColor: '#EECBAD',
+            width: '100%',
+            height: 200,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
         headerText: {
+            color: 'red',
             fontSize: 20,
-            fontWeight: 'bold',
         },
         row: {
             flexDirection: 'row',
@@ -60,33 +67,38 @@ export function getStyles() {
         },
         topLeftCornerContainer: {
             position: 'absolute',
-            top: 10,
+            top: 50,
             left: 0
         },
-        topRightCornerContainer: {
+        topRightCornerFirstPositionContainer: {
             position: 'absolute',
             top: 50,
             right: 40
+        },
+        topRightCornerSecondPositionContainer: {
+            position: 'absolute',
+            top: 60,
+            right: 0
         },
         centeredView: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          modalView: {
+        },
+        modalView: {
             backgroundColor: 'white',
             padding: 20,
             borderRadius: 10,
             alignItems: 'center',
             shadowColor: '#000',
             shadowOffset: {
-              width: 0,
-              height: 2,
+                width: 0,
+                height: 2,
             },
             shadowOpacity: 0.25,
             shadowRadius: 4,
             elevation: 5,
-          },
+        },
     });
 }
