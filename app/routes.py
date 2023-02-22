@@ -40,7 +40,7 @@ def upload():
     transcription_id = transcriber.upload_and_kickoff(destpath)
     app.logger.info(f'transcription_id: "{transcription_id}"')
     
-    return make_response(transcription_id)
+    return transcription_id
 
 
 # an endpoint that takes a transcript and returns a list of topics

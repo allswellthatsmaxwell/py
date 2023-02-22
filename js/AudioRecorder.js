@@ -49,9 +49,9 @@ function AudioRecorder({ updateText, updateTopics, setTranscriptionID }) {
         };
 
         try {
-            const response = await fetch('http://159.65.244.4:5555/upload', options);
-            const jsonResponse = await response.json();
-            return jsonResponse;
+            const transcription_id = await fetch('http://159.65.244.4:5555/upload', options);
+            //const transcription_id = await response;
+            return transcription_id;
         } catch (error) {
             console.error('Error:', error);
             return error;
