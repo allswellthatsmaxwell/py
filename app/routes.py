@@ -1,4 +1,4 @@
-from flask import request, Blueprint, Flask, make_response
+from flask import request, Blueprint, Flask, make_response, jsonify
 
 import os
 from typing import Dict
@@ -40,7 +40,9 @@ def upload():
     transcription_id = transcriber.upload_and_kickoff(destpath)
     app.logger.info(f'transcription_id: "{transcription_id}"')
     
-    return transcription_id
+    response_data = {'transcription_id': transcription_id}
+    return make_response(jsonify(response_data))
+    
 
 
 # an endpoint that takes a transcript and returns a list of topics
