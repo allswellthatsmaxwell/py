@@ -18,9 +18,9 @@ filesystem = filesystem.FileSystem(root=APPDATA_PATH)
 
 
 @app_routes.route("/upload", methods=["POST"])
-def recording():
-    # saves an audio file to the filesystem, returns the transcription
-    print("Entering routes.recording...")
+def upload():
+    # saves an audio file to the filesystem, returns the transcription ID
+    print("Entering routes.upload...")
     
     audio_file = request.files['file']
     audio_data = audio_file.read()
@@ -36,11 +36,11 @@ def recording():
         f.write(audio_data)
     app.logger.info("Done writing.")
     
-    transcript = transcribe(destpath)
-    text = transcript['text']
-    app.logger.info(f'transcript: "{text}"')
-
-    return make_response(transcript)
+    transcriber = transcription.Transcriber(audio_dir=f"{filesystem.root}/recordings")
+    transcription_id = transcriber.upload_and_kickoff(destpath)
+    app.logger.info(f'transcription_id: "{transcription_id}"')
+    
+    return make_response(transcription_id)
 
 
 # an endpoint that takes a transcript and returns a list of topics

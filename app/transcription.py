@@ -37,6 +37,9 @@ class Transcriber:
         response = requests.post(endpoint, json=json, headers=self.headers)
         return response.json()["id"]
     
+    def upload_and_kickoff(self, audio_file: str) -> str:
+        return self._kickoff(self._upload(audio_file))
+    
     def _poll(self, transcription_id: str):
         endpoint = f"https://api.assemblyai.com/v2/transcript/{transcription_id}"
         status = "processing"
