@@ -49,9 +49,10 @@ function AudioRecorder({ updateText, updateTopics, setTranscriptionID }) {
         };
 
         try {
-            const transcription_id = await fetch('http://159.65.244.4:5555/upload', options);
-            //const transcription_id = await response;
-            return transcription_id;
+            const response = await fetch('http://159.65.244.4:5555/upload', options);
+            responseJson = await response.json();
+            console.log('Response:', responseJson);
+            return responseJson;
         } catch (error) {
             console.error('Error:', error);
             return error;
@@ -98,8 +99,9 @@ function AudioRecorder({ updateText, updateTopics, setTranscriptionID }) {
             allowsRecordingIOS: true,
         });
 
-        const jsonResponseTranscriptID = await sendRecording(recording);
-        console.log('Transcript ID response:', jsonResponseTranscriptID);
+        const response = await sendRecording(recording);
+        console.log('Transcript ID response:', response.transcription_id);
+        setTranscriptionID(response.transcription_id);
         // setTranscriptionID(jsonResponseTranscriptID.id);
         // updateText(jsonResponseTranscript.text);
         // const userId = firebase.auth().currentUser.uid;

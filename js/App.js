@@ -38,7 +38,7 @@ export default function App() {
     const [user, setUser] = React.useState(null);
     // state to keep track of the selected topic
     const [selectedTopic, setSelectedTopic] = React.useState(null);
-
+    const [transcriptionID, setTranscriptionID] = React.useState(null);
 
     const handleBackPress = () => {
         setSelectedTopic(null);
@@ -59,7 +59,9 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder updateText={setTranscriptionText} updateTopics={setRecordedTopics} />
+                <AudioRecorder updateText={setTranscriptionText} updateTopics={setRecordedTopics} 
+                               setTranscriptionID={setTranscriptionID} />
+                <Text id="transcription-id" style={{ textAlign: 'center' }}>{transcriptionID}</Text>
                 <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>
                 <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>
             </View>);
