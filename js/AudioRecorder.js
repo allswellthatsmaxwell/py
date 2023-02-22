@@ -5,8 +5,10 @@ import { Audio } from 'expo-av';
 
 import * as firebase from 'firebase';
 
+import { transcribe } from './Transcription.js';
 
-function AudioRecorder({ updateText, updateTopics }) {
+
+function AudioRecorder({ setTranscriptionText, updateTopics }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -93,13 +95,21 @@ function AudioRecorder({ updateText, updateTopics }) {
         const timestamp = firebase.firestore.FieldValue.serverTimestamp()
         console.log('Stopping recording..');
         setRecording(undefined);
-        await recording.stopAndUnloadAsync();
         await Audio.setAudioModeAsync({
             allowsRecordingIOS: true,
         });
+        await recording.stopAndUnloadAsync();
+        
 
-        const jsonResponseTranscript = await sendRecording(recording);
-        updateText(jsonResponseTranscript.text);
+        console.log("Before URI access.");
+        const uri = await recording.getURI();
+        console.log("Recording: ", recording);
+        console.log("recording URI: ", uri);
+
+        const jsonResponse = await transcribe(recording); // await sendRecording(recording);
+        console.log('Transcription JSON received: ', jsonResponse)
+        jsonResponseTranscript = jsonResponse.text;
+        setTranscriptionText(jsonResponseTranscript.text);
         const userId = firebase.auth().currentUser.uid;
 
         // topics is a comma separated string

@@ -59,7 +59,7 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder updateText={setTranscriptionText} updateTopics={setRecordedTopics} />
+                <AudioRecorder setTranscriptionText={setTranscriptionText} updateTopics={setRecordedTopics} />
                 <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>
                 <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>
             </View>);
