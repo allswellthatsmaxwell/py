@@ -6,7 +6,7 @@ import { Audio } from 'expo-av';
 import * as firebase from 'firebase';
 
 
-function AudioRecorder({ updateText, updateTopics }) {
+function AudioRecorder({ updateText, updateTopics, setTranscriptionID }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -98,22 +98,24 @@ function AudioRecorder({ updateText, updateTopics }) {
             allowsRecordingIOS: true,
         });
 
-        const jsonResponseTranscript = await sendRecording(recording);
-        updateText(jsonResponseTranscript.text);
-        const userId = firebase.auth().currentUser.uid;
+        const jsonResponseTranscriptID = await sendRecording(recording);
+        console.log('Transcript ID response:', jsonResponseTranscriptID);
+        // setTranscriptionID(jsonResponseTranscriptID.id);
+        // updateText(jsonResponseTranscript.text);
+        // const userId = firebase.auth().currentUser.uid;
 
-        // topics is a comma separated string
-        const topics = await getTopics(jsonResponseTranscript.text);
-        updateTopics(topics);
+        // // topics is a comma separated string
+        // const topics = await getTopics(jsonResponseTranscript.text);
+        // updateTopics(topics);
 
-        await writeTopicsToDB(jsonResponseTranscript, topics, timestamp, userId);
+        // await writeTopicsToDB(jsonResponseTranscript, topics, timestamp, userId);
 
-        const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');
-        return await transcriptsCollection.add({ text: jsonResponseTranscript.text, topics: topics, timestamp: timestamp })
-            .then((docRef) => {
-                console.log('Transcript written with ID: ', docRef.id);
-            }
-        )
+        // const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');
+        // return await transcriptsCollection.add({ text: jsonResponseTranscript.text, topics: topics, timestamp: timestamp })
+        //     .then((docRef) => {
+        //         console.log('Transcript written with ID: ', docRef.id);
+        //     }
+        // )
     }
 
 
