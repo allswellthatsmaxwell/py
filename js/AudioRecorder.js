@@ -106,7 +106,7 @@ function AudioRecorder({ setTranscriptionText, updateTopics }) {
         console.log("Recording: ", recording);
         console.log("recording URI: ", uri);
 
-        const jsonResponse = await transcribe(recording); // await sendRecording(recording);
+        const jsonResponse = await transcribe(uri); // await sendRecording(recording);
         console.log('Transcription JSON received: ', jsonResponse)
         jsonResponseTranscript = jsonResponse.text;
         setTranscriptionText(jsonResponseTranscript.text);
