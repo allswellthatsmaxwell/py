@@ -46,6 +46,7 @@ def upload():
 
 @app_routes.route("/kickoff", methods=["POST"])
 def kickoff():
+    print(request.get_json()
     audio_url = request.get_json()['audio_url']
     return transcription.kickoff(audio_url)
     
