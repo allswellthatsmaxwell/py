@@ -49,7 +49,7 @@ def kickoff():
     print(request)
     print(request.get_json())
     audio_url = request.get_json()['audio_url']
-    return transcription.kickoff(audio_url)
+    return make_response(jsonify(transcription.kickoff(audio_url)))
     
 
 

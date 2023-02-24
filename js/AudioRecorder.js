@@ -14,9 +14,8 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL }) {
     async function kickoffTranscription(audio_url) {
         const options = {
             method: 'POST',
-            body: {"audio_url": audio_url},
+            body: JSON.stringify({"audio_url": audio_url}),
             headers: {
-                Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
         };
