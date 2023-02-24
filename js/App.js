@@ -39,6 +39,7 @@ export default function App() {
     // state to keep track of the selected topic
     const [selectedTopic, setSelectedTopic] = React.useState(null);
     const [transcriptionID, setTranscriptionID] = React.useState(null);
+    const [audioUploadURL, setAudioUploadURL] = React.useState(null);
 
     const handleBackPress = () => {
         setSelectedTopic(null);
@@ -59,8 +60,8 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder updateText={setTranscriptionText} updateTopics={setRecordedTopics} 
-                               setTranscriptionID={setTranscriptionID} />
+                <AudioRecorder setAudioUploadURL={setAudioUploadURL} />
+                <Text id="audio-upload-url" style={{ textAlign: 'center' }}>{audioUploadURL}</Text>
                 <Text id="transcription-id" style={{ textAlign: 'center' }}>{transcriptionID}</Text>
                 <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>
                 <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>

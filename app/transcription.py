@@ -26,7 +26,7 @@ class Transcriber:
         assert len(audio_file) == 1
         return audio_file[0]
     
-    def _upload(self, audio_file: str) -> str:
+    def upload(self, audio_file: str) -> str:
         endpoint = "https://api.assemblyai.com/v2/upload"
         response = requests.post(endpoint, headers=self.headers, data=read_file(audio_file))
         return response.json()["upload_url"]
@@ -38,7 +38,7 @@ class Transcriber:
         return response.json()["id"]
     
     def upload_and_kickoff(self, audio_file: str) -> str:
-        return self._kickoff(self._upload(audio_file))
+        return self._kickoff(self.upload(audio_file))
     
     def _poll(self, transcription_id: str):
         endpoint = f"https://api.assemblyai.com/v2/transcript/{transcription_id}"
@@ -51,4 +51,4 @@ class Transcriber:
         return response.json()
     
     def transcribe(self, audio_file: str) -> Dict:
-        return self._poll(self._kickoff(self._upload(audio_file)))
+        return self._poll(self._kickoff(self.upload(audio_file)))

@@ -6,7 +6,7 @@ import { Audio } from 'expo-av';
 import * as firebase from 'firebase';
 
 
-function AudioRecorder({ updateText, updateTopics, setTranscriptionID }) {
+function AudioRecorder({ setAudioUploadURL }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -100,8 +100,8 @@ function AudioRecorder({ updateText, updateTopics, setTranscriptionID }) {
         });
 
         const response = await sendRecording(recording);
-        console.log('Transcript ID response:', response.transcription_id);
-        setTranscriptionID(response.transcription_id);
+        console.log('upload_url response:', response.upload_url);
+        setAudioUploadURL(response.upload_url);
         // setTranscriptionID(jsonResponseTranscriptID.id);
         // updateText(jsonResponseTranscript.text);
         // const userId = firebase.auth().currentUser.uid;
