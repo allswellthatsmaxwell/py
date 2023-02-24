@@ -41,6 +41,7 @@ export default function App() {
     const [transcriptionID, setTranscriptionID] = React.useState(null);
     const [audioUploadURL, setAudioUploadURL] = React.useState(null);
 
+    
     const handleBackPress = () => {
         setSelectedTopic(null);
     };
