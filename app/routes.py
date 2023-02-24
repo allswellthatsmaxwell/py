@@ -37,10 +37,10 @@ def upload():
     app.logger.info("Done writing.")
     
     transcriber = transcription.Transcriber(audio_dir=f"{filesystem.root}/recordings")
-    upload_url = transcriber._upload(destpath)
+    upload_url = transcriber.upload(destpath)
     app.logger.info(f'upload_url: "{upload_url}"')
     
-    response_data = {'transcription_id': transcription_id}
+    response_data = {'upload_url': upload_url}
     return make_response(jsonify(response_data))
     
 
