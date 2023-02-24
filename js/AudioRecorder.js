@@ -5,10 +5,32 @@ import { Audio } from 'expo-av';
 
 import * as firebase from 'firebase';
 
+import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-function AudioRecorder({ setAudioUploadURL }) {
+function AudioRecorder({ audioUploadURL, setAudioUploadURL }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
+
+    async function kickoffTranscription(audio_url) {
+        const options = {
+            method: 'POST',
+            body: {"audio_url": audio_url},
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+        };
+
+        try {
+            const response = await fetch('http://159.65.244.4:5555/kickoff', options);
+            responseJson = await response.json();
+            console.log('Response:', responseJson);
+            return responseJson;
+        } catch (error) {
+            console.error('Error:', error);
+            return error;
+        }
+    }
 
     async function startRecording() {
         try {
@@ -102,6 +124,7 @@ function AudioRecorder({ setAudioUploadURL }) {
         const response = await sendRecording(recording);
         console.log('upload_url response:', response.upload_url);
         setAudioUploadURL(response.upload_url);
+        kickoffTranscription(response.upload_url);
         // setTranscriptionID(jsonResponseTranscriptID.id);
         // updateText(jsonResponseTranscript.text);
         // const userId = firebase.auth().currentUser.uid;

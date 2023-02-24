@@ -38,10 +38,10 @@ export default function App() {
     const [user, setUser] = React.useState(null);
     // state to keep track of the selected topic
     const [selectedTopic, setSelectedTopic] = React.useState(null);
-    const [transcriptionID, setTranscriptionID] = React.useState(null);
-    const [audioUploadURL, setAudioUploadURL] = React.useState(null);
+    const [transcriptionID, setTranscriptionID] = React.useState("[transcriptionID]");
+    const [audioUploadURL, setAudioUploadURL] = React.useState("[audioUploadURL]");
 
-    
+
     const handleBackPress = () => {
         setSelectedTopic(null);
     };
@@ -61,7 +61,7 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder setAudioUploadURL={setAudioUploadURL} />
+                <AudioRecorder audioUploadURL={audioUploadURL} setAudioUploadURL={setAudioUploadURL} />
                 <Text id="audio-upload-url" style={{ textAlign: 'center' }}>{audioUploadURL}</Text>
                 <Text id="transcription-id" style={{ textAlign: 'center' }}>{transcriptionID}</Text>
                 <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>
@@ -110,7 +110,7 @@ export default function App() {
                 <View style={styles.topContainer}>
                     <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
                 </View>
-                
+
                 <View style={styles.centerContainer}>
                     <RecordingElements />
                 </View>
@@ -122,7 +122,7 @@ export default function App() {
         return (
             <View style={styles.container}>
                 <View style={styles.headerContainer}></View>
-                
+
                 {!selectedTopic ? (
                     <MainDisplay />
                 ) : (

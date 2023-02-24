@@ -3,6 +3,9 @@ from typing import Dict
 from pathlib import Path
 
 
+HEADERS = { "Authorization": os.environ["ASSEMBLY_AI_API_KEY"] }
+
+
 def read_file(filename, chunk_size=5242880):
     with open(filename, 'rb') as _file:
         while True:
@@ -12,9 +15,8 @@ def read_file(filename, chunk_size=5242880):
             yield data
 
 
+
 class Transcriber:
-    headers = { "Authorization": os.environ["ASSEMBLY_AI_API_KEY"] }
-    
     def __init__(self, audio_dir: Path=None, audio_extension='.m4a') -> None:
         self.audio_dir = audio_dir
         self.audio_extension = audio_extension
@@ -28,23 +30,17 @@ class Transcriber:
     
     def upload(self, audio_file: str) -> str:
         endpoint = "https://api.assemblyai.com/v2/upload"
-        response = requests.post(endpoint, headers=self.headers, data=read_file(audio_file))
+        response = requests.post(endpoint, headers=HEADERS, data=read_file(audio_file))
         return response.json()["upload_url"]
     
-    def _kickoff(self, url: str) -> str:
-        endpoint = "https://api.assemblyai.com/v2/transcript"
-        json = { "audio_url": url }
-        response = requests.post(endpoint, json=json, headers=self.headers)
-        return response.json()["id"]
-    
-    def upload_and_kickoff(self, audio_file: str) -> str:
-        return self._kickoff(self.upload(audio_file))
+    # def upload_and_kickoff(self, audio_file: str) -> str:
+    #     return self._kickoff(self.upload(audio_file))
     
     def _poll(self, transcription_id: str):
         endpoint = f"https://api.assemblyai.com/v2/transcript/{transcription_id}"
         status = "processing"
         while status not in ("completed", "error"):
-            response = requests.get(endpoint, headers=self.headers)
+            response = requests.get(endpoint, headers=HEADERS)
             if "status" not in response.json():
                 raise ValueError(f"No status in response: {response.json()}")
             status = response.json()["status"]
@@ -52,3 +48,11 @@ class Transcriber:
     
     def transcribe(self, audio_file: str) -> Dict:
         return self._poll(self._kickoff(self.upload(audio_file)))
+    
+
+
+def kickoff(url: str) -> str:
+    endpoint = "https://api.assemblyai.com/v2/transcript"
+    json = { "audio_url": url }
+    response = requests.post(endpoint, json=json, headers=HEADERS)
+    return response.json()["id"]
