@@ -61,7 +61,8 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder audioUploadURL={audioUploadURL} setAudioUploadURL={setAudioUploadURL} />
+                <AudioRecorder audioUploadURL={audioUploadURL} setAudioUploadURL={setAudioUploadURL} 
+                               setTranscriptionID={setTranscriptionID}/>
                 <Text id="audio-upload-url" style={{ textAlign: 'center' }}>{audioUploadURL}</Text>
                 <Text id="transcription-id" style={{ textAlign: 'center' }}>{transcriptionID}</Text>
                 <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>

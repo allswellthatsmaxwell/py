@@ -7,7 +7,7 @@ import * as firebase from 'firebase';
 
 import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-function AudioRecorder({ audioUploadURL, setAudioUploadURL }) {
+function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -22,9 +22,9 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL }) {
 
         try {
             const response = await fetch('http://159.65.244.4:5555/kickoff', options);
-            responseJson = await response.json();
-            console.log('Response:', responseJson);
-            return responseJson;
+            transcriptionId = await response.json();
+            console.log('Response:', transcriptionId);
+            return transcriptionId;
         } catch (error) {
             console.error('Error:', error);
             return error;
@@ -123,7 +123,7 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL }) {
         const response = await sendRecording(recording);
         console.log('upload_url response:', response.upload_url);
         setAudioUploadURL(response.upload_url);
-        kickoffTranscription(response.upload_url);
+        setTranscriptionID(await kickoffTranscription(response.upload_url));
         // setTranscriptionID(jsonResponseTranscriptID.id);
         // updateText(jsonResponseTranscript.text);
         // const userId = firebase.auth().currentUser.uid;
