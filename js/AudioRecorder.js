@@ -7,7 +7,7 @@ import * as firebase from 'firebase';
 
 import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID, setTranscriptionStatus }) {
+function AudioRecorder({ setTranscriptionStatus }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -205,26 +205,5 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID, 
         </View>
     );
 }
-
-// function listenForTranscription(taskId) {
-//   // Create a new WebSocket instance
-//   const socket = new WebSocket("ws://159.65.244.4:5555/transcription/${taskId}");
-
-//   // Connection opened
-//   socket.addEventListener("open", (event) => {
-//     socket.send("Start listening for transcription");
-//   });
-
-//   // Listen for messages
-//   socket.addEventListener("message", (event) => {
-//     const data = JSON.parse(event.data);
-//     if (data.type === "transcription") {
-//       // Update UI with transcription text
-//       document.getElementById("transcription-text").innerText = data.text;
-//       // Close the socket
-//       socket.close();
-//     }
-//   });
-// }
 
 export default AudioRecorder;

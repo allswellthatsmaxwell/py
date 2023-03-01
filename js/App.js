@@ -33,14 +33,11 @@ if (!firebase.apps.length) {
 
 export default function App() {
     const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
-    const [transcriptionText, setTranscriptionText] = React.useState('...');
     const [recordedTopics, setRecordedTopics] = React.useState('___');
 
     const [user, setUser] = React.useState(null);
     // state to keep track of the selected topic
     const [selectedTopic, setSelectedTopic] = React.useState(null);
-    const [transcriptionID, setTranscriptionID] = React.useState("[transcriptionID]");
-    const [audioUploadURL, setAudioUploadURL] = React.useState("[audioUploadURL]");
 
 
     const handleBackPress = () => {
@@ -62,10 +59,7 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder audioUploadURL={audioUploadURL} setAudioUploadURL={setAudioUploadURL} 
-                               setTranscriptionID={setTranscriptionID} setTranscriptionStatus={setTranscriptionStatus}/>
-                <Text id="audio-upload-url" style={{ textAlign: 'center' }}>{audioUploadURL}</Text>
-                <Text id="transcription-id" style={{ textAlign: 'center' }}>{transcriptionID}</Text>
+                <AudioRecorder setTranscriptionStatus={setTranscriptionStatus}/>
                 <Text id="transcription-status" style={{ textAlign: 'center' }}>{transcriptionStatus}</Text>
                 <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>
             </View>);
