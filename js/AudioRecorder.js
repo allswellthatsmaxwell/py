@@ -12,41 +12,21 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID, 
     const [recording, setRecording] = React.useState();
 
     async function kickoffTranscription(audio_url) {
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({ "audio_url": audio_url }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-
-        try {
-            const response = await fetch('http://159.65.244.4:5555/kickoff', options);
-            transcriptionId = await response.json();
-            console.log('Response:', transcriptionId);
-            return transcriptionId;
-        } catch (error) {
-            console.error('Error:', error);
-            return error;
-        }
-    }
-
-    async function kickoffDirectly(audio_url) {
         const axios = require("axios");
 
         const assembly = axios.create({
             baseURL: "https://api.assemblyai.com/v2",
             headers: {
-                "authorization": ASSEMBLYAI_API_KEY,
+                authorization: ASSEMBLYAI_API_KEY,
             },
         });
-        assembly
+        return assembly
             .post("/transcript", {
-                audio_url: audio_url
+                audio_url: audio_url,
             })
             .then((res) => {
-                console.log(res.data)
-                return res.data
+                console.log("kickoff: ", res.data)
+                return res.data.id;
             })
             .catch((err) => console.error(err));
     }
@@ -103,7 +83,6 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID, 
     async function _poll(transcription_id) {
         const endpoint = `https://api.assemblyai.com/v2/transcript/${transcription_id}`;
         let status = "processing";
-        let jsonResponse = "Something went wrong while trying to figure out what you said.";
         while (status !== "completed" && status !== "error") {
             const response = await fetch(
                 endpoint,
@@ -169,7 +148,7 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID, 
         console.log('upload_url response:', response.upload_url);
 
         setTranscriptionStatus("Figuring out what you said...");
-        const transcriptionId = await kickoffTranscription(response.upload_url); // await kickoffTranscription(response.upload_url);
+        const transcriptionId = await kickoffTranscription(response.upload_url);
         console.log('transcription_id:', transcriptionId);
         const transcript = await _poll(transcriptionId);
         console.log('transcript:', transcript);
