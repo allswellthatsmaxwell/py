@@ -7,7 +7,7 @@ import * as firebase from 'firebase';
 
 import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-function AudioRecorder({ setTranscriptionStatus }) {
+function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -104,7 +104,7 @@ function AudioRecorder({ setTranscriptionStatus }) {
     }
 
 
-    async function addEntryToTopic(topic, value, jsonResponseTranscript, timestamp, userId) {
+    async function addEntryToTopic(topic, value, transcript, timestamp, userId) {
         // create the topic if it doesn't exist
         const topicCollection = firebase.firestore().collection('users').doc(userId).collection('topics');
         const topicDoc = await topicCollection.doc(topic).get();
@@ -116,7 +116,7 @@ function AudioRecorder({ setTranscriptionStatus }) {
         // add the entry to the topic
         const topicEntriesCollection = topicCollection.doc(topic).collection('entries');
         topicEntriesCollection.add({
-            transcript: jsonResponseTranscript.text,
+            transcript: transcript,
             timestamp: timestamp,
             number: value
         });
@@ -153,22 +153,21 @@ function AudioRecorder({ setTranscriptionStatus }) {
         const transcript = await _poll(transcriptionId);
         console.log('transcript:', transcript);
         setTranscriptionStatus(transcript);
+        setTopicsStatus("Figuring out what you're logging...");
 
-        // setTranscriptionID(jsonResponseTranscriptID.id);
-        // const userId = firebase.auth().currentUser.uid;
+        // topics is a comma separated string
+        const topics = await getTopics(transcript);      
 
-        // // topics is a comma separated string
-        // const topics = await getTopics(jsonResponseTranscript.text);
-        // updateTopics(topics);
+        const userId = firebase.auth().currentUser.uid;
+        const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');
+        await transcriptsCollection.add({ text: transcript, topics: topics, timestamp: timestamp })
+            .then((docRef) => {
+                console.log('Transcript written with ID: ', docRef.id);
+            }
+        )
 
-        // await writeTopicsToDB(jsonResponseTranscript, topics, timestamp, userId);
-
-        // const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');
-        // return await transcriptsCollection.add({ text: jsonResponseTranscript.text, topics: topics, timestamp: timestamp })
-        //     .then((docRef) => {
-        //         console.log('Transcript written with ID: ', docRef.id);
-        //     }
-        // )
+        await writeTopicsToDB(transcript, topics, timestamp, userId);
+        setTopicsStatus(topics);
     }
 
 

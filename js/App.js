@@ -33,7 +33,7 @@ if (!firebase.apps.length) {
 
 export default function App() {
     const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
-    const [recordedTopics, setRecordedTopics] = React.useState('___');
+    const [topicsStatus, setTopicsStatus] = React.useState(null);
 
     const [user, setUser] = React.useState(null);
     // state to keep track of the selected topic
@@ -59,9 +59,9 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder setTranscriptionStatus={setTranscriptionStatus}/>
+                <AudioRecorder setTranscriptionStatus={setTranscriptionStatus} setTopicsStatus={setTopicsStatus}/>
                 <Text id="transcription-status" style={{ textAlign: 'center' }}>{transcriptionStatus}</Text>
-                <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>
+                <Text id="topics-status" style={{ textAlign: 'center' }}>{topicsStatus}</Text>
             </View>);
     }
 
