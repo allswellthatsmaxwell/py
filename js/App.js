@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Text, View, Button, TouchableOpacity, Modal } from 'react-native';
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from 'firebase';
@@ -36,9 +36,7 @@ export default function App() {
     const [topicsStatus, setTopicsStatus] = React.useState(null);
 
     const [user, setUser] = React.useState(null);
-    // state to keep track of the selected topic
     const [selectedTopic, setSelectedTopic] = React.useState(null);
-
 
     const handleBackPress = () => {
         setSelectedTopic(null);
@@ -59,7 +57,7 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder setTranscriptionStatus={setTranscriptionStatus} setTopicsStatus={setTopicsStatus}/>
+                <AudioRecorder setTranscriptionStatus={setTranscriptionStatus} setTopicsStatus={setTopicsStatus} />
                 <Text id="transcription-status" style={{ textAlign: 'center' }}>{transcriptionStatus}</Text>
                 <Text id="topics-status" style={{ textAlign: 'center' }}>{topicsStatus}</Text>
             </View>);
@@ -101,10 +99,12 @@ export default function App() {
     }
 
     function MainDisplay() {
+        const MemoizedTopicsList = memo(() => <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />);
+
         return (
             <View>
                 <View style={styles.topContainer}>
-                    <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
+                    <MemoizedTopicsList />
                 </View>
 
                 <View style={styles.centerContainer}>

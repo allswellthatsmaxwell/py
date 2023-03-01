@@ -123,7 +123,6 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
         console.log('Added entry to topic', topic);
     }
 
-
     async function writeTopicsToDB(jsonResponseTranscript, topics, timestamp, userId) {
         const topicsDict = JSON.parse(topics);
 
@@ -206,3 +205,4 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
 }
 
 export default AudioRecorder;
+
