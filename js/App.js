@@ -32,6 +32,7 @@ if (!firebase.apps.length) {
 }
 
 export default function App() {
+    const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
     const [transcriptionText, setTranscriptionText] = React.useState('...');
     const [recordedTopics, setRecordedTopics] = React.useState('___');
 
@@ -62,10 +63,10 @@ export default function App() {
         return (
             <View>
                 <AudioRecorder audioUploadURL={audioUploadURL} setAudioUploadURL={setAudioUploadURL} 
-                               setTranscriptionID={setTranscriptionID}/>
+                               setTranscriptionID={setTranscriptionID} setTranscriptionStatus={setTranscriptionStatus}/>
                 <Text id="audio-upload-url" style={{ textAlign: 'center' }}>{audioUploadURL}</Text>
                 <Text id="transcription-id" style={{ textAlign: 'center' }}>{transcriptionID}</Text>
-                <Text id="transcription-text" style={{ textAlign: 'center' }}>{transcriptionText}</Text>
+                <Text id="transcription-status" style={{ textAlign: 'center' }}>{transcriptionStatus}</Text>
                 <Text id="recorded-topics-text" style={{ textAlign: 'center' }}>{recordedTopics}</Text>
             </View>);
     }

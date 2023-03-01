@@ -7,14 +7,14 @@ import * as firebase from 'firebase';
 
 import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID }) {
+function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID, setTranscriptionStatus }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
     async function kickoffTranscription(audio_url) {
         const options = {
             method: 'POST',
-            body: JSON.stringify({"audio_url": audio_url}),
+            body: JSON.stringify({ "audio_url": audio_url }),
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -29,6 +29,26 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID }
             console.error('Error:', error);
             return error;
         }
+    }
+
+    async function kickoffDirectly(audio_url) {
+        const axios = require("axios");
+
+        const assembly = axios.create({
+            baseURL: "https://api.assemblyai.com/v2",
+            headers: {
+                "authorization": ASSEMBLYAI_API_KEY,
+            },
+        });
+        assembly
+            .post("/transcript", {
+                audio_url: audio_url
+            })
+            .then((res) => {
+                console.log(res.data)
+                return res.data
+            })
+            .catch((err) => console.error(err));
     }
 
     async function startRecording() {
@@ -80,6 +100,30 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID }
         }
     }
 
+    async function _poll(transcription_id) {
+        const endpoint = `https://api.assemblyai.com/v2/transcript/${transcription_id}`;
+        let status = "processing";
+        let jsonResponse = "Something went wrong while trying to figure out what you said.";
+        while (status !== "completed" && status !== "error") {
+            const response = await fetch(
+                endpoint,
+                {
+                    headers: {
+                        authorization: ASSEMBLYAI_API_KEY
+                    }
+                });
+            const jsonResponse = await response.json();
+            console.log("jsonResponse: ", jsonResponse);
+            if (!jsonResponse.status) {
+                throw new Error(`No status in response: ${jsonResponse}`);
+            } else if (jsonResponse.status === "completed") {
+                return jsonResponse.text;
+            } else {
+                status = jsonResponse.status;
+            }
+        }
+    }
+
 
     async function addEntryToTopic(topic, value, jsonResponseTranscript, timestamp, userId) {
         // create the topic if it doesn't exist
@@ -120,12 +164,18 @@ function AudioRecorder({ audioUploadURL, setAudioUploadURL, setTranscriptionID }
             allowsRecordingIOS: true,
         });
 
+        setTranscriptionStatus("Preparing audio...");
         const response = await sendRecording(recording);
         console.log('upload_url response:', response.upload_url);
-        setAudioUploadURL(response.upload_url);
-        setTranscriptionID(await kickoffTranscription(response.upload_url));
+
+        setTranscriptionStatus("Figuring out what you said...");
+        const transcriptionId = await kickoffTranscription(response.upload_url); // await kickoffTranscription(response.upload_url);
+        console.log('transcription_id:', transcriptionId);
+        const transcript = await _poll(transcriptionId);
+        console.log('transcript:', transcript);
+        setTranscriptionStatus(transcript);
+
         // setTranscriptionID(jsonResponseTranscriptID.id);
-        // updateText(jsonResponseTranscript.text);
         // const userId = firebase.auth().currentUser.uid;
 
         // // topics is a comma separated string
