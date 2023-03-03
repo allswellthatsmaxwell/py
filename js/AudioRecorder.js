@@ -7,14 +7,13 @@ import * as firebase from 'firebase';
 
 import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-const userId = firebase.auth().currentUser.uid;
 
-
-function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
+function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
-    const storage = firebase.storage();
+    const storage = fbase.storage();
+    const userId = fbase.auth().currentUser.uid;
 
     async function kickoffTranscription(audio_url) {
         const axios = require("axios");
@@ -74,36 +73,6 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
         return storageRef.getDownloadURL();
     }
 
-    // async function sendRecording(recording) {
-    //     const uri = recording.getURI();
-    //     const uriParts = uri.split('.');
-    //     const fileType = uriParts[uriParts.length - 1];
-    //     const formData = new FormData();
-    //     formData.append('file', {
-    //         uri,
-    //         name: `recording.${fileType}`,
-    //         type: `audio/${fileType}`,
-    //         extension: fileType,
-    //     });
-    //     const options = {
-    //         method: 'POST',
-    //         body: formData,
-    //         headers: {
-    //             Accept: 'application/json',
-    //             'Content-Type': 'multipart/form-data',
-    //         },
-    //     };
-
-    //     try {
-    //         const response = await fetch('http://159.65.244.4:5555/upload', options);
-    //         responseJson = await response.json();
-    //         console.log('Response:', responseJson);
-    //         return responseJson;
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //         return error;
-    //     }
-    // }
 
     async function _poll(transcription_id) {
         const endpoint = `https://api.assemblyai.com/v2/transcript/${transcription_id}`;
