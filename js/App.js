@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Text, View, Button, TouchableOpacity, Modal } from 'react-native';
-import { useEffect, memo } from 'react';
+import { useEffect } from 'react';
 import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from 'firebase';
@@ -42,7 +42,6 @@ export default function App() {
         setSelectedTopic(null);
     };
 
-
     useEffect(() => {
         firebase.auth().onAuthStateChanged(user => {
             if (user) {
@@ -64,7 +63,6 @@ export default function App() {
             </View>);
     }
 
-
     function BackButton() {
         return (
             <TouchableOpacity onPress={handleBackPress}>
@@ -72,7 +70,6 @@ export default function App() {
             </TouchableOpacity>
         );
     }
-
 
     function AuthStatusElements() {
         const [showMenu, setShowMenu] = React.useState(false);
@@ -100,12 +97,10 @@ export default function App() {
     }
 
     function MainDisplay() {
-        const MemoizedTopicsList = memo(() => <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />);
-
         return (
             <View>
                 <View style={styles.topContainer}>
-                    <MemoizedTopicsList />
+                    <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
                 </View>
 
                 <View style={styles.centerContainer}>

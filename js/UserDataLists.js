@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, memo } from 'react';
+import { useEffect } from 'react';
 import { Table, Row, Rows } from 'react-native-table-component';
 import { Text, View, FlatList, TouchableOpacity } from 'react-native';
 import * as firebase from 'firebase';
@@ -64,12 +64,11 @@ export function TopicsList({ userId, setSelectedTopic }) {
 }
 
 
-function EntriesForTopic({ userId, selectedTopic }) {
-    const MemoizedLogsList = memo(() => <LogsList userId={userId} topic={selectedTopic} />);
+export function EntriesForTopic({ userId, selectedTopic }) {
     return (
         <View style={styles.topContainer}>
             <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
-            <MemoizedLogsList />
+            <LogsList userId={userId} topic={selectedTopic} />
         </View>
     );
 }
@@ -116,5 +115,3 @@ function LogsList({ userId, topic }) {
         </View>
     );
 }
-
-export default memo(EntriesForTopic);
