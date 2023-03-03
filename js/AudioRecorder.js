@@ -27,7 +27,8 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
-    var storage = fbase.storage();
+    const storage = fbase.storage();
+    const userId = fbase.auth().currentUser.uid;
 
     async function kickoffTranscription(audio_url) {
         const axios = require("axios");
@@ -70,7 +71,8 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
     async function sendRecording(recording) {
         const uri = recording.getURI();
         console.log('URI: ', uri);
-        const storageRef = storage.ref().child('audio/my-audio-file.mp3');
+        const timestamp = Date.now();        
+        const storageRef = storage.ref().child(`users/${userId}/audio/${timestamp}.mp3`);
         console.log('storageRef: ', storageRef);
         const response = await fetch(uri);
         console.log('response: ', response);
@@ -83,6 +85,7 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
             console.error('Failed to upload audio', err);
         }
         console.log('Uploaded audio!');
+        return storageRef.getDownloadURL();
     }
 
     // async function sendRecording(recording) {
@@ -179,11 +182,11 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
         });
 
         setTranscriptionStatus("Preparing audio...");
-        const response = await sendRecording(recording);
-        console.log('upload_url response:', response.upload_url);
+        const audio_url = await sendRecording(recording);
+        console.log('upload_url response:', audio_url);
 
         setTranscriptionStatus("Figuring out what you said...");
-        const transcriptionId = await kickoffTranscription(response.upload_url);
+        const transcriptionId = await kickoffTranscription(audio_url);
         console.log('transcription_id:', transcriptionId);
         const transcript = await _poll(transcriptionId);
         console.log('transcript:', transcript);
