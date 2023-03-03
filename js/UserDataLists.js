@@ -42,6 +42,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
         );
     }
 
+    // I think the unnecessary re-rendering is happening here. Why even have this useEffect?
     useEffect(() => {
         const topicsCollection = firebase.firestore()
             .collection('users')
