@@ -7,28 +7,14 @@ import * as firebase from 'firebase';
 
 import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-// const firebaseConfig = {
-//     apiKey: "AIzaSyBnn9Joa2K68y2u8yLvwFjAJgUcNOmODCk",
-//     authDomain: "structured-voice-logger.firebaseapp.com",
-//     projectId: "structured-voice-logger",
-//     storageBucket: "structured-voice-logger.appspot.com",
-//     messagingSenderId: "127564426167",
-//     appId: "1:127564426167:web:77ff9ba27098012917d632",
-//     measurementId: "G-5SDFE3KY7B"
-// };
+const userId = firebase.auth().currentUser.uid;
 
-// if (!firebase.apps.length) {
-//     firebase.initializeApp(firebaseConfig);
-// }
 
-// var storage = firebase.storage();
-
-function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
+function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
-    const storage = fbase.storage();
-    const userId = fbase.auth().currentUser.uid;
+    const storage = firebase.storage();
 
     async function kickoffTranscription(audio_url) {
         const axios = require("axios");
@@ -143,7 +129,7 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
     }
 
 
-    async function addEntryToTopic(topic, value, transcript, timestamp, userId) {
+    async function addEntryToTopic(topic, value, transcript, timestamp) {
         // create the topic if it doesn't exist
         const topicCollection = firebase.firestore().collection('users').doc(userId).collection('topics');
         const topicDoc = await topicCollection.doc(topic).get();
@@ -162,11 +148,11 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
         console.log('Added entry to topic', topic);
     }
 
-    async function writeTopicsToDB(jsonResponseTranscript, topics, timestamp, userId) {
+    async function writeTopicsToDB(jsonResponseTranscript, topics, timestamp) {
         const topicsDict = JSON.parse(topics);
 
         const entryAddPromises = Object.entries(topicsDict).map(async ([topic, value]) => {
-            await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp, userId);
+            await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
         });
         return await Promise.all(entryAddPromises);
     }
@@ -194,9 +180,8 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
         setTopicsStatus("Figuring out what you're logging...");
 
         // topics is a comma separated string
-        const topics = await getTopics(transcript);      
+        const topics = await getTopics(transcript);
 
-        const userId = firebase.auth().currentUser.uid;
         const transcriptsCollection = firebase.firestore().collection('users').doc(userId).collection('transcripts');
         await transcriptsCollection.add({ text: transcript, topics: topics, timestamp: timestamp })
             .then((docRef) => {
@@ -204,7 +189,7 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
             }
         )
 
-        await writeTopicsToDB(transcript, topics, timestamp, userId);
+        await writeTopicsToDB(transcript, topics, timestamp);
         setTopicsStatus(topics);
     }
 
