@@ -7,9 +7,27 @@ import * as firebase from 'firebase';
 
 import { ASSEMBLYAI_API_KEY } from './Keys.js';
 
-function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
+// const firebaseConfig = {
+//     apiKey: "AIzaSyBnn9Joa2K68y2u8yLvwFjAJgUcNOmODCk",
+//     authDomain: "structured-voice-logger.firebaseapp.com",
+//     projectId: "structured-voice-logger",
+//     storageBucket: "structured-voice-logger.appspot.com",
+//     messagingSenderId: "127564426167",
+//     appId: "1:127564426167:web:77ff9ba27098012917d632",
+//     measurementId: "G-5SDFE3KY7B"
+// };
+
+// if (!firebase.apps.length) {
+//     firebase.initializeApp(firebaseConfig);
+// }
+
+// var storage = firebase.storage();
+
+function AudioRecorder({ setTranscriptionStatus, setTopicsStatus, fbase }) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
+
+    var storage = fbase.storage();
 
     async function kickoffTranscription(audio_url) {
         const axios = require("axios");
@@ -51,34 +69,52 @@ function AudioRecorder({ setTranscriptionStatus, setTopicsStatus }) {
 
     async function sendRecording(recording) {
         const uri = recording.getURI();
-        const uriParts = uri.split('.');
-        const fileType = uriParts[uriParts.length - 1];
-        const formData = new FormData();
-        formData.append('file', {
-            uri,
-            name: `recording.${fileType}`,
-            type: `audio/${fileType}`,
-            extension: fileType,
-        });
-        const options = {
-            method: 'POST',
-            body: formData,
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'multipart/form-data',
-            },
-        };
-
+        console.log('URI: ', uri);
+        const storageRef = storage.ref().child('audio/my-audio-file.mp3');
+        console.log('storageRef: ', storageRef);
+        const response = await fetch(uri);
+        console.log('response: ', response);
+        const blob = await response.blob();
+        console.log('blob: ', blob);
         try {
-            const response = await fetch('http://159.65.244.4:5555/upload', options);
-            responseJson = await response.json();
-            console.log('Response:', responseJson);
-            return responseJson;
-        } catch (error) {
-            console.error('Error:', error);
-            return error;
+            await storageRef.put(blob);
         }
+        catch (err) {
+            console.error('Failed to upload audio', err);
+        }
+        console.log('Uploaded audio!');
     }
+
+    // async function sendRecording(recording) {
+    //     const uri = recording.getURI();
+    //     const uriParts = uri.split('.');
+    //     const fileType = uriParts[uriParts.length - 1];
+    //     const formData = new FormData();
+    //     formData.append('file', {
+    //         uri,
+    //         name: `recording.${fileType}`,
+    //         type: `audio/${fileType}`,
+    //         extension: fileType,
+    //     });
+    //     const options = {
+    //         method: 'POST',
+    //         body: formData,
+    //         headers: {
+    //             Accept: 'application/json',
+    //             'Content-Type': 'multipart/form-data',
+    //         },
+    //     };
+
+    //     try {
+    //         const response = await fetch('http://159.65.244.4:5555/upload', options);
+    //         responseJson = await response.json();
+    //         console.log('Response:', responseJson);
+    //         return responseJson;
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //         return error;
+    //     }
+    // }
 
     async function _poll(transcription_id) {
         const endpoint = `https://api.assemblyai.com/v2/transcript/${transcription_id}`;

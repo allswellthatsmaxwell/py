@@ -57,7 +57,7 @@ export default function App() {
     function RecordingElements() {
         return (
             <View>
-                <AudioRecorder setTranscriptionStatus={setTranscriptionStatus} setTopicsStatus={setTopicsStatus} />
+                <AudioRecorder setTranscriptionStatus={setTranscriptionStatus} setTopicsStatus={setTopicsStatus} fbase={firebase} />
                 <Text id="transcription-status" style={{ textAlign: 'center' }}>{transcriptionStatus}</Text>
                 <Text id="topics-status" style={{ textAlign: 'center' }}>{topicsStatus}</Text>
             </View>);
