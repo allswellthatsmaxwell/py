@@ -4,9 +4,7 @@ export function getStyles() {
     return StyleSheet.create({
         container: {
             flex: 1,
-            alignItems: 'center',
-            marginBottom: 0,
-            marginTop: 0,
+            alignItems: 'center'
         },
         header: {
             backgroundColor: '#f1f8ff'

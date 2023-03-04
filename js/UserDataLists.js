@@ -1,9 +1,8 @@
 import * as React from "react";
-import { useEffect, memo } from "react";
+import { useEffect } from "react";
 import { Table, Row, Rows } from "react-native-table-component";
 import { Text, View, FlatList, TouchableOpacity } from "react-native";
 import * as firebase from "firebase";
-import { AntDesign, Feather } from "@expo/vector-icons";
 
 import { getStyles } from "./styles.js";
 
@@ -40,7 +39,9 @@ export function TopicsList({ userId, setSelectedTopic }) {
   }, [userId]);
 
   return (
-    <View style={[styles.centerContainer, {borderWidth: 1, borderColor: 'black'}]}>
+    <View
+      style={[styles.centerContainer, { borderWidth: 1, borderColor: "black" }]}
+    >
       <FlatList
         data={topicsList}
         renderItem={({ item }) => (
@@ -60,7 +61,6 @@ export function TopicsList({ userId, setSelectedTopic }) {
 export function EntriesForTopic({ userId, selectedTopic }) {
   return (
     <View style={styles.topContainer}>
-      <Text style={{ fontSize: 20 }}>{selectedTopic}</Text>
       <LogsList userId={userId} topic={selectedTopic} />
     </View>
   );

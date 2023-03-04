@@ -1,6 +1,13 @@
 import * as React from "react";
-import { Text, View, Button, TouchableOpacity, Modal } from "react-native";
-import { useEffect, useCallback, memo } from "react";
+import {
+  Text,
+  View,
+  Button,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from "react-native";
+import { useEffect } from "react";
 import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from "firebase";
@@ -117,27 +124,34 @@ export default function App() {
 
   function HomePage() {
     return (
-      <View style={styles.container}>
-        <View style={styles.headerContainer}></View>
-
-        {!selectedTopic ? (
-          <MainDisplay />
-        ) : (
-          <View>
-            <View style={styles.headerContainer}></View>
-            <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic} />
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={[styles.headerContainer, { borderRadius: 50, overflow: 'hidden', fontWeight: 'bold',
+                           borderWidth: 2, borderColor: '#000',}]}>
+            <Text style={{ fontSize: 20, paddingTop: 35 }}>{selectedTopic}</Text>
           </View>
-        )}
+          {!selectedTopic ? (
+            <MainDisplay />
+          ) : (
+            <View>
+              <View style={styles.headerContainer}></View>
+              <EntriesForTopic
+                userId={user.uid}
+                selectedTopic={selectedTopic}
+              />
+            </View>
+          )}
 
-        <View style={styles.topRightCornerFirstPositionContainer}>
-          <AuthStatusElements />
+          <View style={styles.topRightCornerFirstPositionContainer}>
+            <AuthStatusElements />
+          </View>
+          {selectedTopic && (
+            <View style={styles.topLeftCornerContainer}>
+              <BackButton />
+            </View>
+          )}
         </View>
-        {selectedTopic && (
-          <View style={styles.topLeftCornerContainer}>
-            <BackButton />
-          </View>
-        )}
-      </View>
+      </ScrollView>
     );
   }
 
