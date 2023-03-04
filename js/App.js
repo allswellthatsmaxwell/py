@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Text, View, Button, TouchableOpacity, Modal } from "react-native";
-import { useEffect, useCallback , memo } from "react";
+import { useEffect, useCallback, memo } from "react";
 import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from "firebase";
@@ -32,24 +32,12 @@ if (!firebase.apps.length) {
 }
 
 export default function App() {
-  const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
-  const [topicsStatus, setTopicsStatus] = React.useState(null);
-
   const [user, setUser] = React.useState(null);
   const [selectedTopic, setSelectedTopic] = React.useState(null);
 
   const handleBackPress = () => {
     setSelectedTopic(null);
   };
-
-  // Memoize the callback functions
-  const handleTranscriptionStatus = useCallback((status) => {
-    setTranscriptionStatus(status);
-  }, []);
-
-  const handleTopicsStatus = useCallback((status) => {
-    setTopicsStatus(status);
-  }, []);
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged((user) => {
@@ -64,17 +52,7 @@ export default function App() {
   function RecordingElements() {
     return (
       <View>
-        <AudioRecorder
-          setTranscriptionStatus={handleTranscriptionStatus}
-          setTopicsStatus={handleTopicsStatus}
-          fbase={firebase}
-        />
-        <Text id="transcription-status" style={{ textAlign: "center" }}>
-          {transcriptionStatus}
-        </Text>
-        <Text id="topics-status" style={{ textAlign: "center" }}>
-          {topicsStatus}
-        </Text>
+        <AudioRecorder fbase={firebase} />
       </View>
     );
   }
@@ -115,16 +93,11 @@ export default function App() {
     );
   }
 
-  TopicsListMemo = memo(TopicsList);
-
   function MainDisplay() {
     return (
       <View>
         <View style={styles.topContainer}>
-          <TopicsListMemo
-            userId={user.uid}
-            setSelectedTopic={setSelectedTopic}
-          />
+          <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
         </View>
 
         <View style={styles.centerContainer}>
