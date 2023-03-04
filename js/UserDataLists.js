@@ -40,7 +40,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
   }, [userId]);
 
   return (
-    <View style={styles.centerContainer}>
+    <View style={[styles.centerContainer, {borderWidth: 1, borderColor: 'black'}]}>
       <FlatList
         data={topicsList}
         renderItem={({ item }) => (

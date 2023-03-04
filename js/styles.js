@@ -76,7 +76,7 @@ export function getStyles() {
         //     bottom: 0,
         // },
         flatList: {
-            maxHeight: '50%',
+            maxHeight: '100%',
             width: '100%',
         },
         bottomLeftCornerContainer: {
