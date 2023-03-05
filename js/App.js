@@ -125,32 +125,31 @@ export default function App() {
   function HomePage() {
     return (
       <ScrollView>
-        <View style={styles.container}>
-          <View style={[styles.headerContainer, { borderRadius: 50, overflow: 'hidden', fontWeight: 'bold',
-                           borderWidth: 2, borderColor: '#000',}]}>
-            <Text style={{ fontSize: 20, paddingTop: 35 }}>{selectedTopic}</Text>
-          </View>
-          {!selectedTopic ? (
-            <MainDisplay />
-          ) : (
-            <View>
-              <View style={styles.headerContainer}></View>
+        <View style={styles.headerContainer}>
+          <Text style={{ fontSize: 20, paddingTop: 35 }}>{selectedTopic}</Text>
+        </View>
+        {!selectedTopic ? (
+          <MainDisplay />
+        ) : (
+          <View>
+            
+            <View style={styles.container}>
               <EntriesForTopic
                 userId={user.uid}
                 selectedTopic={selectedTopic}
               />
             </View>
-          )}
-
-          <View style={styles.topRightCornerFirstPositionContainer}>
-            <AuthStatusElements />
           </View>
-          {selectedTopic && (
-            <View style={styles.topLeftCornerContainer}>
-              <BackButton />
-            </View>
-          )}
+        )}
+
+        <View style={styles.topRightCornerFirstPositionContainer}>
+          <AuthStatusElements />
         </View>
+        {selectedTopic && (
+          <View style={styles.topLeftCornerContainer}>
+            <BackButton />
+          </View>
+        )}
       </ScrollView>
     );
   }
