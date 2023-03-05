@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, ScrollView } from "react-native";
 import { Audio } from "expo-av";
 import { FontAwesome, Feather } from "@expo/vector-icons";
 
@@ -35,14 +35,22 @@ const textStyles = StyleSheet.create({
     fontSize: 12,
   },
   mainTextContainer: {
-    backgroundColor: "#F5F5F5",
-    alignSelf: "flex-start",
-    maxWidth: "80%",
-    padding: 10,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    // alignSelf: "flex-start",
+    maxWidth: "100%",    
+    width: 400,
+    height: 170,
+    maxHeight: 170,
+    // padding: 10,
+    paddingHorizontal: 10,
+    marginTop: 20,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#000000"
   },
   mainText: {
-    fontSize: 20,
+    fontSize: 17,
   },
   rowContainer: {
     flexDirection: "row",
@@ -56,8 +64,8 @@ function AudioRecorder({ fbase }) {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recording, setRecording] = React.useState();
 
-  const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
-  const [topicsStatus, setTopicsStatus] = React.useState(null);
+  const [transcriptionStatus, setTranscriptionStatus] = React.useState("Ok so today I played two games of go in the afternoon and had three drinks in the evening and then I went to bed around 3:40 a.m");
+  const [topicsStatus, setTopicsStatus] = React.useState("{\"alcoholic drinks\": 3, \"games of go\": 2}");
 
   const storage = fbase.storage();
   const userId = fbase.auth().currentUser.uid;
@@ -245,19 +253,26 @@ function AudioRecorder({ fbase }) {
   // changes to a stop button when recording.
   return (
     <View style={[textStyles.rowContainer, { alignItems: "center" }]}>
-      <View
-        style={[textStyles.bubbleContainer, { justifyContent: "flex-start", width: '30%' }]}
-      >
-        <View style={textStyles.smallTextContainer}>
+      <View style={{ width: "35%" }}>
+        {/* <View style={textStyles.smallTextContainer}>
           <Text style={textStyles.smallText}>Title 1</Text>
-        </View>
+        </View> */}
         <View style={textStyles.mainTextContainer}>
-          <Text style={textStyles.mainText}>{transcriptionStatus}</Text>
+          <ScrollView contentContainerStyle={{ alignItems: 'flex-start' }}>
+            <Text style={textStyles.mainText}>{transcriptionStatus}</Text>
+          </ScrollView>
         </View>
       </View>
 
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", alignSelf: "stretch"}}>
-        <TouchableOpacity onPress={handlePress} style={{height: 56 }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          alignSelf: "stretch",
+        }}
+      >
+        <TouchableOpacity onPress={handlePress} style={{ height: 56 }}>
           {isRecording ? (
             <Text style={textStyles.buttonText}>
               <FontAwesome name="stop" size={56} color="#B22222" />
@@ -270,14 +285,14 @@ function AudioRecorder({ fbase }) {
         </TouchableOpacity>
       </View>
 
-      <View
-        style={[textStyles.bubbleContainer, { justifyContent: "flex-end", width: '30%' }]}
-      >
-        <View style={textStyles.smallTextContainer}>
+      <View style={{ width: "35%" }}>
+        {/* <View style={textStyles.smallTextContainer}>
           <Text style={textStyles.smallText}>Title 2</Text>
-        </View>
-        <View style={textStyles.mainTextContainer}>
-          <Text style={textStyles.mainText}>{topicsStatus}</Text>
+        </View> */}
+        <View style={[textStyles.mainTextContainer, { alignSelf: 'flex-end' }]}>
+          <ScrollView contentContainerStyle={{ alignItems: 'flex-start' }}>
+            <Text style={textStyles.mainText}>{topicsStatus}</Text>
+          </ScrollView>
         </View>
       </View>
     </View>
