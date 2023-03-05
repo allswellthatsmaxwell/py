@@ -1,11 +1,48 @@
 import * as React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { Audio } from "expo-av";
 import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from "firebase";
 
 import { ASSEMBLYAI_API_KEY } from "./Keys.js";
+
+const textStyles = StyleSheet.create({
+  buttonContainer: {
+    marginTop: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    fontSize: 56,
+  },
+  bubbleContainer: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    marginTop: 10,
+  },
+  smallTextContainer: {
+    backgroundColor: "#9E9E9E",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginRight: 10,
+    marginBottom: 5,
+  },
+  smallText: {
+    color: "#fff",
+    fontSize: 12,
+  },
+  mainTextContainer: {
+    backgroundColor: "#F5F5F5",
+    alignSelf: "flex-start",
+    maxWidth: "80%",
+    padding: 10,
+    borderRadius: 10,
+  },
+  mainText: {
+    fontSize: 20,
+  },
+});
 
 function AudioRecorder({ fbase }) {
   const [isRecording, setIsRecording] = React.useState(false);
@@ -188,36 +225,47 @@ function AudioRecorder({ fbase }) {
 
   async function handlePress() {
     if (isRecording) {
+      setIsRecording(!isRecording);
       await stopRecording();
     } else {
+      setIsRecording(!isRecording);
       await startRecording();
     }
-    setIsRecording(!isRecording);
   }
 
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
     <View>
-    <View style={{ marginTop: 10 }}>
-      <TouchableOpacity onPress={handlePress}>
-        {isRecording ? (
-          <Text>
-            <FontAwesome name="stop" size={48} color="#B22222" />
-          </Text>
-        ) : (
-          <Text>
-            <FontAwesome name="microphone" size={48} color="#03A89E" />
-          </Text>
-        )}
-      </TouchableOpacity>
-    </View>
-      <Text id="transcription-status" style={{ textAlign: "center" }}>
-        {transcriptionStatus}
-      </Text>
-      <Text id="topics-status" style={{ textAlign: "center" }}>
-        {topicsStatus}
-      </Text>
+      <View style={textStyles.buttonContainer}>
+        <TouchableOpacity onPress={handlePress}>
+          {isRecording ? (
+            <Text style={textStyles.buttonText}>
+              <FontAwesome name="stop" size={56} color="#B22222" />
+            </Text>
+          ) : (
+            <Text style={textStyles.buttonText}>
+              <FontAwesome name="microphone" size={56} color="#03A89E" />
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+      <View style={textStyles.bubbleContainer}>
+        <View style={textStyles.smallTextContainer}>
+          <Text style={textStyles.smallText}>Title 1</Text>
+        </View>
+        <View style={textStyles.mainTextContainer}>
+          <Text style={textStyles.mainText}>{transcriptionStatus}</Text>
+        </View>
+      </View>
+      <View style={textStyles.bubbleContainer}>
+        <View style={textStyles.smallTextContainer}>
+          <Text style={textStyles.smallText}>Title 2</Text>
+        </View>
+        <View style={textStyles.mainTextContainer}>
+          <Text style={textStyles.mainText}>{topicsStatus}</Text>
+        </View>
+      </View>
     </View>
   );
 }

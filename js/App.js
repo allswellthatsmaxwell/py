@@ -56,14 +56,6 @@ export default function App() {
     });
   }, []);
 
-  function RecordingElements() {
-    return (
-      <View>
-        <AudioRecorder fbase={firebase} />
-      </View>
-    );
-  }
-
   function BackButton() {
     return (
       <TouchableOpacity onPress={handleBackPress}>
@@ -102,17 +94,16 @@ export default function App() {
 
   function MainDisplay() {
     return (
-        
-    <ScrollView> 
-      <View>
-          <View style={[styles.topContainer, { height: 650 }]}>
+      <ScrollView>
+        <View>
+          <View style={[styles.topContainer, { height: 600 }]}>
             <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
           </View>
           <View style={styles.footer}>
-            <RecordingElements />
+            <AudioRecorder fbase={firebase} />
           </View>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
     );
   }
 
