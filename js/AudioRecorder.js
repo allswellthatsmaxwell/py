@@ -18,6 +18,7 @@ const textStyles = StyleSheet.create({
   bubbleContainer: {
     flexDirection: "column",
     alignItems: "flex-start",
+    justifyContent: "flex-start",
     marginTop: 10,
   },
   smallTextContainer: {
@@ -27,6 +28,7 @@ const textStyles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 10,
     marginBottom: 5,
+    width: 70,
   },
   smallText: {
     color: "#fff",
@@ -41,6 +43,12 @@ const textStyles = StyleSheet.create({
   },
   mainText: {
     fontSize: 20,
+  },
+  rowContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
   },
 });
 
@@ -236,9 +244,20 @@ function AudioRecorder({ fbase }) {
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
-    <View>
-      <View style={textStyles.buttonContainer}>
-        <TouchableOpacity onPress={handlePress}>
+    <View style={[textStyles.rowContainer, { alignItems: "center" }]}>
+      <View
+        style={[textStyles.bubbleContainer, { justifyContent: "flex-start", width: '30%' }]}
+      >
+        <View style={textStyles.smallTextContainer}>
+          <Text style={textStyles.smallText}>Title 1</Text>
+        </View>
+        <View style={textStyles.mainTextContainer}>
+          <Text style={textStyles.mainText}>{transcriptionStatus}</Text>
+        </View>
+      </View>
+
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", alignSelf: "stretch"}}>
+        <TouchableOpacity onPress={handlePress} style={{height: 56 }}>
           {isRecording ? (
             <Text style={textStyles.buttonText}>
               <FontAwesome name="stop" size={56} color="#B22222" />
@@ -250,15 +269,10 @@ function AudioRecorder({ fbase }) {
           )}
         </TouchableOpacity>
       </View>
-      <View style={textStyles.bubbleContainer}>
-        <View style={textStyles.smallTextContainer}>
-          <Text style={textStyles.smallText}>Title 1</Text>
-        </View>
-        <View style={textStyles.mainTextContainer}>
-          <Text style={textStyles.mainText}>{transcriptionStatus}</Text>
-        </View>
-      </View>
-      <View style={textStyles.bubbleContainer}>
+
+      <View
+        style={[textStyles.bubbleContainer, { justifyContent: "flex-end", width: '30%' }]}
+      >
         <View style={textStyles.smallTextContainer}>
           <Text style={textStyles.smallText}>Title 2</Text>
         </View>
