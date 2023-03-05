@@ -44,8 +44,10 @@ export function getStyles() {
     topicsTableContainer: {
       width: "100%",
       height: 500,
-      alignItems: "center",
+      alignItems: "left",
       justifyContent: "center",
+      marginTop: 5,
+      marginLeft: 10,
     },
     topContainer: {
       flex: 1,
