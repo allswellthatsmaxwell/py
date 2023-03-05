@@ -243,14 +243,6 @@ function AudioRecorder({ fbase }) {
     return jsonResponse.topics;
   }
 
-  //   function handlePressIn() {
-  //     setIsButtonBlinking(true);
-
-  //     setTimeout(() => {
-  //       setIsButtonBlinking(false);
-  //     }, 100);
-  //   }
-
   async function handlePress() {
     if (isProcessing) {
       return;
@@ -260,6 +252,8 @@ function AudioRecorder({ fbase }) {
       await stopRecording();
       setIsProcessing(false);
     } else {
+      setTranscriptionResult(null);
+      setTopicsResult(null);
       setIsRecording(true);
       await startRecording();
     }
