@@ -102,14 +102,15 @@ export default function App() {
 
   function MainDisplay() {
     return (
+      //   <View style={{ flex: 1, flexDirection: "column" }}>
       <View>
-        <View style={styles.topContainer}>
-          <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
-        </View>
-
-        <View style={styles.centerContainer}>
-          <RecordingElements />
-        </View>
+          <View style={styles.topContainer}>
+            <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
+          </View>
+          <View style={styles.footer}>
+            <RecordingElements />
+          </View>
+          {/* </View> */}
       </View>
     );
   }
@@ -132,7 +133,6 @@ export default function App() {
           <MainDisplay />
         ) : (
           <View>
-            
             <View style={styles.container}>
               <EntriesForTopic
                 userId={user.uid}

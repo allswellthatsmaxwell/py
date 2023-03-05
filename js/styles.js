@@ -18,9 +18,17 @@ export function getStyles() {
       borderWidth: 2,
       borderColor: "#000",
     },
-    headerText: {
-      color: "red",
-      fontSize: 20,
+    footer: {
+    //   flex: 1,
+      width: "100%",
+      height: 100,
+      alignItems: "center",
+      overflow: "hidden",
+      fontWeight: "bold",
+      borderWidth: 2,
+      borderColor: "#000",
+      top: 0,
+      borderBottomWidth: 0,
     },
     row: {
       flexDirection: "row",
@@ -43,7 +51,7 @@ export function getStyles() {
     },
     topicsTableContainer: {
       width: "100%",
-      height: 500,
+      flex: 1,
       alignItems: "left",
       justifyContent: "center",
       marginTop: 5,
@@ -55,34 +63,12 @@ export function getStyles() {
       justifyContent: "flex-start",
       paddingTop: 0,
     },
-    // topContainer: {
-    //     position: 'absolute',
-    //     top: 0,
-    //     right: 0,
-    //     alignItems: 'center',
-    //     justifyContent: 'center'
-    // },
-    // bottomContainer: {
-    //     position: 'absolute',
-    //     bottom: 0,
-    //     width: '100%',
-    //     alignItems: 'center',
-    //     justifyContent: 'center',
-    //     backgroundColor: '#eee',
-    //     padding: 20,
-    // },
     bottomContainer: {
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-end",
       paddingBottom: 0,
     },
-    // bottomContainer: {
-    //     flex: 1,
-    //     alignItems: 'center',
-    //     position: 'absolute',
-    //     bottom: 0,
-    // },
     flatList: {
       maxHeight: "100%",
       width: "100%",
