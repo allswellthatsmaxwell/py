@@ -1,13 +1,39 @@
 import * as React from "react";
 import { useEffect } from "react";
-
 import { Table, Row, Rows } from "react-native-table-component";
-import { Text, View, FlatList, TouchableOpacity } from "react-native";
+import {
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import * as firebase from "firebase";
+// import { Sparklines, SparklinesBars } from "react-sparklines";
 
 import { getStyles } from "./styles.js";
 
-styles = getStyles();
+const styles = getStyles();
+
+const rowStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    // paddingVertical: 10,
+    marginRight: 5,
+  },
+  bar: {
+    width: 10,
+    marginBottom: 0,
+    marginRight: 0,
+    backgroundColor: "#848484",
+  },
+  chart: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+});
 
 export function TopicsList({ userId, setSelectedTopic }) {
   const [topicsList, setTopicsList] = React.useState([]);
@@ -41,15 +67,35 @@ export function TopicsList({ userId, setSelectedTopic }) {
 
   return (
     <View
-      style={[styles.topicsTableContainer, { borderWidth: 1, borderColor: "black" }]}
+      style={[
+        styles.topicsTableContainer,
+        { borderWidth: 1, borderColor: "black" },
+      ]}
     >
       <FlatList
         data={topicsList}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleTopicPress(item)}>
-            <Text style={styles.rowText}>{item}</Text>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => {
+          const rowHeight = 20;
+          const datalist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+          const maxDataValue = Math.max(...datalist);
+          const scaleFactor = maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
+
+          return (
+            <TouchableOpacity onPress={() => handleTopicPress(item)}>
+              <View style={rowStyles.row}>
+                <Text style={styles.rowText}>{item}</Text>
+                <View style={rowStyles.chart}>
+                  {datalist.map((value, index) => (
+                    <View
+                      key={index}
+                      style={[rowStyles.bar, { height: value * 10 * scaleFactor }]}
+                    />
+                  ))}
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
         keyExtractor={(item) => item}
         style={styles.flatList}
         showsVerticalScrollIndicator={false}
