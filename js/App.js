@@ -102,16 +102,17 @@ export default function App() {
 
   function MainDisplay() {
     return (
-      //   <View style={{ flex: 1, flexDirection: "column" }}>
+        
+    <ScrollView> 
       <View>
-          <View style={styles.topContainer}>
+          <View style={[styles.topContainer, { height: 650 }]}>
             <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
           </View>
           <View style={styles.footer}>
             <RecordingElements />
           </View>
-          {/* </View> */}
       </View>
+    </ScrollView>
     );
   }
 
@@ -125,7 +126,7 @@ export default function App() {
 
   function HomePage() {
     return (
-      <ScrollView>
+      <View>
         <View style={styles.headerContainer}>
           <Text style={{ fontSize: 20, paddingTop: 35 }}>{selectedTopic}</Text>
         </View>
@@ -150,7 +151,7 @@ export default function App() {
             <BackButton />
           </View>
         )}
-      </ScrollView>
+      </View>
     );
   }
 

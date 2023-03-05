@@ -1,6 +1,7 @@
 import * as React from "react";
-import { View, Button, Text } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
 import { Audio } from "expo-av";
+import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from "firebase";
 
@@ -185,21 +186,32 @@ function AudioRecorder({ fbase }) {
     return jsonResponse.topics;
   }
 
+  async function handlePress() {
+    if (isRecording) {
+      await stopRecording();
+    } else {
+      await startRecording();
+    }
+    setIsRecording(!isRecording);
+  }
+
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
     <View>
-      <Button
-        title={isRecording ? "Stop Recording" : "Record"}
-        onPress={async () => {
-          if (isRecording) {
-            await stopRecording();
-          } else {
-            await startRecording();
-          }
-          setIsRecording(!isRecording);
-        }}
-      />
+    <View style={{ marginTop: 10 }}>
+      <TouchableOpacity onPress={handlePress}>
+        {isRecording ? (
+          <Text>
+            <FontAwesome name="stop" size={48} color="#B22222" />
+          </Text>
+        ) : (
+          <Text>
+            <FontAwesome name="microphone" size={48} color="#03A89E" />
+          </Text>
+        )}
+      </TouchableOpacity>
+    </View>
       <Text id="transcription-status" style={{ textAlign: "center" }}>
         {transcriptionStatus}
       </Text>
