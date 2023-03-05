@@ -39,6 +39,12 @@ export function getStyles() {
             alignItems: 'center',
             justifyContent: 'center',
         },
+        topicsTableContainer: {
+            width: '100%',
+            height: 500,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
         topContainer: {
             flex: 1,
             alignItems: 'center',
