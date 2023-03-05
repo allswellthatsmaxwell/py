@@ -18,15 +18,6 @@ const textStyles = StyleSheet.create({
     marginTop: 10,
     alignItems: "center",
   },
-  buttonText: {
-    fontSize: 56,
-  },
-  bubbleContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    marginTop: 10,
-  },
   smallTextContainer: {
     backgroundColor: "#9E9E9E",
     paddingVertical: 5,
@@ -250,13 +241,13 @@ function AudioRecorder({ fbase }) {
     return jsonResponse.topics;
   }
 
-//   function handlePressIn() {
-//     setIsButtonBlinking(true);
+  //   function handlePressIn() {
+  //     setIsButtonBlinking(true);
 
-//     setTimeout(() => {
-//       setIsButtonBlinking(false);
-//     }, 100);
-//   }
+  //     setTimeout(() => {
+  //       setIsButtonBlinking(false);
+  //     }, 100);
+  //   }
 
   async function handlePress() {
     if (isProcessing) {
@@ -297,21 +288,22 @@ function AudioRecorder({ fbase }) {
       >
         <TouchableOpacity
           onPress={handlePress}
-          activeOpacity={0.5}
-          underlayColor={isProcessing ? "red" : "blue"}
+          underlayColor={isProcessing ? "red" : "white"}
           style={{ height: 56 }}
         >
           {isRecording ? (
-            <Text style={textStyles.buttonText}>
+            <Text>
               <FontAwesome name="stop" size={56} color="#B22222" />
             </Text>
           ) : (
-            <Text style={textStyles.buttonText}>
+            <Text>
               {isProcessing ? (
-                <FontAwesome name="gear" size={56} color="gray" />
+                <FontAwesome name="gear" color="gray" size={56} />
               ) : (
                 <FontAwesome name="microphone" size={56} color="#03A89E" />
               )}
+
+              {console.log("isProcessing: ", isProcessing)}
             </Text>
           )}
         </TouchableOpacity>
