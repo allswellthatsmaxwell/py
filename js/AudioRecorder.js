@@ -19,17 +19,15 @@ const textStyles = StyleSheet.create({
     alignItems: "center",
   },
   smallTextContainer: {
-    backgroundColor: "#9E9E9E",
-    paddingVertical: 5,
+    // backgroundColor: "#9E9E9E",
+    paddingTop: 5,
     paddingHorizontal: 10,
-    borderRadius: 10,
     marginRight: 10,
-    marginBottom: 5,
-    width: 70,
+    width: 400
   },
   smallText: {
-    color: "#fff",
-    fontSize: 12,
+    color: "#000",
+    fontSize: 8,
   },
   mainTextContainer: {
     backgroundColor: "#FFFFFF",
@@ -41,7 +39,7 @@ const textStyles = StyleSheet.create({
     maxHeight: 170,
     // padding: 10,
     paddingHorizontal: 10,
-    marginTop: 20,
+    marginTop: 0,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#000000",
@@ -61,12 +59,14 @@ function AudioRecorder({ fbase }) {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recording, setRecording] = React.useState();
 
-  const [transcriptionStatus, setTranscriptionStatus] = React.useState(
-    "Ok so today I played two games of go in the afternoon and had three drinks in the evening and then I went to bed around 3:40 a.m"
-  );
-  const [topicsStatus, setTopicsStatus] = React.useState(
-    '{"alcoholic drinks": 3, "games of go": 2}'
-  );
+  const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
+  const [transcriptionResult, setTranscriptionResult] = React.useState(
+    "Ok so today I played two games of go in the afternoon and had three drinks in the evening " +    
+    "and then I went to bed around 3:40 a.m");
+
+  const [topicsStatus, setTopicsStatus] = React.useState(null);
+  const [topicsResult, setTopicsResult] = React.useState('{"alcoholic drinks": 3, "games of go": 2}');
+
   const [isProcessing, setIsProcessing] = React.useState(false);
 
   const storage = fbase.storage();
@@ -206,7 +206,8 @@ function AudioRecorder({ fbase }) {
     console.log("transcription_id:", transcriptionId);
     const transcript = await _poll(transcriptionId);
     console.log("transcript:", transcript);
-    setTranscriptionStatus(transcript);
+    setTranscriptionResult(transcript);
+    setTranscriptionStatus(null);
     setTopicsStatus("Figuring out what you're logging...");
 
     // topics is a comma separated string
@@ -223,8 +224,9 @@ function AudioRecorder({ fbase }) {
         console.log("Transcript written with ID: ", docRef.id);
       });
 
-    await writeTopicsToDB(transcript, topics, timestamp);
-    setTopicsStatus(topics);
+    await writeTopicsToDB(transcript, topics, timestamp);    
+    setTopicsResult(topics);
+    setTopicsStatus(null);
   }
 
   async function getTopics(text) {
@@ -268,12 +270,12 @@ function AudioRecorder({ fbase }) {
   return (
     <View style={[textStyles.rowContainer, { alignItems: "center" }]}>
       <View style={{ width: "35%" }}>
-        {/* <View style={textStyles.smallTextContainer}>
-          <Text style={textStyles.smallText}>Title 1</Text>
-        </View> */}
+        <View style={textStyles.smallTextContainer}>
+          <Text style={textStyles.smallText}>{transcriptionStatus}</Text>
+        </View>
         <View style={textStyles.mainTextContainer}>
           <ScrollView contentContainerStyle={{ alignItems: "flex-start" }}>
-            <Text style={textStyles.mainText}>{transcriptionStatus}</Text>
+            <Text style={textStyles.mainText}>{transcriptionResult}</Text>
           </ScrollView>
         </View>
       </View>
@@ -310,12 +312,12 @@ function AudioRecorder({ fbase }) {
       </View>
 
       <View style={{ width: "35%" }}>
-        {/* <View style={textStyles.smallTextContainer}>
-          <Text style={textStyles.smallText}>Title 2</Text>
-        </View> */}
+        <View style={textStyles.smallTextContainer}>
+          <Text style={textStyles.smallText}>{topicsStatus}</Text>
+        </View>
         <View style={[textStyles.mainTextContainer, { alignSelf: "flex-end" }]}>
           <ScrollView contentContainerStyle={{ alignItems: "flex-start" }}>
-            <Text style={textStyles.mainText}>{topicsStatus}</Text>
+            <Text style={textStyles.mainText}>{topicsResult}</Text>
           </ScrollView>
         </View>
       </View>
