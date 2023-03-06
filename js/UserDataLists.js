@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import * as firebase from "firebase";
 // import { Sparklines, SparklinesBars } from "react-sparklines";
+import moment from "moment";
 
 import { getStyles } from "./styles.js";
 
@@ -26,7 +27,7 @@ const rowStyles = StyleSheet.create({
   bar: {
     width: 10,
     marginBottom: 0,
-    marginRight: 0,
+    marginRight: 1,
     backgroundColor: "#848484",
   },
   chart: {
@@ -46,6 +47,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
   const renderSeparator = () => {
     return <View style={{ height: 1, backgroundColor: "gray" }} />;
   };
+
   function getEntriesDayCounts(topics_snapshot) {
     // returns a mapping from entry to day to count
     const topicsList = topics_snapshot.docs.map((doc) => doc.id);
@@ -136,22 +138,42 @@ export function TopicsList({ userId, setSelectedTopic }) {
         data={Object.keys(entriesDayCounts)}
         renderItem={({ item }) => {
           const rowHeight = 20;
-          const datalist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-          const maxDataValue = Math.max(...datalist);
+          const allDates = Object.keys(entriesDayCounts).reduce(
+            (acc, topic) => [...acc, ...Object.keys(entriesDayCounts[topic])],
+            []
+          );
+          const uniqueDates = [...new Set(allDates)];
+          const sortedDates = uniqueDates.sort((a, b) => b.localeCompare(a));
+          const todayDate = moment().toISOString().split("T")[0];
+          const maxDataValue = Math.max(
+            ...Object.values(entriesDayCounts[item])
+          );
           const scaleFactor =
             maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
+          const dateDict = Object.keys(entriesDayCounts[item]).reduce(
+            (acc, date) => {
+              acc[date] = entriesDayCounts[item][date];
+              return acc;
+            },
+            {}
+          );
 
           return (
             <TouchableOpacity onPress={() => handleTopicPress(item)}>
               <View style={rowStyles.row}>
                 <Text style={styles.rowText}>{item}</Text>
                 <View style={rowStyles.chart}>
-                  {datalist.map((value, index) => (
+                  {sortedDates.map((date, index) => (
                     <View
                       key={index}
                       style={[
                         rowStyles.bar,
-                        { height: value * 10 * scaleFactor },
+                        {
+                          height: dateDict[date] * 10 * scaleFactor,
+                          left:
+                            (moment(date) - todayDate) /
+                            (1000 * 60 * 60 * 24),
+                        },
                       ]}
                     />
                   ))}
