@@ -143,7 +143,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
             []
           );
           const uniqueDates = [...new Set(allDates)];
-          const sortedDates = uniqueDates.sort((a, b) => b.localeCompare(a));
+          const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
           const todayDate = moment().toISOString().split("T")[0];
           const maxDataValue = Math.max(
             ...Object.values(entriesDayCounts[item])
@@ -171,8 +171,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
                         {
                           height: dateDict[date] * 10 * scaleFactor,
                           left:
-                            (moment(date) - todayDate) /
-                            (1000 * 60 * 60 * 24),
+                            (moment(date) - todayDate) / (1000 * 60 * 60 * 24),
                         },
                       ]}
                     />
