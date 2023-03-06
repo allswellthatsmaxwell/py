@@ -39,7 +39,15 @@ export function TopicsList({ userId, setSelectedTopic }) {
   const [topicsList, setTopicsList] = React.useState([]);
   const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
 
-  async function getEntriesDayCounts(topics_snapshot) {
+  const handleTopicPress = (topic) => {
+    setSelectedTopic(topic);
+  };
+
+  const renderSeparator = () => {
+    return <View style={{ height: 1, backgroundColor: "gray" }} />;
+  };
+
+  function getEntriesDayCounts(topics_snapshot) {
     // returns a mapping from entry to day to count
     const topicsList = topics_snapshot.docs.map((doc) => doc.id);
     const dayCounts = {};
@@ -73,20 +81,14 @@ export function TopicsList({ userId, setSelectedTopic }) {
 
           dayCounts[topic][day] += count;
         });
+
+        setEntriesDayCounts((prevDayCounts) => ({
+          ...prevDayCounts,
+          ...dayCounts,
+        }));
       });
     });
-
-    // console.log("entriesDayCounts: ", dayCounts);
-    return dayCounts;
   }
-
-  const handleTopicPress = (topic) => {
-    setSelectedTopic(topic);
-  };
-
-  const renderSeparator = () => {
-    return <View style={{ height: 1, backgroundColor: "gray" }} />;
-  };
 
   useEffect(() => {
     const topicsCollection = firebase
@@ -100,15 +102,17 @@ export function TopicsList({ userId, setSelectedTopic }) {
       console.log("userId: ", userId);
       console.log("Topics: ", topics);
       setTopicsList(topics);
-      const dayCounts = getEntriesDayCounts(snapshot);
-      setEntriesDayCounts();
-      console.log("dayCounts: ", dayCounts);
+      getEntriesDayCounts(snapshot);
     });
 
     return () => {
       unsubscribe();
     };
   }, [userId]);
+
+  useEffect(() => {
+    console.log("entriesDayCounts: ", entriesDayCounts);
+  }, [entriesDayCounts]);
 
   return (
     <View
@@ -118,7 +122,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
       ]}
     >
       <FlatList
-        data={topicsList}
+        data={Object.keys(entriesDayCounts)}
         renderItem={({ item }) => {
           const rowHeight = 20;
           const datalist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
