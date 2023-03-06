@@ -46,46 +46,57 @@ export function TopicsList({ userId, setSelectedTopic }) {
   const renderSeparator = () => {
     return <View style={{ height: 1, backgroundColor: "gray" }} />;
   };
-
   function getEntriesDayCounts(topics_snapshot) {
     // returns a mapping from entry to day to count
     const topicsList = topics_snapshot.docs.map((doc) => doc.id);
     const dayCounts = {};
 
-    topicsList.forEach((topic) => {
+    const batchSize = 10; // maximum number of topics per query
+    const batches = [];
+    for (let i = 0; i < topicsList.length; i += batchSize) {
+      batches.push(topicsList.slice(i, i + batchSize));
+    }
+
+    const promises = batches.map((batch) => {
       const entriesCollection = firebase
         .firestore()
         .collection("users")
         .doc(userId)
         .collection("topics")
-        .doc(topic)
-        .collection("entries");
+        .where(firebase.firestore.FieldPath.documentId(), "in", batch)
+        .get();
 
-      // entries have a timestamp and a number. This code sums the numbers for each day for each entry.
-      entriesCollection.onSnapshot((snapshot) => {
-        const entries = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          const date = new Date(data.timestamp.toDate());
-          const day = date.toISOString().split("T")[0];
-          return { day, count: data.number };
+      return entriesCollection;
+    });
+
+    Promise.all(promises).then((snapshots) => {
+      snapshots.forEach((snapshot) => {
+        snapshot.forEach((doc) => {
+          const topic = doc.id;
+          const entriesSnapshot = doc.ref.collection("entries");
+
+          entriesSnapshot.onSnapshot((snapshot) => {
+            const counts = {};
+
+            snapshot.docs.forEach((doc) => {
+              const data = doc.data();
+              const date = new Date(data.timestamp.toDate());
+              const day = date.toISOString().split("T")[0];
+
+              if (!counts[day]) {
+                counts[day] = 0;
+              }
+
+              counts[day] += data.number;
+            });
+
+            dayCounts[topic] = counts;
+            setEntriesDayCounts((prevDayCounts) => ({
+              ...prevDayCounts,
+              ...dayCounts,
+            }));
+          });
         });
-
-        entries.forEach(({ day, count }) => {
-          if (!dayCounts[topic]) {
-            dayCounts[topic] = {};
-          }
-
-          if (!dayCounts[topic][day]) {
-            dayCounts[topic][day] = 0;
-          }
-
-          dayCounts[topic][day] += count;
-        });
-
-        setEntriesDayCounts((prevDayCounts) => ({
-          ...prevDayCounts,
-          ...dayCounts,
-        }));
       });
     });
   }
