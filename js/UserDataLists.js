@@ -37,6 +37,48 @@ const rowStyles = StyleSheet.create({
 
 export function TopicsList({ userId, setSelectedTopic }) {
   const [topicsList, setTopicsList] = React.useState([]);
+  const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
+
+  async function getEntriesDayCounts(topics_snapshot) {
+    // returns a mapping from entry to day to count
+    const topicsList = topics_snapshot.docs.map((doc) => doc.id);
+    const dayCounts = {};
+
+    topicsList.forEach((topic) => {
+      const entriesCollection = firebase
+        .firestore()
+        .collection("users")
+        .doc(userId)
+        .collection("topics")
+        .doc(topic)
+        .collection("entries");
+
+      // entries have a timestamp and a number. This code sums the numbers for each day for each entry.
+      entriesCollection.onSnapshot((snapshot) => {
+        const entries = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const date = new Date(data.timestamp.toDate());
+          const day = date.toISOString().split("T")[0];
+          return { day, count: data.number };
+        });
+
+        entries.forEach(({ day, count }) => {
+          if (!dayCounts[topic]) {
+            dayCounts[topic] = {};
+          }
+
+          if (!dayCounts[topic][day]) {
+            dayCounts[topic][day] = 0;
+          }
+
+          dayCounts[topic][day] += count;
+        });
+      });
+    });
+
+    // console.log("entriesDayCounts: ", dayCounts);
+    return dayCounts;
+  }
 
   const handleTopicPress = (topic) => {
     setSelectedTopic(topic);
@@ -58,6 +100,9 @@ export function TopicsList({ userId, setSelectedTopic }) {
       console.log("userId: ", userId);
       console.log("Topics: ", topics);
       setTopicsList(topics);
+      const dayCounts = getEntriesDayCounts(snapshot);
+      setEntriesDayCounts();
+      console.log("dayCounts: ", dayCounts);
     });
 
     return () => {
@@ -78,7 +123,8 @@ export function TopicsList({ userId, setSelectedTopic }) {
           const rowHeight = 20;
           const datalist = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
           const maxDataValue = Math.max(...datalist);
-          const scaleFactor = maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
+          const scaleFactor =
+            maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
 
           return (
             <TouchableOpacity onPress={() => handleTopicPress(item)}>
@@ -88,7 +134,10 @@ export function TopicsList({ userId, setSelectedTopic }) {
                   {datalist.map((value, index) => (
                     <View
                       key={index}
-                      style={[rowStyles.bar, { height: value * 10 * scaleFactor }]}
+                      style={[
+                        rowStyles.bar,
+                        { height: value * 10 * scaleFactor },
+                      ]}
                     />
                   ))}
                 </View>
