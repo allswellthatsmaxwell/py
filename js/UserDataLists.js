@@ -21,8 +21,7 @@ const rowStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
-    // paddingVertical: 10,
-    marginRight: 5,
+    marginRight: 2,
   },
   bar: {
     width: 10,
@@ -185,6 +184,14 @@ export function TopicsList({ userId, setSelectedTopic }) {
         style={styles.flatList}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={renderSeparator}
+        ListFooterComponent={() => (
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: "black",
+            }}
+          />
+        )}
       />
     </View>
   );

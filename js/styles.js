@@ -15,7 +15,7 @@ export function getStyles() {
       borderRadius: 50,
       overflow: "hidden",
       fontWeight: "bold",
-      borderWidth: 2,
+      borderWidth: 1,
       borderColor: "#000",
     },
     footer: {
@@ -25,7 +25,7 @@ export function getStyles() {
       alignItems: "center",
       overflow: "hidden",
       fontWeight: "bold",
-      borderWidth: 2,
+      borderWidth: 0,
       borderColor: "#000",
       top: 0,
       borderBottomWidth: 0,
@@ -42,7 +42,8 @@ export function getStyles() {
     rowText: {
       fontSize: 20,
       color: "black",
-      margin: 1,
+      verticalMargin: 1,
+      paddingLeft: 5,
     },
     centerContainer: {
       flex: 1,
@@ -54,8 +55,10 @@ export function getStyles() {
       flex: 1,
       alignItems: "left",
       justifyContent: "center",
-      marginTop: 5,
-      marginLeft: 10,
+    //   marginTop: 5,
+      marginLeft: 0,
+      borderLeftWidth: 1,
+      borderTopWidth: 1
     },
     topContainer: {
       flex: 1,
