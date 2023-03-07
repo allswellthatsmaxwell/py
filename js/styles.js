@@ -21,7 +21,7 @@ export function getStyles() {
     footer: {
     //   flex: 1,
       width: "100%",
-      height: 400,
+      height: 200,
       alignItems: "center",
       overflow: "hidden",
       fontWeight: "bold",
