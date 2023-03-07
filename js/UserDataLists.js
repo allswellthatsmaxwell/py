@@ -81,7 +81,13 @@ export function TopicsList({ userId, setSelectedTopic }) {
 
             snapshot.docs.forEach((doc) => {
               const data = doc.data();
-              const date = new Date(data.timestamp.toDate());
+              let date;
+              if (data.timestamp == null) {
+                // TODO: use the date of the current log, not today's date.
+                date = new Date();
+              } else {
+                date = new Date(data.timestamp.toDate());
+              }
               const day = date.toISOString().split("T")[0];
 
               if (!counts[day]) {
