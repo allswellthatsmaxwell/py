@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  FlatList,
 } from "react-native";
 import { Audio } from "expo-av";
 import { FontAwesome, Feather } from "@expo/vector-icons";
@@ -23,7 +24,7 @@ const textStyles = StyleSheet.create({
     paddingTop: 5,
     paddingHorizontal: 10,
     marginRight: 10,
-    width: 400
+    width: 400,
   },
   smallText: {
     color: "#000",
@@ -43,6 +44,7 @@ const textStyles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#000000",
+    overflow: "hidden",
   },
   mainText: {
     fontSize: 17,
@@ -55,17 +57,48 @@ const textStyles = StyleSheet.create({
   },
 });
 
+const newEntriesStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 2,
+    backgroundColor: 'white',
+    width : '100%',
+    flexWrap: 'wrap',
+    borderBottomWidth: 1,
+  },
+  cell: {
+    flex: 1,
+    alignItems: "center",
+  },
+  tableContainer: {
+    flex: 1,
+    alignItems: "left",
+    justifyContent: "center",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#000000',
+    marginLeft: -10, // add this
+    marginRight: -10, // add this
+    width: '100%', // add this
+  },
+});
+
 function AudioRecorder({ fbase }) {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recording, setRecording] = React.useState();
 
   const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
   const [transcriptionResult, setTranscriptionResult] = React.useState(
-    "Ok so today I played two games of go in the afternoon and had three drinks in the evening " +    
-    "and then I went to bed around 3:40 a.m");
+    "Ok so today I played two games of go in the afternoon and had three drinks in the evening " +
+      "and then I went to bed around 3:40 a.m"
+  );
 
   const [topicsStatus, setTopicsStatus] = React.useState(null);
-  const [topicsResult, setTopicsResult] = React.useState('{"alcoholic drinks": 3, "games of go": 2}');
+  const [topicsResult, setTopicsResult] = React.useState(
+    '{"alcoholic drinks": 3, "games of go": 2}'
+  );
 
   const [isProcessing, setIsProcessing] = React.useState(false);
 
@@ -224,7 +257,7 @@ function AudioRecorder({ fbase }) {
         console.log("Transcript written with ID: ", docRef.id);
       });
 
-    await writeTopicsToDB(transcript, topics, timestamp);    
+    await writeTopicsToDB(transcript, topics, timestamp);
     setTopicsResult(topics);
     setTopicsStatus(null);
   }
@@ -259,6 +292,13 @@ function AudioRecorder({ fbase }) {
     }
   }
 
+  console.log("topicsResult: ", topicsResult);
+  topicsDict = JSON.parse(topicsResult);
+  console.log("topicsDict: ", topicsDict);
+  let rows = {};
+  if (topicsDict) {
+    rows = Object.entries(JSON.parse(topicsResult)).map(([topic, entry]) => ({ topic, entry }));
+  }
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
@@ -310,9 +350,16 @@ function AudioRecorder({ fbase }) {
           <Text style={textStyles.smallText}>{topicsStatus}</Text>
         </View>
         <View style={[textStyles.mainTextContainer, { alignSelf: "flex-end" }]}>
-          <ScrollView contentContainerStyle={{ alignItems: "flex-start" }}>
-            <Text style={textStyles.mainText}>{topicsResult}</Text>
-          </ScrollView>
+            <FlatList
+              data={rows}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View style={newEntriesStyles.row}>
+                  <Text style={[newEntriesStyles.cell, {textAlign: "left"}]}>{item.topic}</Text>
+                  <Text style={[newEntriesStyles.cell, {textAlign: "right"}]}>{item.entry}</Text>
+                </View>
+              )}
+            />
         </View>
       </View>
     </View>
