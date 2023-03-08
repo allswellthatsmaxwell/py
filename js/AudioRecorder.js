@@ -47,7 +47,7 @@ const textStyles = StyleSheet.create({
     overflow: "hidden",
   },
   mainText: {
-    fontSize: 17,
+    fontSize: 14,
   },
   rowContainer: {
     flexDirection: "row",
@@ -62,9 +62,9 @@ const newEntriesStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 2,
-    backgroundColor: 'white',
-    width : '100%',
-    flexWrap: 'wrap',
+    backgroundColor: "white",
+    width: "100%",
+    flexWrap: "wrap",
     borderBottomWidth: 1,
   },
   cell: {
@@ -78,10 +78,10 @@ const newEntriesStyles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     marginLeft: -10, // add this
     marginRight: -10, // add this
-    width: '100%', // add this
+    width: "100%", // add this
   },
 });
 
@@ -101,6 +101,8 @@ function AudioRecorder({ fbase }) {
   );
 
   const [isProcessing, setIsProcessing] = React.useState(false);
+
+  const NO_TRANSCRIPTION_TEXT_MSG = "I didn't hear anything - sorry!";
 
   const storage = fbase.storage();
   const userId = fbase.auth().currentUser.uid;
@@ -239,11 +241,35 @@ function AudioRecorder({ fbase }) {
     console.log("transcription_id:", transcriptionId);
     const transcript = await _poll(transcriptionId);
     console.log("transcript:", transcript);
-    setTranscriptionResult(transcript);
-    setTranscriptionStatus(null);
-    setTopicsStatus("Figuring out what you're logging...");
+    await processTranscript(transcript);
+    
+  }
 
-    // topics is a comma separated string
+  async function processTranscript(transcript, timestamp) {
+    if (transcript) {
+      setTranscriptionResult(transcript);
+      const topics = await computeAndWriteTopics(transcript, timestamp);
+      console.log("topicssss:", topics);
+      await handleTopicsTextUpdate(topics);
+      setTopicsStatus("Figuring out what you're logging...");
+    } else {
+      setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
+
+    }
+  }
+
+  async function handleTopicsTextUpdate(topics) {
+    if (!topics || topics === "{}") {
+      setTopicsStatus("I failed to identify any topics - sorry!");
+      setTopicsResult
+    } else {
+      setTopicsStatus(null);
+    }
+    setTopicsResult(topics);
+    return;
+  }
+
+  async function computeAndWriteTopics(transcript, timestamp) {
     const topics = await getTopics(transcript);
 
     const transcriptsCollection = firebase
@@ -258,8 +284,6 @@ function AudioRecorder({ fbase }) {
       });
 
     await writeTopicsToDB(transcript, topics, timestamp);
-    setTopicsResult(topics);
-    setTopicsStatus(null);
   }
 
   async function getTopics(text) {
@@ -297,7 +321,10 @@ function AudioRecorder({ fbase }) {
   console.log("topicsDict: ", topicsDict);
   let rows = {};
   if (topicsDict) {
-    rows = Object.entries(JSON.parse(topicsResult)).map(([topic, entry]) => ({ topic, entry }));
+    rows = Object.entries(JSON.parse(topicsResult)).map(([topic, entry]) => ({
+      topic,
+      entry,
+    }));
   }
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
@@ -350,16 +377,20 @@ function AudioRecorder({ fbase }) {
           <Text style={textStyles.smallText}>{topicsStatus}</Text>
         </View>
         <View style={[textStyles.mainTextContainer, { alignSelf: "flex-end" }]}>
-            <FlatList
-              data={rows}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <View style={newEntriesStyles.row}>
-                  <Text style={[newEntriesStyles.cell, {textAlign: "left"}]}>{item.topic}</Text>
-                  <Text style={[newEntriesStyles.cell, {textAlign: "right"}]}>{item.entry}</Text>
-                </View>
-              )}
-            />
+          <FlatList
+            data={rows}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <View style={newEntriesStyles.row}>
+                <Text style={[newEntriesStyles.cell, { textAlign: "left" }]}>
+                  {item.topic}
+                </Text>
+                <Text style={[newEntriesStyles.cell, { textAlign: "right" }]}>
+                  {item.entry}
+                </Text>
+              </View>
+            )}
+          />
         </View>
       </View>
     </View>
