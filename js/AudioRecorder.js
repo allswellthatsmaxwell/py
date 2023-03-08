@@ -240,28 +240,28 @@ function AudioRecorder({ fbase }) {
     const transcriptionId = await kickoffTranscription(audio_url);
     console.log("transcription_id:", transcriptionId);
     const transcript = await _poll(transcriptionId);
+    setTranscriptionStatus(null);
     console.log("transcript:", transcript);
-    await processTranscript(transcript);
+    await processTranscript(transcript, timestamp);
     
   }
 
   async function processTranscript(transcript, timestamp) {
     if (transcript) {
       setTranscriptionResult(transcript);
+      setTopicsStatus("Figuring out what you're logging...");
       const topics = await computeAndWriteTopics(transcript, timestamp);
       console.log("topicssss:", topics);
       await handleTopicsTextUpdate(topics);
-      setTopicsStatus("Figuring out what you're logging...");
+      setTopicsStatus(null);
     } else {
       setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
-
     }
   }
 
   async function handleTopicsTextUpdate(topics) {
     if (!topics || topics === "{}") {
       setTopicsStatus("I failed to identify any topics - sorry!");
-      setTopicsResult
     } else {
       setTopicsStatus(null);
     }
@@ -284,6 +284,7 @@ function AudioRecorder({ fbase }) {
       });
 
     await writeTopicsToDB(transcript, topics, timestamp);
+    return topics;
   }
 
   async function getTopics(text) {
