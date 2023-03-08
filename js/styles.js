@@ -19,7 +19,7 @@ export function getStyles() {
       borderColor: "#000",
     },
     footer: {
-    //   flex: 1,
+      //   flex: 1,
       width: "100%",
       height: 200,
       alignItems: "center",
@@ -55,10 +55,10 @@ export function getStyles() {
       flex: 1,
       alignItems: "left",
       justifyContent: "center",
-    //   marginTop: 5,
+      //   marginTop: 5,
       marginLeft: 0,
       borderLeftWidth: 1,
-      borderTopWidth: 1
+      borderTopWidth: 1,
     },
     topContainer: {
       flex: 1,

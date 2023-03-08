@@ -57,6 +57,21 @@ const textStyles = StyleSheet.create({
   },
 });
 
+const micColor = "#8B4726";
+
+const micStyles = StyleSheet.create({
+  circle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: micColor,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 5,
+  }
+});
+
 const newEntriesStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
@@ -243,7 +258,6 @@ function AudioRecorder({ fbase }) {
     setTranscriptionStatus(null);
     console.log("transcript:", transcript);
     await processTranscript(transcript, timestamp);
-    
   }
 
   async function processTranscript(transcript, timestamp) {
@@ -259,7 +273,12 @@ function AudioRecorder({ fbase }) {
   }
 
   async function handleTopicsTextUpdate(topics) {
-    if (!topics || topics === "{}" || topics == {} || Object.keys(topics).length == 0) {
+    if (
+      !topics ||
+      topics === "{}" ||
+      topics == {} ||
+      Object.keys(topics).length == 0
+    ) {
       setTopicsStatus("Found no topics - sorry!");
     } else {
       setTopicsStatus(null);
@@ -356,14 +375,16 @@ function AudioRecorder({ fbase }) {
         >
           {isRecording ? (
             <Text>
-              <FontAwesome name="stop" size={56} color="#B22222" />
+              <FontAwesome name="stop" size={56} color="#CD2626" />
             </Text>
           ) : (
             <Text>
               {isProcessing ? (
                 <FontAwesome name="gear" color="gray" size={56} />
               ) : (
-                <FontAwesome name="microphone" size={56} color="#03A89E" />
+                <View style={micStyles.circle}>
+                  <FontAwesome name="microphone" size={56} color={micColor} />
+                </View>
               )}
 
               {console.log("isProcessing: ", isProcessing)}
