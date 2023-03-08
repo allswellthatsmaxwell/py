@@ -27,25 +27,25 @@ function SignUpOrSignIn() {
         }
     };
 
-    const handleSignInWithGoogle = async () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        try {
-            const result = await firebase.auth().signInWithPopup(provider);
-            setUser(result.user);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const handleSignUpWithGoogle = async () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        try {
-            const result = await firebase.auth().createUserWithPopup(provider);
-            setUser(result.user);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    // const handleSignInWithGoogle = async () => {
+    //     const provider = new firebase.auth.GoogleAuthProvider();
+    //     try {
+    //         const result = await firebase.auth().signInWithPopup(provider);
+    //         setUser(result.user);
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    // };
+    //
+    // const handleSignUpWithGoogle = async () => {
+    //     const provider = new firebase.auth.GoogleAuthProvider();
+    //     try {
+    //         const result = await firebase.auth().createUserWithPopup(provider);
+    //         setUser(result.user);
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    // };
 
     return (
         <View>

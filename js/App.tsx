@@ -12,12 +12,12 @@ import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from "firebase";
 
-import SignUpOrSignIn from "./Authentication.js";
-import AudioRecorder from "./AudioRecorder.js";
-import { TopicsList, EntriesForTopic } from "./UserDataLists.js";
-import { getStyles } from "./styles.js";
+import SignUpOrSignIn from "./Authentication";
+import AudioRecorder from "./AudioRecorder";
+import { TopicsList, EntriesForTopic } from "./UserDataLists";
+import { getStyles } from "./styles";
 
-styles = getStyles();
+const styles = getStyles();
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries

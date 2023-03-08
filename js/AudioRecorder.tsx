@@ -12,7 +12,7 @@ import { FontAwesome, Feather } from "@expo/vector-icons";
 
 import * as firebase from "firebase";
 
-import { ASSEMBLYAI_API_KEY } from "./Keys.js";
+import { ASSEMBLYAI_API_KEY } from "./Keys";
 
 const textStyles = StyleSheet.create({
   buttonContainer: {
@@ -59,19 +59,6 @@ const textStyles = StyleSheet.create({
 
 const micColor = "#8B4726";
 
-const micStyles = StyleSheet.create({
-  circle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: micColor,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 5,
-  }
-});
-
 const newEntriesStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
@@ -86,19 +73,34 @@ const newEntriesStyles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  tableContainer: {
-    flex: 1,
-    alignItems: "left",
-    justifyContent: "center",
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#000000",
-    marginLeft: -10, // add this
-    marginRight: -10, // add this
-    width: "100%", // add this
-  },
+  // tableContainer: {
+  //   flex: 1,
+  //   alignItems: "left",
+  //   justifyContent: "center",
+  // },
+  // separator: {
+  //   height: 1,
+  //   backgroundColor: "#000000",
+  //   marginLeft: -10, // add this
+  //   marginRight: -10, // add this
+  //   width: "100%", // add this
+  // },
 });
+
+
+const micStyles = StyleSheet.create({
+  circle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: micColor,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 5,
+  }
+});
+
 
 function AudioRecorder({ fbase }) {
   const [isRecording, setIsRecording] = React.useState(false);
@@ -336,9 +338,9 @@ function AudioRecorder({ fbase }) {
   }
 
   console.log("topicsResult: ", topicsResult);
-  topicsDict = JSON.parse(topicsResult);
+  const topicsDict = JSON.parse(topicsResult);
   console.log("topicsDict: ", topicsDict);
-  let rows = {};
+  let rows: { topic: string, entry: number }[] = [];
   if (topicsDict) {
     rows = Object.entries(JSON.parse(topicsResult)).map(([topic, entry]) => ({
       topic,
