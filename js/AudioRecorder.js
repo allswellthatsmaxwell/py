@@ -253,15 +253,14 @@ function AudioRecorder({ fbase }) {
       const topics = await computeAndWriteTopics(transcript, timestamp);
       console.log("topicssss:", topics);
       await handleTopicsTextUpdate(topics);
-      setTopicsStatus(null);
     } else {
       setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
     }
   }
 
   async function handleTopicsTextUpdate(topics) {
-    if (!topics || topics === "{}") {
-      setTopicsStatus("I failed to identify any topics - sorry!");
+    if (!topics || topics === "{}" || topics == {} || Object.keys(topics).length == 0) {
+      setTopicsStatus("Found no topics - sorry!");
     } else {
       setTopicsStatus(null);
     }
