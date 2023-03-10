@@ -309,16 +309,66 @@ function AudioRecorder({fbase}) {
     }
 
 
-    const prompt_examples = `Complete the final entry, and only the final entry. Do not add any entries. Do not output anything except the completion of the json the user gives you.
-  {transcript: "walked two miles today", existing: "walking distance, wake up time", topics: {"walking distance (miles)": 2}}
-  {transcript: "woke up at 09:42 A.m and had 300 milligrams of caffeine", existing: walking distance, wake up time, topics: {"wake up time": "09:42", "caffeine (mg)": 300}}
-  {transcript: "woke up at twelve thirty pm", existing: walking distance, wake up time, topics: {"wake up time": "12:30"}}
-  {transcript: "went to bed at 2am and woke up at 10am", existing: "walking distance, wake up time", topics: {"wake up time": "02:00", "hours slept": 8}}
-  {transcript: "ate four hundred calories", existing: "walking distance, wake up time", topics: {"calories": 400}}
-  {transcript: "Today I ate three apples", existing: "alcoholic beverages, wake up time", topics: {"apples": 3}}
-  {transcript: "Today I ate 7 apples and had 6 ounces of alcohol", existing: "", topics: {"apples": 7, "alcohol (oz)": 6}}
-  {transcript: "Today I ate three apples and two oranges and two alcoholic drinks", existing: "", topics: {"apples": 3, "oranges": 2, "alcohol (drinks)": 2}}
-  {transcript: "I listened to rap music for two and a half hours today", existing: "", topics: {"rap music listening time": 2.5}}`
+    const system_message = `# Role
+You are a topics categorizer. Given an audio transcription and a list of existing topics, you output the topic or topics
+that the user is trying to log. 
+
+# Instructions
+You do this by completing the json dictionary fragment the user gives you. 
+Do not output anything except the completion of the json the user gives you.
+You complete that json then stop, without saying anything else at all. 
+The user may already have many existing topics. It is a better user experience if new logs that belong in an existing one
+are assigned to that existing one. So even if you feel like there is a better phrasing for the topic, use the existing one,
+if their meaning is the same. If you can't assign an entry to an existing topic, create a new topic.
+
+The user may be trying to log multiple topics. If so, you should complete the json with multiple key-value pairs.
+
+The user may also be trying to log a time of day. If so, include a key "event_timestamp" in the json. If not, skip that key.
+If there is nothing that could be logged from the transcript, complete an empty json.
+
+# Examples
+{transcript: "walked two miles today", 
+ existing: "walking distance, wake up time", 
+ topics: {"walking distance (miles)": 2}}
+ 
+{transcript: "woke up at 09:42 A.m and had 300 milligrams of caffeine", 
+ existing: "walking distance, wake up time", 
+ topics: {"wake up time": "09:42", "caffeine (mg)": 300}}
+ 
+{transcript: "woke up at twelve thirty pm", 
+ existing: "walking distance, wake up time", 
+ topics: {"wake up time": "12:30"}}
+ 
+ {transcript: "woke up at twelve thirty pm", 
+ existing: "walking distance, awakening time", 
+ topics: {"awakening time": "12:30"}}
+ 
+{transcript: "went to bed at 2am and woke up at 10am", 
+ existing: "walking distance, wake up time", 
+ topics: {"wake up time": "02:00", "hours slept": 8}}
+ 
+{transcript: "ate four hundred calories", 
+existing: "walking distance, wake up time", topics: {"calories": 400}}
+
+{transcript: "Today I ate three apples", 
+ existing: "alcoholic beverages, wake up time", 
+ topics: {"apples": 3}}
+ 
+{transcript: "Today I ate 7 apples and had 6 ounces of alcohol", 
+ existing: "", 
+ topics: {"apples": 7, "alcohol (oz)": 6}}
+ 
+{transcript: "Today I ate three apples and two oranges and two alcoholic drinks", 
+ existing: "", 
+ topics: {"apples": 3, "oranges": 2, "alcohol (drinks)": 2}}
+ 
+{transcript: "I listened to rap music for two and a half hours today", 
+ existing: "", 
+ topics: {"rap music listening time (hours)": 2.5}}
+ 
+{transcript: "I listened to rap music for two and a half hours today", 
+ existing: "rap listening time", 
+ topics: {"rap listening time": 2.5}}`
 
 
     async function getTopicsTurbo(text) {
@@ -333,12 +383,12 @@ function AudioRecorder({fbase}) {
             .doc(userId)
             .collection('topics');
 
-        let topicsString = '';
+        let topicsString;
 
-        topicsRef.get().then((querySnapshot) => {
-            const topicsArray = querySnapshot.docs.map((doc) => doc.data().topicName);
-            topicsString = topicsArray.join(', ');
-            console.log(topicsString);
+        await topicsRef.get().then((querySnapshot) => {
+            const topics = querySnapshot.docs.map((doc) => doc.id);
+            topicsString = topics.join(', ');
+            console.log("existing topicsString: ", topicsString);
         });
 
         const input = "{transcript: \"" + text +
@@ -352,7 +402,7 @@ function AudioRecorder({fbase}) {
             messages: [
                 {
                     role: 'system',
-                    content: prompt_examples
+                    content: system_message
                 },
                 {
                     role: 'user',
