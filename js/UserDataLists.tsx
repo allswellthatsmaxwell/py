@@ -129,7 +129,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
   }, [userId]);
 
   useEffect(() => {
-    console.log("entriesDayCounts: ", entriesDayCounts);
+    // console.log("entriesDayCounts: ", entriesDayCounts);
   }, [entriesDayCounts]);
 
   return (

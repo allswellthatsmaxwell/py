@@ -14,6 +14,7 @@ import axios from 'axios';
 import * as firebase from "firebase";
 
 import {ASSEMBLYAI_API_KEY, OPENAI_API_KEY} from "./Keys";
+import {useEffect} from "react";
 
 const textStyles = StyleSheet.create({
     buttonContainer: {
@@ -112,6 +113,41 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
     const storage = fbase.storage();
     const userId = fbase.auth().currentUser.uid;
+
+    const transcriptsRef = firebase
+        .firestore()
+        .collection("users")
+        .doc(userId)
+        .collection("transcripts");
+
+
+    async function getMostRecentTranscript() {
+        console.log('Fetching most recent transcript...');
+        const snapshot = await transcriptsRef.orderBy("timestamp", "desc").limit(1).get();
+        console.log('Snapshot docs:', snapshot.docs);
+        if (snapshot.docs.length > 0) {
+            const transcript = snapshot.docs[0].data();
+            console.log('Most recent transcript:', transcript.text);
+            return transcript.text;
+        } else {
+            console.log('No transcripts found.');
+            return null;
+        }
+    }
+
+    useEffect(() => {
+        console.log('Executing useEffect');
+        async function fetchData() {
+            try {
+                const result = await getMostRecentTranscript();
+                console.log('Setting transcription result:', result);
+                setTranscriptionResult(result);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        fetchData().catch(error => console.error(error));
+    }, [userId]);
 
     async function kickoffTranscription(audio_url) {
         const axios = require("axios");
