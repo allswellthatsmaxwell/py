@@ -308,6 +308,7 @@ function AudioRecorder({fbase}) {
         return topics;
     }
 
+    const current_time = new Date().toLocaleTimeString();
 
     const system_message = `# Role
 You are a topics categorizer. Given an audio transcription and a list of existing topics, you output the topic or topics
