@@ -73,19 +73,7 @@ const newEntriesStyles = StyleSheet.create({
     cell: {
         flex: 1,
         alignItems: "center",
-    },
-    // tableContainer: {
-    //   flex: 1,
-    //   alignItems: "left",
-    //   justifyContent: "center",
-    // },
-    // separator: {
-    //   height: 1,
-    //   backgroundColor: "#000000",
-    //   marginLeft: -10, // add this
-    //   marginRight: -10, // add this
-    //   width: "100%", // add this
-    // },
+    }
 });
 
 
@@ -103,7 +91,7 @@ const micStyles = StyleSheet.create({
 });
 
 
-function AudioRecorder({fbase}) {
+function AudioRecorder({fbase, setSelectedTopic}) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -427,6 +415,9 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
         return new_entry_final;
     }
 
+    const handleTopicPress = (topic) => {
+        setSelectedTopic(topic);
+    };
 
     async function getTopics(text) {
         const response = await fetch(`http://159.65.244.4:5555/topics`, {
@@ -525,14 +516,16 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
                         data={rows}
                         keyExtractor={(item, index) => index.toString()}
                         renderItem={({item}) => (
-                            <View style={newEntriesStyles.row}>
-                                <Text style={[newEntriesStyles.cell, {textAlign: "left"}]}>
-                                    {item.topic}
-                                </Text>
-                                <Text style={[newEntriesStyles.cell, {textAlign: "right"}]}>
-                                    {item.entry}
-                                </Text>
-                            </View>
+                            <TouchableOpacity onPress={() => handleTopicPress(item.topic)}>
+                                <View style={newEntriesStyles.row}>
+                                    <Text style={[newEntriesStyles.cell, {textAlign: "left"}]}>
+                                        {item.topic}
+                                    </Text>
+                                    <Text style={[newEntriesStyles.cell, {textAlign: "right"}]}>
+                                        {item.entry}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
                         )}
                     />
                 </View>

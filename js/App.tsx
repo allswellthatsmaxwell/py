@@ -100,7 +100,7 @@ export default function App() {
             <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
           </View>
           <View style={styles.footer}>
-            <AudioRecorder fbase={firebase} />
+            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic} />
           </View>
         </View>
       </ScrollView>
