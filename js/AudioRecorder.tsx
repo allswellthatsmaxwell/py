@@ -97,15 +97,10 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     const [recording, setRecording] = React.useState();
 
     const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
-    const [transcriptionResult, setTranscriptionResult] = React.useState(
-        "Ok so today I played two games of go in the afternoon and had three drinks in the evening " +
-        "and then I went to bed around 3:40 a.m"
-    );
+    const [transcriptionResult, setTranscriptionResult] = React.useState(null);
 
     const [topicsStatus, setTopicsStatus] = React.useState(null);
-    const [topicsResult, setTopicsResult] = React.useState(
-        '{"alcoholic drinks": 3, "games of go": 2}'
-    );
+    const [topicsResult, setTopicsResult] = React.useState(null);
 
     const [isProcessing, setIsProcessing] = React.useState(false);
 
@@ -114,23 +109,27 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     const storage = fbase.storage();
     const userId = fbase.auth().currentUser.uid;
 
-    const transcriptsRef = firebase
+    const transcriptsCollection = firebase
         .firestore()
         .collection("users")
         .doc(userId)
         .collection("transcripts");
 
+    const topicsCollection = firebase
+        .firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('topics');
 
-    async function getMostRecentTranscript() {
-        console.log('Fetching most recent transcript...');
-        const snapshot = await transcriptsRef.orderBy("timestamp", "desc").limit(1).get();
+    async function getMostRecentLogging() {
+        const snapshot = await transcriptsCollection.orderBy("timestamp", "desc").limit(1).get();
         console.log('Snapshot docs:', snapshot.docs);
         if (snapshot.docs.length > 0) {
             const transcript = snapshot.docs[0].data();
-            console.log('Most recent transcript:', transcript.text);
-            return transcript.text;
+            console.log('Most recent transcript: "', transcript.text, '" with topics: ', transcript.topics);
+            return {'transcript': transcript.text, topics: transcript.topics};
         } else {
-            console.log('No transcripts found.');
+            console.log('getMostRecentLogging: no transcripts found.');
             return null;
         }
     }
@@ -139,9 +138,9 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         console.log('Executing useEffect');
         async function fetchData() {
             try {
-                const result = await getMostRecentTranscript();
-                console.log('Setting transcription result:', result);
-                setTranscriptionResult(result);
+                const result = await getMostRecentLogging();
+                setTranscriptionResult(result.transcript);
+                setTopicsResult(result.topics);
             } catch (error) {
                 console.error(error);
             }
@@ -317,11 +316,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     async function computeAndWriteTopics(transcript, timestamp) {
         const topics = await getTopicsTurbo(transcript); // getTopics(transcript);
 
-        const transcriptsCollection = firebase
-            .firestore()
-            .collection("users")
-            .doc(userId)
-            .collection("transcripts");
         await transcriptsCollection
             .add({text: transcript, topics: topics, timestamp: timestamp})
             .then((docRef) => {
@@ -402,15 +396,9 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
             'Content-Type': 'application/json'
         };
 
-        const topicsRef = firebase
-            .firestore()
-            .collection('users')
-            .doc(userId)
-            .collection('topics');
-
         let topicsString;
 
-        await topicsRef.get().then((querySnapshot) => {
+        await topicsCollection.get().then((querySnapshot) => {
             const topics = querySnapshot.docs.map((doc) => doc.id);
             topicsString = topics.join(', ');
             console.log("existing topicsString: ", topicsString);
