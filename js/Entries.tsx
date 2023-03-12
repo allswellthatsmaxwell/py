@@ -95,17 +95,21 @@ function LogsList({userId, topic}) {
     return (
         <TouchableOpacity
             style={{
-              backgroundColor: "red",
+              backgroundColor: "#EE3B3B",
               justifyContent: "center",
               alignItems: "flex-end",
-              paddingHorizontal: 20,
+              paddingHorizontal: 10,
               height: 70
             }}
             onPress={() => handleDelete(log.id)}
         >
-          <Animated.Text style={{transform: [{translateX: trans}], color: "#000000", fontWeight: "bold"}}>
-            delete
-          </Animated.Text>
+          <View style={{width: 50, flex: 1}}>
+            <Text style={{
+              color: "#ffffff"//, fontWeight: "bold"
+            }}>
+              delete
+            </Text>
+          </View>
         </TouchableOpacity>
     );
   };
@@ -113,7 +117,8 @@ function LogsList({userId, topic}) {
   const renderItem = ({item}) => {
 
     return (
-        <Swipeable ref={swipeableRef} renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>
+        <Swipeable ref={swipeableRef}
+                   renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>
           <View style={styles.header}>
             <Text style={styles.cell}>{item.date}</Text>
             <Text style={styles.cell}>{item.time}</Text>
