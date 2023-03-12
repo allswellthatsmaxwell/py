@@ -59,8 +59,9 @@ function LogsList({userId, topic}) {
   }, [userId, topic]);
 
 
-  const handleDelete = (log) => {
+  const handleDelete = (logId) => {
     // Delete the log from the database
+    console.log("Deleting log ID: ", logId, " for topic: ", topic);
     firebase
         .firestore()
         .collection("users")
@@ -68,7 +69,7 @@ function LogsList({userId, topic}) {
         .collection("topics")
         .doc(topic)
         .collection("entries")
-        .doc(log.id)
+        .doc(logId)
         .delete()
         .then(() => {
           console.log("Log deleted successfully!");
@@ -93,7 +94,7 @@ function LogsList({userId, topic}) {
               paddingHorizontal: 20,
               height: 70
             }}
-            onPress={() => handleDelete(log)}
+            onPress={() => handleDelete(log.id)}
         >
           <Animated.Text style={{transform: [{translateX: trans}], color: "#000000", fontWeight: "bold"}}>
             delete
@@ -106,9 +107,9 @@ function LogsList({userId, topic}) {
     return (
         <Swipeable renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>
           <View style={styles.header}>
-            {item.map((cell) => (
-                <Text style={styles.cell}>{cell}</Text>
-            ))}
+            <Text style={styles.cell}>{item.date}</Text>
+            <Text style={styles.cell}>{item.time}</Text>
+            <Text style={styles.cell}>{item.value}</Text>
           </View>
         </Swipeable>
     );
@@ -118,11 +119,12 @@ function LogsList({userId, topic}) {
   // formats like "July 6, 11:36 PM"
   const time_format = {hour: "2-digit", minute: "2-digit", hour12: true};
   const day_format = {month: "short", day: "numeric"};
-  const tableData = logsList.map((log) => [
-    log.timestamp.toDate().toLocaleDateString([], day_format),
-    log.timestamp.toDate().toLocaleTimeString([], time_format),
-    log.number,
-  ]);
+  const tableData = logsList.map((log) => ({
+    date: log.timestamp.toDate().toLocaleDateString([], day_format),
+    time: log.timestamp.toDate().toLocaleTimeString([], time_format),
+    value: log.number,
+    id: log.id
+  }));
 
   return (
       <View style={styles.container}>
