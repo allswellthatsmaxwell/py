@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import {useEffect} from "react";
-import {FontAwesome, Feather, AntDesign} from "@expo/vector-icons";
+import {FontAwesome, Feather, AntDesign, Entypo, MaterialCommunityIcons} from "@expo/vector-icons";
 
 import * as firebase from "firebase";
 
@@ -125,7 +125,7 @@ export default function App() {
     return (
         <View style={styles.topRightCornerSecondPositionContainer}>
           <TouchableOpacity onPress={() => setHistorySelected(true)}>
-            <AntDesign name="filetext1" size={34} color="black"/>
+            <MaterialCommunityIcons name="file-document-multiple" size={34} color="black"/>
           </TouchableOpacity>
         </View>
     );
@@ -139,7 +139,7 @@ export default function App() {
           <AuthStatusElements/>
           <HistoryButton/>
 
-          {selectedTopic && (<BackButton/>)}
+          {(selectedTopic || historySelected) && (<BackButton/>)}
         </View>
     );
   }

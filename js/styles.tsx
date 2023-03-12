@@ -94,7 +94,7 @@ export function getStyles() {
         topRightCornerSecondPositionContainer: {
             position: "absolute",
             top: 50,
-            right: 100,
+            right: 80,
         },
         centeredView: {
             flex: 1,

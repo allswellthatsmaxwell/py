@@ -6,6 +6,7 @@ import {Table, Row, Rows} from "react-native-table-component";
 import {Swipeable} from "react-native-gesture-handler";
 
 import {getStyles} from "./styles";
+import {Entypo, MaterialCommunityIcons} from "@expo/vector-icons";
 
 const projectStyles = getStyles();
 
@@ -104,11 +105,7 @@ function LogsList({userId, topic}) {
             onPress={() => handleDelete(log.id)}
         >
           <View style={{width: 50, flex: 1}}>
-            <Text style={{
-              color: "#ffffff"//, fontWeight: "bold"
-            }}>
-              delete
-            </Text>
+            <MaterialCommunityIcons name="delete-forever" size={34} color="white"/>
           </View>
         </TouchableOpacity>
     );
