@@ -14,7 +14,8 @@ import * as firebase from "firebase";
 
 import SignUpOrSignIn from "./Authentication";
 import AudioRecorder from "./AudioRecorder";
-import { TopicsList, EntriesForTopic } from "./UserDataLists";
+import { TopicsList } from "./TopicsList";
+import { EntriesForTopic } from "./Entries";
 import { getStyles } from "./styles";
 
 const styles = getStyles();

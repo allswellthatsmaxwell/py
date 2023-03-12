@@ -258,6 +258,13 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
         const entryAddPromises = Object.entries(topicsDict).map(
             async ([topic, value]) => {
+                // turns all non-numeric values into strings
+                if (isNaN(value)) {
+                    value = value.toString();
+                } else {
+                    value = Number(value);
+                }
+
                 await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
             }
         );
