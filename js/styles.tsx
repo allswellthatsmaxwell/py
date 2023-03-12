@@ -91,11 +91,11 @@ export function getStyles() {
             top: 50,
             right: 40,
         },
-        // topRightCornerSecondPositionContainer: {
-        //     position: "absolute",
-        //     top: 50,
-        //     right: 50,
-        // },
+        topRightCornerSecondPositionContainer: {
+            position: "absolute",
+            top: 50,
+            right: 50,
+        },
         centeredView: {
             flex: 1,
             justifyContent: "center",

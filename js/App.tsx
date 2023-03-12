@@ -42,6 +42,7 @@ if (!firebase.apps.length) {
 export default function App() {
   const [user, setUser] = React.useState(null);
   const [selectedTopic, setSelectedTopic] = React.useState(null);
+  const [historySelected, setHistorySelected] = React.useState(false);
 
   const handleBackPress = () => {
     setSelectedTopic(null);
@@ -59,9 +60,11 @@ export default function App() {
 
   function BackButton() {
     return (
-        <TouchableOpacity onPress={handleBackPress}>
-          <Feather name="arrow-left-circle" size={36} color="black"/>
-        </TouchableOpacity>
+        <View style={styles.topLeftCornerContainer}>
+          <TouchableOpacity onPress={handleBackPress}>
+            <Feather name="arrow-left-circle" size={36} color="black"/>
+          </TouchableOpacity>
+        </View>
     );
   }
 
@@ -73,7 +76,7 @@ export default function App() {
     };
 
     return (
-        <View>
+        <View style={styles.topRightCornerFirstPositionContainer}>
           <TouchableOpacity onPress={handlePress}>
             <FontAwesome name="user-circle" size={34} color="black"/>
           </TouchableOpacity>
@@ -116,18 +119,25 @@ export default function App() {
     );
   }
 
+  function HistoryButton() {
+    return (
+        <View style={styles.topRightCornerSecondPositionContainer}>
+          <TouchableOpacity onPress={() => setHistorySelected(true)}>
+            <FontAwesome name="history" size={24} color="black"/>
+          </TouchableOpacity>
+        </View>
+    );
+  }
+
   function Header() {
     return (
         <View style={styles.headerContainer}>
           <Text style={{fontSize: 20, paddingTop: 35}}>{selectedTopic}</Text>
-          <View style={styles.topRightCornerFirstPositionContainer}>
-            <AuthStatusElements/>
-          </View>
-          {selectedTopic && (
-              <View style={styles.topLeftCornerContainer}>
-                <BackButton/>
-              </View>
-          )}
+
+          <AuthStatusElements/>
+          <HistoryButton/>
+
+          {selectedTopic && (<BackButton/> )}
         </View>
     );
   }
@@ -139,14 +149,7 @@ export default function App() {
           {!selectedTopic ? (
               <MainDisplay/>
           ) : (
-              <View>
-                <View style={styles.container}>
-                  <EntriesForTopic
-                      userId={user.uid}
-                      selectedTopic={selectedTopic}
-                  />
-                </View>
-              </View>
+              <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic}/>
           )}
         </View>
     );
