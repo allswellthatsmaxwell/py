@@ -261,7 +261,7 @@ function AudioRecorder({fbase, setSelectedTopic, setEntriesDayCountsChanged}) {
                 await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
             }
         );
-        setEntriesDayCountsChanged(true);
+        // setEntriesDayCountsChanged(true);
         return await Promise.all(entryAddPromises);
     }
 
