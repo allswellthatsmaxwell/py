@@ -92,7 +92,7 @@ const micStyles = StyleSheet.create({
 });
 
 
-function AudioRecorder({fbase, setSelectedTopic}) {
+function AudioRecorder({fbase, setSelectedTopic, setEntriesDayCountsChanged}) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -261,6 +261,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
                 await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
             }
         );
+        setEntriesDayCountsChanged(true);
         return await Promise.all(entryAddPromises);
     }
 

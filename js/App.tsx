@@ -41,6 +41,8 @@ if (!firebase.apps.length) {
 export default function App() {
   const [user, setUser] = React.useState(null);
   const [selectedTopic, setSelectedTopic] = React.useState(null);
+  const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
+  const [entriesDayCountsChanged, setEntriesDayCountsChanged] = React.useState(true);
 
   const handleBackPress = () => {
     setSelectedTopic(null);
@@ -97,10 +99,15 @@ export default function App() {
       <ScrollView>
         <View>
           <View style={[styles.topContainer, { height: 600 }]}>
-            <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic} />
+            <TopicsList userId={user.uid}
+                        setSelectedTopic={setSelectedTopic}
+                        entriesDayCounts={entriesDayCounts}
+                        setEntriesDayCounts={setEntriesDayCounts}
+                        entriesDayCountsChanged={entriesDayCountsChanged}
+                        setEntriesDayCountsChanged={setEntriesDayCountsChanged} />
           </View>
           <View style={styles.footer}>
-            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic} />
+            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic} setEntriesDayCountsChanged={setEntriesDayCountsChanged} />
           </View>
         </View>
       </ScrollView>
