@@ -38,12 +38,12 @@ const styles = StyleSheet.create({
   }
 });
 
-export function TranscriptHistory({userId, fbase}) {
+export function TranscriptHistory({userId}) {
 
   const [transcriptsList, setTranscriptsList] = React.useState([]);
 
   useEffect(() => {
-    const transcriptsCollection = fbase
+    const transcriptsCollection = firebase
         .firestore()
         .collection("users")
         .doc(userId)
@@ -61,8 +61,12 @@ export function TranscriptHistory({userId, fbase}) {
     };
   }, [userId]);
 
+  const timestamp_format = {
+    month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true
+  };
   const tableData = transcriptsList.map((record) => ({
-    timestamp: record.timestamp,
+    timestamp: record.timestamp.toDate().toLocaleDateString([], timestamp_format),
     text: record.text,
     topics: record.topics,
     id: record.id

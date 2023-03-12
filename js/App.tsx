@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import {useEffect} from "react";
-import {FontAwesome, Feather} from "@expo/vector-icons";
+import {FontAwesome, Feather, AntDesign} from "@expo/vector-icons";
 
 import * as firebase from "firebase";
 
@@ -17,6 +17,7 @@ import AudioRecorder from "./AudioRecorder";
 import {TopicsList} from "./TopicsList";
 import {EntriesForTopic} from "./Entries";
 import {getStyles} from "./styles";
+import {TranscriptHistory} from "./TranscriptHistory";
 
 const styles = getStyles();
 
@@ -46,6 +47,7 @@ export default function App() {
 
   const handleBackPress = () => {
     setSelectedTopic(null);
+    setHistorySelected(false);
   };
 
   useEffect(() => {
@@ -123,7 +125,7 @@ export default function App() {
     return (
         <View style={styles.topRightCornerSecondPositionContainer}>
           <TouchableOpacity onPress={() => setHistorySelected(true)}>
-            <FontAwesome name="history" size={24} color="black"/>
+            <AntDesign name="filetext1" size={34} color="black"/>
           </TouchableOpacity>
         </View>
     );
@@ -137,7 +139,7 @@ export default function App() {
           <AuthStatusElements/>
           <HistoryButton/>
 
-          {selectedTopic && (<BackButton/> )}
+          {selectedTopic && (<BackButton/>)}
         </View>
     );
   }
@@ -146,10 +148,12 @@ export default function App() {
     return (
         <View>
           <Header/>
-          {!selectedTopic ? (
-              <MainDisplay/>
-          ) : (
+          {selectedTopic ? (
               <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic}/>
+          ) : historySelected ? (
+              <TranscriptHistory userId={user.uid} />
+            ) : (
+              <MainDisplay/>
           )}
         </View>
     );
