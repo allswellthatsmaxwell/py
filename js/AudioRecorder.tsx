@@ -92,7 +92,7 @@ const micStyles = StyleSheet.create({
 });
 
 
-function AudioRecorder({fbase, setSelectedTopic}) {
+function AudioRecorder({fbase, setSelectedTopic, setTopicsOrEntriesChanged}) {
     const [isRecording, setIsRecording] = React.useState(false);
     const [recording, setRecording] = React.useState();
 
@@ -135,7 +135,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     }
 
     useEffect(() => {
-        console.log('Executing useEffect');
+        console.log('Executing useEffect in AudioRecorder');
         async function fetchData() {
             try {
                 const result = await getMostRecentLogging();
@@ -146,7 +146,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
             }
         }
         fetchData().catch(error => console.error(error));
-    }, [userId]);
+    }, []);
 
     async function kickoffTranscription(audio_url) {
         const axios = require("axios");
@@ -261,6 +261,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
                 await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
             }
         );
+        setTopicsOrEntriesChanged(true);
         return await Promise.all(entryAddPromises);
     }
 

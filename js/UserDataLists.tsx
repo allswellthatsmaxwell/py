@@ -1,6 +1,6 @@
 import * as React from "react";
-import { useEffect } from "react";
-import { Table, Row, Rows } from "react-native-table-component";
+import {useEffect} from "react";
+import {Table, Row, Rows} from "react-native-table-component";
 import {
   Text,
   View,
@@ -12,7 +12,7 @@ import * as firebase from "firebase";
 // import { Sparklines, SparklinesBars } from "react-sparklines";
 import moment from "moment";
 
-import { getStyles } from "./styles.js";
+import {getStyles} from "./styles.js";
 
 const styles = getStyles();
 
@@ -35,16 +35,18 @@ const rowStyles = StyleSheet.create({
   },
 });
 
-export function TopicsList({ userId, setSelectedTopic }) {
-  const [topicsList, setTopicsList] = React.useState([]);
-  const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
+export function TopicsList({fbase, setSelectedTopic, setTopicsList, entriesDayCounts, setEntriesDayCounts, topicsOrEntriesChanged}) {
+  // const [topicsList, setTopicsList] = React.useState([]);
+  // const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
+
+  const userId = fbase.auth().currentUser.uid;
 
   const handleTopicPress = (topic) => {
     setSelectedTopic(topic);
   };
 
   const renderSeparator = () => {
-    return <View style={{ height: 1, backgroundColor: "gray" }} />;
+    return <View style={{height: 1, backgroundColor: "gray"}}/>;
   };
 
   function getEntriesDayCounts(topics_snapshot) {
@@ -60,12 +62,12 @@ export function TopicsList({ userId, setSelectedTopic }) {
 
     const promises = batches.map((batch) => {
       const entriesCollection = firebase
-        .firestore()
-        .collection("users")
-        .doc(userId)
-        .collection("topics")
-        .where(firebase.firestore.FieldPath.documentId(), "in", batch)
-        .get();
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("topics")
+          .where(firebase.firestore.FieldPath.documentId(), "in", batch)
+          .get();
 
       return entriesCollection;
     });
@@ -110,153 +112,98 @@ export function TopicsList({ userId, setSelectedTopic }) {
 
   useEffect(() => {
     const topicsCollection = firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("topics");
+        .firestore()
+        .collection("users")
+        .doc(userId)
+        .collection("topics");
 
     const unsubscribe = topicsCollection.onSnapshot((snapshot) => {
-      const topics = snapshot.docs.map((doc) => doc.id);
-      console.log("userId: ", userId);
-      console.log("Topics: ", topics);
-      setTopicsList(topics);
-      getEntriesDayCounts(snapshot);
+      if (topicsOrEntriesChanged) {
+        const topics = snapshot.docs.map((doc) => doc.id);
+        console.log("userId: ", userId);
+        console.log("Topics: ", topics);
+        setTopicsList(topics);
+        getEntriesDayCounts(snapshot);
+      }
     });
 
     return () => {
       unsubscribe();
     };
-  }, [userId]);
-
-  useEffect(() => {
-    // console.log("entriesDayCounts: ", entriesDayCounts);
-  }, [entriesDayCounts]);
-
-  return (
-    <View
-      style={[
-        styles.topicsTableContainer,
-        { borderWidth: 1, borderColor: "black" },
-      ]}
-    >
-      <FlatList
-        data={Object.keys(entriesDayCounts)}
-        renderItem={({ item }) => {
-          const rowHeight = 20;
-          const allDates = Object.keys(entriesDayCounts).reduce(
-            (acc, topic) => [...acc, ...Object.keys(entriesDayCounts[topic])],
-            []
-          );
-          const uniqueDates = [...new Set(allDates)];
-          const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
-          const todayDate = moment().toISOString().split("T")[0];
-          const maxDataValue = Math.max(
-            ...Object.values(entriesDayCounts[item])
-          );
-          const scaleFactor =
-            maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
-          const dateDict = Object.keys(entriesDayCounts[item]).reduce(
-            (acc, date) => {
-              acc[date] = entriesDayCounts[item][date];
-              return acc;
-            },
-            {}
-          );
-
-          return (
-            <TouchableOpacity onPress={() => handleTopicPress(item)}>
-              <View style={rowStyles.row}>
-                <Text style={styles.rowText}>{item}</Text>
-                <View style={rowStyles.chart}>
-                  {sortedDates.map((date, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        rowStyles.bar,
-                        {
-                          height: dateDict[date] * 10 * scaleFactor,
-                          left:
-                            (moment(date) - todayDate) / (1000 * 60 * 60 * 24),
-                        },
-                      ]}
-                    />
-                  ))}
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-        keyExtractor={(item) => item}
-        style={styles.flatList}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={renderSeparator}
-        ListFooterComponent={() => (
-          <View
-            style={{
-              borderBottomWidth: 1,
-              borderBottomColor: "black",
-            }}
-          />
-        )}
-      />
-    </View>
-  );
-}
-
-export function EntriesForTopic({ userId, selectedTopic }) {
-  return (
-    <View style={styles.topContainer}>
-      <LogsList userId={userId} topic={selectedTopic} />
-    </View>
-  );
-}
-
-function LogsList({ userId, topic }) {
-  const [logsList, setLogsList] = React.useState([]);
-
-  useEffect(() => {
-    const logsCollection = firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("topics")
-      .doc(topic)
-      .collection("entries");
-
-    const unsubscribe = logsCollection.onSnapshot((snapshot) => {
-      const logs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.log("Logs: ", logs);
-      setLogsList(logs);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [userId, topic]);
-
-  const tableHead = ["Date", "Time", "Value"];
-  // formats like "July 6, 11:36 PM"
-  const time_format = { hour: "2-digit", minute: "2-digit", hour12: true };
-  const day_format = { month: "short", day: "numeric" };
-  const tableData = logsList.map((log) => [
-    log.timestamp.toDate().toLocaleDateString([], day_format),
-    log.timestamp.toDate().toLocaleTimeString([], time_format),
-    log.number,
-  ]);
+  }, []);
+  //
+  // useEffect(() => {
+  //   // console.log("entriesDayCounts: ", entriesDayCounts);
+  // }, [entriesDayCounts]);
 
   return (
-    <View style={{ height: 100, width: 300 }}>
-      <Table
-        style={{ width: "100%" }}
-        borderStyle={{ borderWidth: 1, borderColor: "#bbb" }}
+      <View
+          style={[
+            styles.topicsTableContainer,
+            {borderWidth: 1, borderColor: "black"},
+          ]}
       >
-        <Row
-          data={tableHead}
-          style={{ backgroundColor: "#f1f8ff" }}
-          textStyle={{ margin: 1 }}
+        <FlatList
+            data={Object.keys(entriesDayCounts)}
+            renderItem={({item}) => {
+              const rowHeight = 20;
+              const allDates = Object.keys(entriesDayCounts).reduce(
+                  (acc, topic) => [...acc, ...Object.keys(entriesDayCounts[topic])],
+                  []
+              );
+              const uniqueDates = [...new Set(allDates)];
+              const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
+              const todayDate = moment().toISOString().split("T")[0];
+              const maxDataValue = Math.max(
+                  ...Object.values(entriesDayCounts[item])
+              );
+              const scaleFactor =
+                  maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
+              const dateDict = Object.keys(entriesDayCounts[item]).reduce(
+                  (acc, date) => {
+                    acc[date] = entriesDayCounts[item][date];
+                    return acc;
+                  },
+                  {}
+              );
+
+              return (
+                  <TouchableOpacity onPress={() => handleTopicPress(item)}>
+                    <View style={rowStyles.row}>
+                      <Text style={styles.rowText}>{item}</Text>
+                      <View style={rowStyles.chart}>
+                        {sortedDates.map((date, index) => (
+                            <View
+                                key={index}
+                                style={[
+                                  rowStyles.bar,
+                                  {
+                                    height: dateDict[date] * 10 * scaleFactor,
+                                    left:
+                                        (moment(date) - todayDate) / (1000 * 60 * 60 * 24),
+                                  },
+                                ]}
+                            />
+                        ))}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+              );
+            }}
+            keyExtractor={(item) => item}
+            style={styles.flatList}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={renderSeparator}
+            ListFooterComponent={() => (
+                <View
+                    style={{
+                      borderBottomWidth: 1,
+                      borderBottomColor: "black",
+                    }}
+                />
+            )}
         />
-        <Rows data={tableData} textStyle={{ margin: 1 }} />
-      </Table>
-    </View>
+      </View>
   );
 }
+
