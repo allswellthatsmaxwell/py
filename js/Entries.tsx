@@ -1,6 +1,6 @@
 import {TouchableOpacity, View, Animated, FlatList, Text, StyleSheet} from "react-native";
 import * as React from "react";
-import {useEffect} from "react";
+import {useEffect, useRef} from "react";
 import * as firebase from "firebase";
 import {Table, Row, Rows} from "react-native-table-component";
 import {Swipeable} from "react-native-gesture-handler";
@@ -37,6 +37,7 @@ export function EntriesForTopic({userId, selectedTopic}) {
 function LogsList({userId, topic}) {
   const [logsList, setLogsList] = React.useState([]);
 
+
   useEffect(() => {
     const logsCollection = firebase
         .firestore()
@@ -59,6 +60,7 @@ function LogsList({userId, topic}) {
   }, [userId, topic]);
 
 
+  const swipeableRef = useRef(null);
   const handleDelete = (logId) => {
     // Delete the log from the database
     console.log("Deleting log ID: ", logId, " for topic: ", topic);
@@ -73,13 +75,18 @@ function LogsList({userId, topic}) {
         .delete()
         .then(() => {
           console.log("Log deleted successfully!");
+          if (swipeableRef.current) {
+            swipeableRef.current.close();
+          }
         })
         .catch((error) => {
           console.error("Error deleting log: ", error);
         });
   };
 
+
   const renderRightActions = (progress, dragX, log) => {
+
     const trans = dragX.interpolate({
       inputRange: [0, 50, 100],
       outputRange: [-20, 0, 100],
@@ -104,8 +111,9 @@ function LogsList({userId, topic}) {
   };
 
   const renderItem = ({item}) => {
+
     return (
-        <Swipeable renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>
+        <Swipeable ref={swipeableRef} renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>
           <View style={styles.header}>
             <Text style={styles.cell}>{item.date}</Text>
             <Text style={styles.cell}>{item.time}</Text>
@@ -115,8 +123,6 @@ function LogsList({userId, topic}) {
     );
   };
 
-  const tableHead = ["Date", "Time", "Value"];
-  // formats like "July 6, 11:36 PM"
   const time_format = {hour: "2-digit", minute: "2-digit", hour12: true};
   const day_format = {month: "short", day: "numeric"};
   const tableData = logsList.map((log) => ({
@@ -128,15 +134,10 @@ function LogsList({userId, topic}) {
 
   return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          {tableHead.map((item) => (
-              <Text style={styles.cell}>{item}</Text>
-          ))}
-        </View>
         <FlatList
             data={tableData}
             renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item, index) => item.id}
         />
       </View>
   );
