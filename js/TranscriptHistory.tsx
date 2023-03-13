@@ -19,12 +19,10 @@ const styles = StyleSheet.create({
   mainTextContainer: {
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
-    // alignSelf: "flex-start",
     maxWidth: "100%",
     width: 400,
     height: 600,
     maxHeight: 600,
-    // padding: 10,
     paddingHorizontal: 10,
     marginTop: 0,
     borderRadius: 10,

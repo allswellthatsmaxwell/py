@@ -136,6 +136,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   useEffect(() => {
     console.log('Executing useEffect');
+
     async function fetchData() {
       try {
         const result = await getMostRecentLogging();
@@ -145,6 +146,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         console.error(error);
       }
     }
+
     fetchData().catch(error => console.error(error));
   }, [userId]);
 
@@ -175,9 +177,30 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
-      const {recording} = await Audio.Recording.createAsync(
-          Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
+
+      const { recording } = await Audio.Recording.createAsync({
+        ...Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY,
+        android: {
+          extension: '.mp4',
+          outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.mp4',
+          outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
+          audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_MAX,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+      });
+      console.log("Recording object after creation: ", recording)
       setRecording(recording);
       console.log("Recording started");
       await recording.startAsync();
@@ -274,23 +297,48 @@ function AudioRecorder({fbase, setSelectedTopic}) {
   async function stopRecording() {
     const timestamp = firebase.firestore.FieldValue.serverTimestamp();
     console.log("Stopping recording..");
-    setRecording(undefined);
+    // setRecording(undefined);
     await recording.stopAndUnloadAsync();
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
     });
 
     setTranscriptionStatus("Preparing audio...");
-    const audio_url = await sendRecording(recording);
-    console.log("upload_url response:", audio_url);
+    // get loaded uri from recording
+    const uri = recording.getURI();
 
-    setTranscriptionStatus("Figuring out what you said...");
-    const transcriptionId = await kickoffTranscription(audio_url);
-    console.log("transcription_id:", transcriptionId);
-    const transcript = await _poll(transcriptionId);
+    const file = await fetch(uri);
+    const blob = await file.blob();
+    console.log("Blob type: ", blob.type, "Blob: ", blob);
+    const filename = uri.split('/').pop();
+    const fileObj = new File([blob], filename);
+
+    const formData = new FormData();
+    formData.append('file', fileObj);
+    formData.append('model', 'whisper-1');
+    formData.append('response_format', 'text');
+    formData.append('language', 'en');
+
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    });
+    console.log("Whisper API response: ", response);
+
+    const data = await response.json();
+    console.log("Whisper data from response: ", data);
+
+    const transcript = data.text;
+
     setTranscriptionStatus(null);
     console.log("transcript:", transcript);
     await processTranscript(transcript, timestamp);
+    return data;
   }
 
   async function processTranscript(transcript, timestamp) {
@@ -450,19 +498,19 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
     setSelectedTopic(topic);
   };
 
-  async function getTopics(text) {
-    const response = await fetch(`http://159.65.244.4:5555/topics`, {
-      method: "POST",
-      body: JSON.stringify({text: text}),
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-    const jsonResponse = await response.json();
-    console.log("Topics received: ", jsonResponse.topics);
-    return jsonResponse.topics;
-  }
+  // async function getTopics(text) {
+  //   const response = await fetch(`http://159.65.244.4:5555/topics`, {
+  //     method: "POST",
+  //     body: JSON.stringify({text: text}),
+  //     headers: {
+  //       Accept: "application/json",
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  //   const jsonResponse = await response.json();
+  //   console.log("Topics received: ", jsonResponse.topics);
+  //   return jsonResponse.topics;
+  // }
 
   async function handlePress() {
     if (isProcessing) {
