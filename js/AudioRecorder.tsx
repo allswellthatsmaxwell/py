@@ -10,7 +10,7 @@ import {
 import {Audio} from "expo-av";
 import {FontAwesome, Feather} from "@expo/vector-icons";
 import axios from 'axios';
-import { Buffer } from "buffer";
+import {Buffer} from "buffer";
 
 import * as firebase from "firebase";
 
@@ -138,6 +138,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   useEffect(() => {
     console.log('Executing useEffect');
+
     async function fetchData() {
       try {
         const result = await getMostRecentLogging();
@@ -147,6 +148,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         console.error(error);
       }
     }
+
     fetchData().catch(error => console.error(error));
   }, [userId]);
 
@@ -199,7 +201,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         },
       };
 
-      const { recording } = await Audio.Recording.createAsync(recordingOptions);
+      const {recording} = await Audio.Recording.createAsync(recordingOptions);
       setRecording(recording);
       console.log("Recording started");
       await recording.startAsync();
@@ -215,7 +217,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         'Authorization': `Token ${DEEPGRAM_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ url: audioUrl }),
+      body: JSON.stringify({url: audioUrl}),
     };
 
     try {
@@ -411,6 +413,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
       // Do something with the response data (e.g., display it in the UI)
       console.log(responseData);
+      return responseData['transcription']['text'];
     } catch (error) {
       console.error('Error posting audio recording:', error);
     }
