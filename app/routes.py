@@ -1,10 +1,8 @@
 from flask import request, Blueprint, Flask, make_response, jsonify
 
 import os
-from typing import Dict
-
+import asyncio
 from . import filesystem, transcription
-from .svl import LogFilesFinder
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
@@ -19,7 +17,7 @@ filesystem = filesystem.FileSystem(root=APPDATA_PATH)
 transcriber = transcription.DeepgramTranscriber()
 
 @app_routes.route("/transcribe", methods=["POST"])
-def upload():
+async def transcribe():
     # saves an audio file to the filesystem, returns the transcription ID
     print("Entering routes.transcribe...")
     
@@ -38,8 +36,9 @@ def upload():
     app.logger.info("Done writing.")
     
     app.logger.info("Transcribing...")
-    transcript = transcriber.transcribe(destpath)
+    transcript = await transcriber.transcribe(destpath)
     app.logger.info("Done transcribing.")
+    print(transcript)
     response_data = {'transcription': transcript}
     return make_response(jsonify(response_data))
 
