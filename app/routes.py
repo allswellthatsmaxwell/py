@@ -34,13 +34,13 @@ async def transcribe():
 
     # audio_data = audio_file.read()
     print("/transcribe: len(audio_data):", len(audio_data))
-    extension = audio_file.filename.split(".")[-1]
-    app.logger.info(f"extension: {extension}")
+    # extension = audio_file.filename.split(".")[-1]
+    # app.logger.info(f"extension: {extension}")
     
     dest_dir = os.path.join(filesystem.root, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
     
-    destpath = f"{dest_dir}/rec1.{extension}"
+    destpath = f"{dest_dir}/rec1.m4a"
     app.logger.info(f"Writing to '{destpath}'.")
     with open(destpath, "wb") as f:
         f.write(audio_data)
