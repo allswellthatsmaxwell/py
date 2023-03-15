@@ -3,6 +3,7 @@ from pathlib import Path
 
 from deepgram import Deepgram
 import asyncio, json, mimetypes
+import openai
 
 DEEPGRAM_API_KEY = os.environ['DEEPGRAM_API_KEY']
 
@@ -29,6 +30,14 @@ class DeepgramTranscriber:
             response = await self.deepgram.transcription.prerecorded(source, {'punctuate': False})
             print(json.dumps(response, indent=4))
         return response
+    
+
+class WhisperTranscriber:
+    async def transcribe(self, file):
+        with open(file, 'rb') as audio:
+            transcript = openai.Audio.transcribe("whisper-1", file)
+        print(json.dumps(transcript, indent=4))
+        return transcript
         
 
 
