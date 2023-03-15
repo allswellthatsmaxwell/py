@@ -21,6 +21,7 @@ async def transcribe():
     # saves an audio file to the filesystem, returns the transcription ID
     print("Entering routes.transcribe...")
     
+    print(f"request.keys(): {request.keys()}")
     audio_file = request.files['file']
     print("/transcribe: audio_file:", audio_file)
     print("/transcribe: audio_file.filename:", audio_file.filename)
