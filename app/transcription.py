@@ -2,7 +2,8 @@ import os, requests
 from typing import Dict
 from pathlib import Path
 
-from deepgram import Deepgram
+from deepgram import AIODeepgram as Deepgram
+
 import asyncio, json
 
 DEEPGRAM_API_KEY = os.environ['DEEPGRAM_API_KEY']
@@ -66,10 +67,10 @@ class DeepgramTranscriber:
     def __init__(self) -> None:
         self.deepgram = Deepgram(DEEPGRAM_API_KEY)
         
-    def transcribe(self, file):
+    async def transcribe(self, file):
         with open(file, 'rb') as audio:
             source = {'buffer': audio, 'mimetype': 'audio/m4a'}
-            response = self.deepgram.transcription.prerecorded(source, {'punctuate': False})
+            response = await self.deepgram.transcription.prerecorded(source, {'punctuate': False})
             print(json.dumps(response, indent=4))
         return response
         
