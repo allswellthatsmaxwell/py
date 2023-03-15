@@ -14,7 +14,7 @@ APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
 LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 
 filesystem = filesystem.FileSystem(root=APPDATA_PATH)
-transcriber = transcription.WhisperTranscriber()
+transcriber = transcription.Transcriber()
 
 @app_routes.route("/transcribe", methods=["POST"])
 async def transcribe():
