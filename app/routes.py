@@ -44,8 +44,8 @@ class WhisperTranscriber:
 
     
 
-filesystem = filesystem.FileSystem(root=APPDATA_PATH)
-transcriber = transcription.WhisperTranscriber()
+filesystem = FileSystem(root=APPDATA_PATH)
+transcriber = WhisperTranscriber()
 
 @app_routes.route("/transcribe", methods=["POST"])
 async def transcribe():
