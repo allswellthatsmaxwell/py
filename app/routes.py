@@ -24,7 +24,7 @@ async def transcribe():
     audio_file = request.files['file']
     print("/transcribe: audio_file:", audio_file)
     audio_data = audio_file.read()
-    print("/transcribe: audio_data:", audio_data)
+    print("/transcribe: audio_data.filename:", audio_data.filename)
     extension = audio_file.filename.split(".")[-1]
     app.logger.info(f"extension: {extension}")
     
