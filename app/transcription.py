@@ -20,7 +20,8 @@ class DeepgramTranscriber:
         self.deepgram = Deepgram(DEEPGRAM_API_KEY)
         
     async def transcribe(self, file):
-        mimetype, _ = mimetypes.guess_type(file)
+        # mimetype, _ = mimetypes.guess_type(file)
+        mimetype = 'audio/m4a'
         print(f"mimetype: {mimetype} for file {file}")
 
         with open(file, 'rb') as audio:
