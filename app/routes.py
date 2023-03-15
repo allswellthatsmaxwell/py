@@ -40,7 +40,7 @@ async def transcribe():
     dest_dir = os.path.join(filesystem.root, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
     
-    destpath = f"{dest_dir}/rec1.m4a"
+    destpath = f"{dest_dir}/rec1.wav"
     app.logger.info(f"Writing to '{destpath}'.")
     with open(destpath, "wb") as f:
         f.write(audio_data)
