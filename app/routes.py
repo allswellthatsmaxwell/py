@@ -4,9 +4,8 @@ import os
 import asyncio
 from . import filesystem, transcription
 
-app = Flask(__name__)
-# app_routes = Blueprint("app_routes", __name__)
-# app.register_blueprint(app_routes)
+from application import create_app
+app = create_app()
 
 
 HOMEDIR = os.path.expanduser("~")
@@ -16,7 +15,7 @@ LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 filesystem = filesystem.FileSystem(root=APPDATA_PATH)
 transcriber = transcription.WhisperTranscriber()
 
-@app_routes.route("/transcribe", methods=["POST"])
+@app.route("/transcribe", methods=["POST"])
 async def transcribe():
     print("Entering routes.transcribe...")
     
