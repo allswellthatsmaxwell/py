@@ -1,5 +1,5 @@
 from flask import request, Blueprint, Flask, make_response, jsonify
-from typing import Dict
+
 import os
 import asyncio
 from . import filesystem, transcription
@@ -14,7 +14,7 @@ APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
 LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 
 filesystem = filesystem.FileSystem(root=APPDATA_PATH)
-transcriber = transcription.Transcriber()
+transcriber = transcription.DeepgramTranscriber()
 
 @app_routes.route("/transcribe", methods=["POST"])
 async def transcribe():
@@ -31,7 +31,7 @@ async def transcribe():
     dest_dir = os.path.join(filesystem.root, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
     
-    destpath = f"{dest_dir}/rec1.{extension}"
+    destpath = f"{dest_dir}/rec1.caf"
     app.logger.info(f"Writing to '{destpath}'.")
     with open(destpath, "wb") as f:
         f.write(audio_data)
