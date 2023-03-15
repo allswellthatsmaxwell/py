@@ -16,11 +16,7 @@ import * as firebase from "firebase";
 
 import {ASSEMBLYAI_API_KEY, OPENAI_API_KEY, DEEPGRAM_API_KEY} from "./Keys";
 import {useEffect} from "react";
-const { Deepgram } = require("@deepgram/sdk");
 
-import * as FileSystem from 'expo-file-system';
-
-const deepgram = new Deepgram(DEEPGRAM_API_KEY);
 
 const textStyles = StyleSheet.create({
   buttonContainer: {
@@ -181,14 +177,57 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
-      const {recording} = await Audio.Recording.createAsync(
-          Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
+      const recordingOptions: Audio.RecordingOptions = {
+        android: {
+          extension: '.wav',
+          outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_PCM_16_BIT,
+          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_PCM_16BIT,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.wav',
+          outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_LINEARPCM,
+          audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+      };
+
+      const { recording } = await Audio.Recording.createAsync(recordingOptions);
       setRecording(recording);
       console.log("Recording started");
       await recording.startAsync();
     } catch (err) {
       console.error("Failed to start recording", err);
+    }
+  }
+
+  async function callDeepgramAPI(audioUrl: string) {
+    const requestOptions: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${DEEPGRAM_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url: audioUrl }),
+    };
+
+    try {
+      const response = await fetch('https://api.deepgram.com/v1/listen', requestOptions);
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      }
+      const responseData = await response.json();
+      console.log(responseData);
+      return responseData;
+    } catch (error) {
+      console.error('Error calling Deepgram API:', error);
     }
   }
 
@@ -198,7 +237,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     const timestamp = Date.now();
     const storageRef = storage
         .ref()
-        .child(`users/${userId}/audio/${timestamp}.mp3`);
+        .child(`users/${userId}/audio/${timestamp}.wav`);
     console.log("storageRef: ", storageRef);
     const response = await fetch(uri);
     console.log("response: ", response);
@@ -291,7 +330,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     console.log("upload_url response:", audio_url);
 
     setTranscriptionStatus("Figuring out what you said...");
-    const transcript = await postAudioRecording(recording.getURI());
+    const transcript = await postAudioRecording(recording.getURI()); // await callDeepgramAPI(audio_url);
     // const transcriptionId = await kickoffTranscription(audio_url);
     // console.log("transcription_id:", transcriptionId);
     // const transcript = await _poll(transcriptionId);
@@ -300,31 +339,31 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     await processTranscript(transcript, timestamp);
   }
 
-  async function stopRecordingDeepgram() {
-    try {
-      console.log('Stopping recording');
-      await recording.stopAndUnloadAsync();
-
-      const { uri } = recording.getURI();
-      console.log('Recording URI:', uri);
-
-      const file = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-      const base64Data = `data:audio/x-m4a;base64,${file}`;
-
-      const streamSource = {
-        stream: Buffer.from(base64Data.split(',')[1], 'base64'),
-        mimetype: 'audio/x-m4a',
-      };
-
-      const response = await deepgram.transcription.preRecorded(streamSource, {
-        punctuate: true,
-      });
-
-      console.log('Transcription:', response.transcript);
-    } catch (err) {
-      console.error('Failed to stop recording and get transcript', err);
-    }
-  }
+  // async function stopRecordingDeepgram() {
+  //   try {
+  //     console.log('Stopping recording');
+  //     await recording.stopAndUnloadAsync();
+  //
+  //     const { uri } = recording.getURI();
+  //     console.log('Recording URI:', uri);
+  //
+  //     const file = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+  //     const base64Data = `data:audio/x-m4a;base64,${file}`;
+  //
+  //     const streamSource = {
+  //       stream: Buffer.from(base64Data.split(',')[1], 'base64'),
+  //       mimetype: 'audio/x-m4a',
+  //     };
+  //
+  //     const response = await deepgram.transcription.preRecorded(streamSource, {
+  //       punctuate: true,
+  //     });
+  //
+  //     console.log('Transcription:', response.transcript);
+  //   } catch (err) {
+  //     console.error('Failed to stop recording and get transcript', err);
+  //   }
+  // }
 
   async function processTranscript(transcript, timestamp) {
     if (transcript) {
@@ -347,19 +386,18 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       }
 
       // Create a new FormData object to send the audio file
-      const formData = new FormData();
-      formData.append('audio', {
-        uri: audioUri,
-        name: 'audioRecording.m4a',
-        type: 'audio/m4a',
-      });
+      console.log("audioUri: ", audioUri);
 
-      // POST the audio file to the server endpoint
+      const audioResponse = await fetch(audioUri);
+      const audioBlob = await audioResponse.blob();
+      console.log("audioBlob: ", audioBlob);
+      // const uriParts = audioUri.split('.');
+      // const fileType = uriParts[uriParts.length - 1];
       const response = await fetch('http://159.65.244.4:5555/transcribe', {
         method: 'POST',
-        body: formData,
+        body: audioBlob,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': audioBlob.type,
         },
       });
 
