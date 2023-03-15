@@ -5,7 +5,7 @@ import asyncio
 from . import filesystem, transcription
 
 app = Flask(__name__)
-app_routes = Blueprint("app_routes", __name__)
+# app_routes = Blueprint("app_routes", __name__)
 # app.register_blueprint(app_routes)
 
 
