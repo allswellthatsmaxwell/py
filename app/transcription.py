@@ -4,6 +4,7 @@ from pathlib import Path
 from deepgram import Deepgram
 import asyncio, json, mimetypes
 import openai
+from typing import Dict
 
 DEEPGRAM_API_KEY = os.environ['DEEPGRAM_API_KEY']
 
