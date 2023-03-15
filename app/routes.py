@@ -23,7 +23,7 @@ async def transcribe():
     
     print(f"request.form.keys(): {request.form.keys()}")
     print(f"request.files.keys(): {request.files.keys()}")
-    audio_file = request.file
+    audio_file = request.form['file']
     print("/transcribe: audio_file:", audio_file)
     print("/transcribe: audio_file.filename:", audio_file.filename)
     audio_data = audio_file.read()
