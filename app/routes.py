@@ -21,8 +21,8 @@ async def transcribe():
     # saves an audio file to the filesystem, returns the transcription ID
     print("Entering routes.transcribe...")
     
-    print(f"request.form.keys(): {request.form.keys()}")
-    print(f"request.files.keys(): {request.files.keys()}")
+    print(f"request.form: {request.form}")
+    print(f"request.files: {request.files}")
     if 'file' not in request.files:
         return "No file found in the request", 400
 
