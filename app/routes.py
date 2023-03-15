@@ -23,9 +23,13 @@ async def transcribe():
     
     print(f"request.form.keys(): {request.form.keys()}")
     print(f"request.files.keys(): {request.files.keys()}")
-    audio_file = request.form['file']
+    if 'file' not in request.files:
+        return "No file found in the request", 400
+
+    # Get the audio file from the request
+    audio_file = request.files['file']
     print("/transcribe: audio_file:", audio_file)
-    print("/transcribe: audio_file.filename:", audio_file.filename)
+    # print("/transcribe: audio_file.filename:", audio_file.filename)
     audio_data = audio_file.read()
     print("/transcribe: len(audio_data):", len(audio_data))
     extension = audio_file.filename.split(".")[-1]
