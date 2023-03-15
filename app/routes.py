@@ -22,7 +22,9 @@ async def transcribe():
     print("Entering routes.transcribe...")
     
     audio_file = request.files['file']
+    print("/transcribe: audio_file:", audio_file)
     audio_data = audio_file.read()
+    print("/transcribe: audio_data:", audio_data)
     extension = audio_file.filename.split(".")[-1]
     app.logger.info(f"extension: {extension}")
     
