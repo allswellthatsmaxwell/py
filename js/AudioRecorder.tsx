@@ -181,7 +181,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       const { recording } = await Audio.Recording.createAsync({
         ...Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY,
         android: {
-          extension: '.mp4',
+          extension: '.m4a',
           outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
           audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
           sampleRate: 44100,
@@ -189,9 +189,9 @@ function AudioRecorder({fbase, setSelectedTopic}) {
           bitRate: 128000,
         },
         ios: {
-          extension: '.mp4',
+          extension: '.m4a',
           outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
-          audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_MAX,
+          audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_MEDIUM,
           sampleRate: 44100,
           numberOfChannels: 2,
           bitRate: 128000,
@@ -310,8 +310,11 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     const file = await fetch(uri);
     const blob = await file.blob();
     console.log("Blob type: ", blob.type, "Blob: ", blob);
+    const mimeType = 'audio/m4a';
+    const newBlob = new Blob([blob], { type: mimeType });
+    console.log("New Blob type: ", newBlob.type, "New Blob: ", newBlob);
     const filename = uri.split('/').pop();
-    const fileObj = new File([blob], filename);
+    const fileObj = new File([newBlob], filename);
 
     const formData = new FormData();
     formData.append('file', fileObj);
@@ -323,8 +326,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${OPENAI_API_KEY}`
       },
       body: formData,
     });
