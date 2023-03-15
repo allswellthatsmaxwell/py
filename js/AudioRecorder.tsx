@@ -217,8 +217,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     console.log("Added entry to topic", topic);
   }
 
-  async function writeTopicsToDB(jsonResponseTranscript, topics, timestamp) {
-    const topicsDict = JSON.parse(topics);
+  async function writeTopicsToDB(jsonResponseTranscript, topicsDict, timestamp) {
 
     const entryAddPromises = Object.entries(topicsDict).map(
         async ([topic, value]) => {
@@ -327,15 +326,25 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     }
   }
 
-
+  function parseable(topics) {
+    try {
+      JSON.parse(topics);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
   async function handleTopicsTextUpdate(topics) {
+    const notParseable = !parseable(topics);
     if (
         !topics ||
         topics === "{}" ||
         topics == {} ||
+        notParseable ||
         Object.keys(topics).length == 0
     ) {
       setTopicsStatus("Found no topics - sorry!");
+      topics = "{}";
     } else {
       setTopicsStatus(null);
     }
@@ -345,14 +354,24 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   async function computeAndWriteTopics(transcript, timestamp) {
     const topics = await getTopicsTurbo(transcript); // getTopics(transcript);
-
+    let topicsDict;
+    let topicsString;
+    try {
+      console.log("Trying to parse topics entry: ", topics);
+      topicsDict = JSON.parse(topics);
+      topicsString = topics;
+    } catch (e) {
+      console.log("Error parsing topics entry: ", e);
+      topicsDict = {};
+      topicsString = "{}";
+    }
     await transcriptsCollection
-        .add({text: transcript, topics: topics, timestamp: timestamp})
+        .add({text: transcript, topics: topicsString, timestamp: timestamp})
         .then((docRef) => {
           console.log("Transcript written with ID: ", docRef.id);
         });
 
-    await writeTopicsToDB(transcript, topics, timestamp);
+    await writeTopicsToDB(transcript, topicsDict, timestamp);
     return topics;
   }
 
@@ -360,7 +379,8 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   const system_message = `# Role
 You are a topics categorizer. Given an audio transcription and a list of existing topics, you output the topic or topics
-that the user is trying to log. You speak all languages and name topics in the user's language.
+that the user is trying to log. You speak all languages and name topics in the user's language. You only ever output
+valid json, no matter what. If there is nothing to log, you output an empty json.
 
 # Instructions
 You do this by completing the json dictionary fragment the user gives you. 
@@ -419,9 +439,17 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
  existing: "rap listening time", 
  topics: {"rap listening time": 2.5}}
  
+{transcript: "", existing: "", topics: {}}
+
+{transcript: "Thank you.", existing: "rotis, calories", topics: {}}
+ 
 # Output topic names and values in the user's language
 No need to always use only English! Match the user's language as much as possible.
+
+# Format
+It is critical that you output a valid json dictionary, no matter what.
 `
+
 
 
   async function getTopicsTurbo(text) {
@@ -494,11 +522,20 @@ No need to always use only English! Match the user's language as much as possibl
   }
 
   console.log("topicsResult: ", topicsResult);
-  const topicsDict = JSON.parse(topicsResult);
+  if (!topicsResult) {
+    setTopicsResult(JSON.stringify({}));
+  }
+  let topicsDict = {};
+  try {
+    topicsDict = JSON.parse(topicsResult);
+  } catch (e) {
+    console.log("Error parsing topicsResult: ", e);
+    topicsDict = {};
+  }
   console.log("topicsDict: ", topicsDict);
   let rows: { topic: string, entry: number }[] = [];
   if (topicsDict) {
-    rows = Object.entries(JSON.parse(topicsResult)).map(([topic, entry]) => ({
+    rows = Object.entries(topicsDict).map(([topic, entry]) => ({
       topic,
       entry,
     }));
