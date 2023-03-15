@@ -24,7 +24,8 @@ async def transcribe():
     audio_file = request.files['file']
     print("/transcribe: audio_file:", audio_file)
     print("/transcribe: audio_file.filename:", audio_file.filename)
-    # audio_data = audio_file.read()
+    audio_data = audio_file.read()
+    print("/transcribe: len(audio_data):", len(audio_data))
     extension = audio_file.filename.split(".")[-1]
     app.logger.info(f"extension: {extension}")
     
@@ -34,7 +35,7 @@ async def transcribe():
     destpath = f"{dest_dir}/rec1.{extension}"
     app.logger.info(f"Writing to '{destpath}'.")
     with open(destpath, "wb") as f:
-        f.write(audio_file)
+        f.write(audio_data)
     app.logger.info("Done writing.")
     
     app.logger.info("Transcribing...")
