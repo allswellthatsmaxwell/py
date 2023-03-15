@@ -1,8 +1,11 @@
 from flask import request, Blueprint, Flask, make_response, jsonify
 
 import os
-import asyncio
 from . import filesystem, transcription
+import json
+import openai
+
+from typing import Any
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
@@ -13,6 +16,35 @@ HOMEDIR = os.path.expanduser("~")
 APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
 LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 
+
+
+def _get_write_type(content: Any):
+    if isinstance(content, str):
+        return 'w'
+    elif isinstance(content, bytes):
+        return 'wb'
+    else:
+        raise TypeError(f"content must be str or bytes, not {type(content)}")
+        
+        
+class FileSystem:
+    def __init__(self, root: str) -> None:
+        self.root = root
+    
+    def save(self, path: str, content: str) -> None:
+        with open(os.path.join(self.root, path), _get_write_type(content)) as f:
+            f.write(content)
+
+
+class WhisperTranscriber:
+    async def transcribe(self, file):
+        with open(file, 'rb') as audio:
+            transcript = openai.Audio.transcribe("whisper-1", audio)
+        print(json.dumps(transcript, indent=4))
+        return transcript
+
+    
+
 filesystem = filesystem.FileSystem(root=APPDATA_PATH)
 transcriber = transcription.WhisperTranscriber()
 
@@ -22,10 +54,7 @@ async def transcribe():
     
     audio_data = request.get_data()
 
-    # audio_data = audio_file.read()
     print("/transcribe: len(audio_data):", len(audio_data))
-    # extension = audio_file.filename.split(".")[-1]
-    # app.logger.info(f"extension: {extension}")
     
     dest_dir = os.path.join(filesystem.root, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
