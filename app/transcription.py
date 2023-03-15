@@ -34,8 +34,8 @@ class DeepgramTranscriber:
 
 class WhisperTranscriber:
     async def transcribe(self, file):
-        with open(file, 'rb') as audio:
-            transcript = openai.Audio.transcribe("whisper-1", file)
+        # with open(file, 'rb') as audio:
+        transcript = openai.Audio.transcribe("whisper-1", file)
         print(json.dumps(transcript, indent=4))
         return transcript
         
