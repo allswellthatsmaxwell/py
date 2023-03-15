@@ -21,6 +21,7 @@ class DeepgramTranscriber:
         
     async def transcribe(self, file):
         mimetype, _ = mimetypes.guess_type(file)
+        print(f"mimetype: {mimetype} for file {file}")
 
         with open(file, 'rb') as audio:
             source = {'buffer': audio, 'mimetype': mimetype}
