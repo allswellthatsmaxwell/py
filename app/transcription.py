@@ -2,6 +2,11 @@ import os, requests
 from typing import Dict
 from pathlib import Path
 
+from deepgram import Deepgram
+import asyncio, json
+
+DEEPGRAM_API_KEY = os.environ['DEEPGRAM_API_KEY']
+
 
 HEADERS = { "Authorization": os.environ["ASSEMBLY_AI_API_KEY"] }
 
@@ -56,3 +61,15 @@ def kickoff(url: str) -> str:
     json = { "audio_url": url }
     response = requests.post(endpoint, json=json, headers=HEADERS)
     return response.json()["id"]
+
+class DeepgramTranscriber:
+    def __init__(self) -> None:
+        self.deepgram = Deepgram(DEEPGRAM_API_KEY)
+        
+    def transcribe(self, file):
+        with open(file, 'rb') as audio:
+            source = {'buffer': audio, 'mimetype': 'audio/mp3'}
+            response = self.deepgram.transcription.prerecorded(source, {'punctuate': False})
+            print(json.dumps(response, indent=4))
+        return response
+        

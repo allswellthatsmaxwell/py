@@ -10,11 +10,17 @@ import {
 import {Audio} from "expo-av";
 import {FontAwesome, Feather} from "@expo/vector-icons";
 import axios from 'axios';
+import { Buffer } from "buffer";
 
 import * as firebase from "firebase";
 
-import {ASSEMBLYAI_API_KEY, OPENAI_API_KEY} from "./Keys";
+import {ASSEMBLYAI_API_KEY, OPENAI_API_KEY, DEEPGRAM_API_KEY} from "./Keys";
 import {useEffect} from "react";
+const { Deepgram } = require("@deepgram/sdk");
+
+import * as FileSystem from 'expo-file-system';
+
+const deepgram = new Deepgram(DEEPGRAM_API_KEY);
 
 const textStyles = StyleSheet.create({
   buttonContainer: {
@@ -285,12 +291,39 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     console.log("upload_url response:", audio_url);
 
     setTranscriptionStatus("Figuring out what you said...");
-    const transcriptionId = await kickoffTranscription(audio_url);
-    console.log("transcription_id:", transcriptionId);
-    const transcript = await _poll(transcriptionId);
+    const transcript = await postAudioRecording(recording.getURI());
+    // const transcriptionId = await kickoffTranscription(audio_url);
+    // console.log("transcription_id:", transcriptionId);
+    // const transcript = await _poll(transcriptionId);
     setTranscriptionStatus(null);
     console.log("transcript:", transcript);
     await processTranscript(transcript, timestamp);
+  }
+
+  async function stopRecordingDeepgram() {
+    try {
+      console.log('Stopping recording');
+      await recording.stopAndUnloadAsync();
+
+      const { uri } = recording.getURI();
+      console.log('Recording URI:', uri);
+
+      const file = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      const base64Data = `data:audio/x-m4a;base64,${file}`;
+
+      const streamSource = {
+        stream: Buffer.from(base64Data.split(',')[1], 'base64'),
+        mimetype: 'audio/x-m4a',
+      };
+
+      const response = await deepgram.transcription.preRecorded(streamSource, {
+        punctuate: true,
+      });
+
+      console.log('Transcription:', response.transcript);
+    } catch (err) {
+      console.error('Failed to stop recording and get transcript', err);
+    }
   }
 
   async function processTranscript(transcript, timestamp) {
@@ -304,6 +337,47 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
     }
   }
+
+  async function postAudioRecording(audioUri) {
+    try {
+      // Check if the audioUri is valid
+      if (!audioUri) {
+        console.error('Invalid audio URI');
+        return;
+      }
+
+      // Create a new FormData object to send the audio file
+      const formData = new FormData();
+      formData.append('audio', {
+        uri: audioUri,
+        name: 'audioRecording.m4a',
+        type: 'audio/m4a',
+      });
+
+      // POST the audio file to the server endpoint
+      const response = await fetch('http://159.65.244.4:5555/transcribe', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Check if the response is successful
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Get the response data (assuming the server returns JSON)
+      const responseData = await response.json();
+
+      // Do something with the response data (e.g., display it in the UI)
+      console.log(responseData);
+    } catch (error) {
+      console.error('Error posting audio recording:', error);
+    }
+  }
+
 
   async function handleTopicsTextUpdate(topics) {
     if (
