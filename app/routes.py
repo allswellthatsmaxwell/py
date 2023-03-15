@@ -1,9 +1,13 @@
-from flask import request, Blueprint, make_response, jsonify
+from flask import request, Blueprint, Flask, make_response, jsonify
 
 import os
-import filesystem, transcription
+import asyncio
+from . import filesystem, transcription
 
+app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
+app.register_blueprint(app_routes)
+
 
 HOMEDIR = os.path.expanduser("~")
 APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
@@ -24,14 +28,14 @@ async def transcribe():
     os.makedirs(dest_dir, exist_ok=True)
     
     destpath = f"{dest_dir}/rec1.wav"
-    app_routes.logger.info(f"Writing to '{destpath}'.")
+    app.logger.info(f"Writing to '{destpath}'.")
     with open(destpath, "wb") as f:
         f.write(audio_data)
-    app_routes.logger.info("Done writing.")
+    app.logger.info("Done writing.")
     
-    app_routes.logger.info("Transcribing...")
+    app.logger.info("Transcribing...")
     transcript = await transcriber.transcribe(destpath)
-    app_routes.logger.info("Done transcribing.")
+    app.logger.info("Done transcribing.")
     print(transcript)
     response_data = {'transcription': transcript}
     return make_response(jsonify(response_data))
