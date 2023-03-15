@@ -2,8 +2,7 @@ import os, requests
 from typing import Dict
 from pathlib import Path
 
-from deepgram import AIODeepgram as Deepgram
-
+from deepgram import Deepgram
 import asyncio, json
 
 DEEPGRAM_API_KEY = os.environ['DEEPGRAM_API_KEY']
