@@ -39,7 +39,7 @@ class WhisperTranscriber:
     async def transcribe(self, file):
         with open(file, 'rb') as audio:
             transcript = openai.Audio.transcribe(
-                "whisper-1", audio, 
+                "whisper-1", audio, response_format="json",
                 prompt="The audio might be all silence. If you don't hear anything, don't output anything!")
         print(json.dumps(transcript, indent=4))
         return transcript
