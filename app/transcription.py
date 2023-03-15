@@ -68,7 +68,7 @@ class DeepgramTranscriber:
         
     def transcribe(self, file):
         with open(file, 'rb') as audio:
-            source = {'buffer': audio, 'mimetype': 'audio/mp3'}
+            source = {'buffer': audio, 'mimetype': 'audio/m4a'}
             response = self.deepgram.transcription.prerecorded(source, {'punctuate': False})
             print(json.dumps(response, indent=4))
         return response

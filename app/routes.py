@@ -8,6 +8,7 @@ from .svl import LogFilesFinder
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
+app.register_blueprint(app_routes)
 
 
 HOMEDIR = os.path.expanduser("~")
@@ -17,10 +18,10 @@ LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 filesystem = filesystem.FileSystem(root=APPDATA_PATH)
 transcriber = transcription.DeepgramTranscriber()
 
-@app_routes.route("/upload", methods=["POST"])
+@app_routes.route("/transcribe", methods=["POST"])
 def upload():
     # saves an audio file to the filesystem, returns the transcription ID
-    print("Entering routes.upload...")
+    print("Entering routes.transcribe...")
     
     audio_file = request.files['file']
     audio_data = audio_file.read()
