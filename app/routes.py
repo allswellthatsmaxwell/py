@@ -38,7 +38,7 @@ async def transcribe():
     app.logger.info("Done writing.")
     
     app.logger.info("Transcribing...")
-    transcript = await transcriber.transcribe(destpath)
+    transcript = await transcriber.transcribe(audio_file)
     app.logger.info("Done transcribing.")
     print(transcript)
     response_data = {'transcription': transcript}
