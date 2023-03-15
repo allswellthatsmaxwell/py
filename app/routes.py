@@ -1,7 +1,7 @@
 from flask import request, Blueprint, make_response, jsonify
 
 import os
-from . import filesystem, transcription
+import filesystem, transcription
 
 app_routes = Blueprint("app_routes", __name__)
 
