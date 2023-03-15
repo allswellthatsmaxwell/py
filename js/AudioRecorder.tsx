@@ -152,25 +152,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     fetchData().catch(error => console.error(error));
   }, [userId]);
 
-  async function kickoffTranscription(audio_url) {
-    const axios = require("axios");
-
-    const assembly = axios.create({
-      baseURL: "https://api.assemblyai.com/v2",
-      headers: {
-        authorization: ASSEMBLYAI_API_KEY,
-      },
-    });
-    return assembly
-        .post("/transcript", {
-          audio_url: audio_url,
-        })
-        .then((res) => {
-          console.log("kickoff: ", res.data);
-          return res.data.id;
-        })
-        .catch((err) => console.error(err));
-  }
 
   async function startRecording() {
     try {
@@ -210,70 +191,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     }
   }
 
-  async function callDeepgramAPI(audioUrl: string) {
-    const requestOptions: RequestInit = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${DEEPGRAM_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({url: audioUrl}),
-    };
-
-    try {
-      const response = await fetch('https://api.deepgram.com/v1/listen', requestOptions);
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-      }
-      const responseData = await response.json();
-      console.log(responseData);
-      return responseData;
-    } catch (error) {
-      console.error('Error calling Deepgram API:', error);
-    }
-  }
-
-  async function sendRecording(recording) {
-    const uri = recording.getURI();
-    console.log("URI: ", uri);
-    const timestamp = Date.now();
-    const storageRef = storage
-        .ref()
-        .child(`users/${userId}/audio/${timestamp}.wav`);
-    console.log("storageRef: ", storageRef);
-    const response = await fetch(uri);
-    console.log("response: ", response);
-    const blob = await response.blob();
-    console.log("blob: ", blob);
-    try {
-      await storageRef.put(blob);
-    } catch (err) {
-      console.error("Failed to upload audio", err);
-    }
-    console.log("Uploaded audio!");
-    return storageRef.getDownloadURL();
-  }
-
-  async function _poll(transcription_id) {
-    const endpoint = `https://api.assemblyai.com/v2/transcript/${transcription_id}`;
-    let status = "processing";
-    while (status !== "completed" && status !== "error") {
-      const response = await fetch(endpoint, {
-        headers: {
-          authorization: ASSEMBLYAI_API_KEY,
-        },
-      });
-      const jsonResponse = await response.json();
-      console.log("jsonResponse: ", jsonResponse);
-      if (!jsonResponse.status) {
-        throw new Error(`No status in response: ${jsonResponse}`);
-      } else if (jsonResponse.status === "completed") {
-        return jsonResponse.text;
-      } else {
-        status = jsonResponse.status;
-      }
-    }
-  }
 
   async function addEntryToTopic(topic, value, transcript, timestamp) {
     // create the topic if it doesn't exist
@@ -327,15 +244,12 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       allowsRecordingIOS: true,
     });
 
-    setTranscriptionStatus("Preparing audio...");
-    const audio_url = await sendRecording(recording);
-    console.log("upload_url response:", audio_url);
+    // setTranscriptionStatus("Preparing audio...");
+    // const audio_url = await sendRecording(recording);
+    // console.log("upload_url response:", audio_url);
 
     setTranscriptionStatus("Figuring out what you said...");
-    const transcript = await postAudioRecording(recording.getURI()); // await callDeepgramAPI(audio_url);
-    // const transcriptionId = await kickoffTranscription(audio_url);
-    // console.log("transcription_id:", transcriptionId);
-    // const transcript = await _poll(transcriptionId);
+    const transcript = await postAudioRecording(recording.getURI());
     setTranscriptionStatus(null);
     console.log("transcript:", transcript);
     await processTranscript(transcript, timestamp);
@@ -381,20 +295,16 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   async function postAudioRecording(audioUri) {
     try {
-      // Check if the audioUri is valid
       if (!audioUri) {
         console.error('Invalid audio URI');
         return;
       }
 
-      // Create a new FormData object to send the audio file
       console.log("audioUri: ", audioUri);
 
       const audioResponse = await fetch(audioUri);
       const audioBlob = await audioResponse.blob();
       console.log("audioBlob: ", audioBlob);
-      // const uriParts = audioUri.split('.');
-      // const fileType = uriParts[uriParts.length - 1];
       const response = await fetch('http://159.65.244.4:5555/transcribe', {
         method: 'POST',
         body: audioBlob,
@@ -408,10 +318,8 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Get the response data (assuming the server returns JSON)
       const responseData = await response.json();
 
-      // Do something with the response data (e.g., display it in the UI)
       console.log(responseData);
       return responseData['transcription']['text'];
     } catch (error) {
@@ -452,7 +360,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   const system_message = `# Role
 You are a topics categorizer. Given an audio transcription and a list of existing topics, you output the topic or topics
-that the user is trying to log. 
+that the user is trying to log. You speak all languages and name topics in the user's language.
 
 # Instructions
 You do this by completing the json dictionary fragment the user gives you. 
@@ -509,7 +417,11 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
  
 {transcript: "I listened to rap music for two and a half hours today", 
  existing: "rap listening time", 
- topics: {"rap listening time": 2.5}}`
+ topics: {"rap listening time": 2.5}}
+ 
+# Output topic names and values in the user's language
+No need to always use only English! Match the user's language as much as possible.
+`
 
 
   async function getTopicsTurbo(text) {
@@ -545,7 +457,6 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
         }]
     };
 
-    // hit the api 'https://api.openai.com/v1/chat/completions' and assign the response to the variable `completion`
     const completion = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers,
@@ -565,19 +476,6 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
     setSelectedTopic(topic);
   };
 
-  async function getTopics(text) {
-    const response = await fetch(`http://159.65.244.4:5555/topics`, {
-      method: "POST",
-      body: JSON.stringify({text: text}),
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-    const jsonResponse = await response.json();
-    console.log("Topics received: ", jsonResponse.topics);
-    return jsonResponse.topics;
-  }
 
   async function handlePress() {
     if (isProcessing) {
@@ -681,3 +579,48 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
 }
 
 export default AudioRecorder;
+
+
+// async function saveRecordingToFirebase(recording) {
+//   const uri = recording.getURI();
+//   console.log("URI: ", uri);
+//   const timestamp = Date.now();
+//   const storageRef = storage
+//       .ref()
+//       .child(`users/${userId}/audio/${timestamp}.wav`);
+//   console.log("storageRef: ", storageRef);
+//   const response = await fetch(uri);
+//   console.log("response: ", response);
+//   const blob = await response.blob();
+//   console.log("blob: ", blob);
+//   try {
+//     await storageRef.put(blob);
+//   } catch (err) {
+//     console.error("Failed to upload audio", err);
+//   }
+//   console.log("Uploaded audio!");
+//   return storageRef.getDownloadURL();
+// }
+
+// async function callDeepgramAPI(audioUrl: string) {
+//   const requestOptions: RequestInit = {
+//     method: 'POST',
+//     headers: {
+//       'Authorization': `Token ${DEEPGRAM_API_KEY}`,
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({url: audioUrl}),
+//   };
+//
+//   try {
+//     const response = await fetch('https://api.deepgram.com/v1/listen', requestOptions);
+//     if (!response.ok) {
+//       throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+//     }
+//     const responseData = await response.json();
+//     console.log(responseData);
+//     return responseData;
+//   } catch (error) {
+//     console.error('Error calling Deepgram API:', error);
+//   }
+// }
