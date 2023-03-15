@@ -7,6 +7,8 @@ import {
   ScrollView,
   FlatList,
 } from "react-native";
+import { WebSocketClient } from 'react-native-websockets';
+
 import {Audio} from "expo-av";
 import {FontAwesome, Feather} from "@expo/vector-icons";
 import axios from 'axios';
@@ -94,10 +96,8 @@ const micStyles = StyleSheet.create({
 
 function AudioRecorder({fbase, setSelectedTopic}) {
   const [isRecording, setIsRecording] = React.useState(false);
-  const [recording, setRecording] = React.useState();
 
   const [transcriptionStatus, setTranscriptionStatus] = React.useState(null);
-  const [transcriptionResult, setTranscriptionResult] = React.useState(null);
 
   const [topicsStatus, setTopicsStatus] = React.useState(null);
   const [topicsResult, setTopicsResult] = React.useState(null);
@@ -121,18 +121,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       .doc(userId)
       .collection('topics');
 
-  async function getMostRecentLogging() {
-    const snapshot = await transcriptsCollection.orderBy("timestamp", "desc").limit(1).get();
-    console.log('Snapshot docs:', snapshot.docs);
-    if (snapshot.docs.length > 0) {
-      const transcript = snapshot.docs[0].data();
-      console.log('Most recent transcript: "', transcript.text, '" with topics: ', transcript.topics);
-      return {'transcript': transcript.text, topics: transcript.topics};
-    } else {
-      console.log('getMostRecentLogging: no transcripts found.');
-      return null;
-    }
-  }
 
   useEffect(() => {
     console.log('Executing useEffect');
@@ -148,150 +136,81 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     fetchData().catch(error => console.error(error));
   }, [userId]);
 
-  async function kickoffTranscription(audio_url) {
-    const axios = require("axios");
 
-    const assembly = axios.create({
-      baseURL: "https://api.assemblyai.com/v2",
-      headers: {
-        authorization: ASSEMBLYAI_API_KEY,
-      },
-    });
-    return assembly
-        .post("/transcript", {
-          audio_url: audio_url,
-        })
-        .then((res) => {
-          console.log("kickoff: ", res.data);
-          return res.data.id;
-        })
-        .catch((err) => console.error(err));
-  }
+  const [recording, setRecording] = React.useState<Audio.Recording | null>(null);
+  const [transcriptionResult, setTranscriptionResult] = React.useState<string>('');
 
-  async function startRecording() {
+  const startRecording = async () => {
     try {
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
       });
-      const {recording} = await Audio.Recording.createAsync(
-          Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
-      setRecording(recording);
-      console.log("Recording started");
-      await recording.startAsync();
-    } catch (err) {
-      console.error("Failed to start recording", err);
-    }
-  }
 
-  async function sendRecording(recording) {
-    const uri = recording.getURI();
-    console.log("URI: ", uri);
-    const timestamp = Date.now();
-    const storageRef = storage
-        .ref()
-        .child(`users/${userId}/audio/${timestamp}.mp3`);
-    console.log("storageRef: ", storageRef);
-    const response = await fetch(uri);
-    console.log("response: ", response);
-    const blob = await response.blob();
-    console.log("blob: ", blob);
-    try {
-      await storageRef.put(blob);
-    } catch (err) {
-      console.error("Failed to upload audio", err);
-    }
-    console.log("Uploaded audio!");
-    return storageRef.getDownloadURL();
-  }
+      const newRecording = new Audio.Recording();
+      await newRecording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      await newRecording.startAsync();
 
-  async function _poll(transcription_id) {
-    const endpoint = `https://api.assemblyai.com/v2/transcript/${transcription_id}`;
-    let status = "processing";
-    while (status !== "completed" && status !== "error") {
-      const response = await fetch(endpoint, {
-        headers: {
-          authorization: ASSEMBLYAI_API_KEY,
-        },
-      });
-      const jsonResponse = await response.json();
-      console.log("jsonResponse: ", jsonResponse);
-      if (!jsonResponse.status) {
-        throw new Error(`No status in response: ${jsonResponse}`);
-      } else if (jsonResponse.status === "completed") {
-        return jsonResponse.text;
-      } else {
-        status = jsonResponse.status;
+      setRecording(newRecording);
+    } catch (error) {
+      console.log('Error starting recording:', error);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (recording) {
+      try {
+        await recording.stopAndUnloadAsync();
+        const { uri } = await recording.createNewLoadedSoundAsync();
+        setRecording(null);
+
+        // Start sending audio data for transcription
+        await sendAudioForTranscription(uri);
+      } catch (error) {
+        console.log('Error stopping recording:', error);
       }
     }
-  }
+  };
 
-  async function addEntryToTopic(topic, value, transcript, timestamp) {
-    // create the topic if it doesn't exist
-    const topicCollection = firebase
-        .firestore()
-        .collection("users")
-        .doc(userId)
-        .collection("topics");
-    const topicDoc = await topicCollection.doc(topic).get();
-    if (!topicDoc.exists) {
-      topicCollection.doc(topic).set({
-        timestamp: timestamp,
+  const sendAudioForTranscription = async (uri: string) => {
+    try {
+      const ws = new WebSocketClient(`wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000`, {
+        headers: {
+          Authorization: ASSEMBLYAI_API_KEY,
+        },
       });
-    }
-    // add the entry to the topic
-    const topicEntriesCollection = topicCollection
-        .doc(topic)
-        .collection("entries");
-    topicEntriesCollection.add({
-      transcript: transcript,
-      timestamp: timestamp,
-      number: value,
-    });
-    console.log("Added entry to topic", topic);
-  }
 
-  async function writeTopicsToDB(jsonResponseTranscript, topics, timestamp) {
-    const topicsDict = JSON.parse(topics);
+      ws.onopen = () => {
+        console.log('WebSocket connection opened');
+      };
 
-    const entryAddPromises = Object.entries(topicsDict).map(
-        async ([topic, value]) => {
-          // turns all non-numeric values into strings
-          if (isNaN(value)) {
-            value = value.toString();
-          } else {
-            value = Number(value);
-          }
-
-          await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
+      ws.onmessage = (message: string) => {
+        const response = JSON.parse(message);
+        if (response.message_type === 'PartialTranscript') {
+          setTranscriptionResult(response.text);
+        } else if (response.message_type === 'FinalTranscript') {
+          setTranscriptionResult(response.text);
+          ws.send(JSON.stringify({ terminate_session: true }));
         }
-    );
-    return await Promise.all(entryAddPromises);
-  }
+      };
 
-  async function stopRecording() {
-    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-    console.log("Stopping recording..");
-    setRecording(undefined);
-    await recording.stopAndUnloadAsync();
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-    });
+      ws.onerror = (error: any) => {
+        console.log('WebSocket error:', error);
+      };
 
-    setTranscriptionStatus("Preparing audio...");
-    const audio_url = await sendRecording(recording);
-    console.log("upload_url response:", audio_url);
+      ws.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
 
-    setTranscriptionStatus("Figuring out what you said...");
-    const transcriptionId = await kickoffTranscription(audio_url);
-    console.log("transcription_id:", transcriptionId);
-    const transcript = await _poll(transcriptionId);
-    setTranscriptionStatus(null);
-    console.log("transcript:", transcript);
-    await processTranscript(transcript, timestamp);
-  }
+      // Read audio data and send it over WebSocket
+      const audioData = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      ws.send(JSON.stringify({ audio_data: audioData }));
+    } catch (error) {
+      console.log('Error sending audio for transcription:', error);
+    }
+  };
 
   async function processTranscript(transcript, timestamp) {
     if (transcript) {
@@ -318,6 +237,52 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     }
     setTopicsResult(topics);
     return;
+  }
+
+  async function writeTopicsToDB(jsonResponseTranscript, topics, timestamp) {
+    const topicsDict = JSON.parse(topics);
+
+    const entryAddPromises = Object.entries(topicsDict).map(
+        async ([topic, value]) => {
+          // turns all non-numeric values into strings
+          if (isNaN(value)) {
+            value = value.toString();
+          } else {
+            value = Number(value);
+          }
+
+          await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
+        }
+    );
+    return await Promise.all(entryAddPromises);
+  }
+
+  // ** Topics **
+  // ************
+
+  async function addEntryToTopic(topic, value, transcript, timestamp) {
+    // create the topic if it doesn't exist
+    const topicCollection = firebase
+        .firestore()
+        .collection("users")
+        .doc(userId)
+        .collection("topics");
+    const topicDoc = await topicCollection.doc(topic).get();
+    if (!topicDoc.exists) {
+      topicCollection.doc(topic).set({
+        timestamp: timestamp,
+      });
+    }
+    // add the entry to the topic
+    const topicEntriesCollection = topicCollection
+        .doc(topic)
+        .collection("entries");
+    topicEntriesCollection.add({
+      transcript: transcript,
+      timestamp: timestamp,
+      number: value,
+    });
+    console.log("Added entry to topic", topic);
   }
 
   async function computeAndWriteTopics(transcript, timestamp) {
@@ -450,18 +415,17 @@ existing: "walking distance, wake up time", topics: {"calories": 400}}
     setSelectedTopic(topic);
   };
 
-  async function getTopics(text) {
-    const response = await fetch(`http://159.65.244.4:5555/topics`, {
-      method: "POST",
-      body: JSON.stringify({text: text}),
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-    const jsonResponse = await response.json();
-    console.log("Topics received: ", jsonResponse.topics);
-    return jsonResponse.topics;
+  async function getMostRecentLogging() {
+    const snapshot = await transcriptsCollection.orderBy("timestamp", "desc").limit(1).get();
+    console.log('Snapshot docs:', snapshot.docs);
+    if (snapshot.docs.length > 0) {
+      const transcript = snapshot.docs[0].data();
+      console.log('Most recent transcript: "', transcript.text, '" with topics: ', transcript.topics);
+      return {'transcript': transcript.text, topics: transcript.topics};
+    } else {
+      console.log('getMostRecentLogging: no transcripts found.');
+      return null;
+    }
   }
 
   async function handlePress() {
