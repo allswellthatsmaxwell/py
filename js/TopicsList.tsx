@@ -57,6 +57,7 @@ export function TopicsList({ userId, setSelectedTopic }) {
     for (let i = 0; i < topicsList.length; i += batchSize) {
       batches.push(topicsList.slice(i, i + batchSize));
     }
+    console.log("getEntriesDayCounts batches: ", batches);
 
     const promises = batches.map((batch) => {
       const entriesCollection = firebase
@@ -66,6 +67,8 @@ export function TopicsList({ userId, setSelectedTopic }) {
         .collection("topics")
         .where(firebase.firestore.FieldPath.documentId(), "in", batch)
         .get();
+
+      console.log("getEntriesDayCounts entriesCollection: ", entriesCollection);
 
       return entriesCollection;
     });

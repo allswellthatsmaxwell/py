@@ -199,12 +199,12 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         .collection("users")
         .doc(userId)
         .collection("topics");
-    // const topicDoc = await topicCollection.doc(topic).get();
-    // if (!topicDoc.exists) {
-    //   topicCollection.doc(topic).set({
-    //     timestamp: timestamp,
-    //   });
-    // }
+    const topicDoc = await topicCollection.doc(topic).get();
+    if (!topicDoc.exists) {
+      topicCollection.doc(topic).set({
+        timestamp: log_timestamp,
+      });
+    }
 
     // add the entry to the topic
     const topicEntriesCollection = topicCollection
@@ -418,7 +418,11 @@ The user may be trying to log multiple topics. If so, you should complete the js
 # Time of day
 The user may also be trying to log a time of day for one or more of their entries. 
 If so, include a key "time" in the json, with the time they said, for that topic.
-If not, use whatever the date and/or time in the input is. Always populate both the date and time.
+If not, use whatever the date and/or time in the input is. 
+## Always populate both the date and time with valid values
+Never leave either of them blank, or null, or empty. That will crash the program and make for a very bad user experience.
+If the user didn't say a time, use the current time. If the user didn't say a date, use the current date.
+These are always passed to you in the input, so there is absolutely no excuse for not using them.
 
 # When nothing is being logged
 If there is nothing that could be logged from the transcript, complete an empty json: []. Do not say anything else,
