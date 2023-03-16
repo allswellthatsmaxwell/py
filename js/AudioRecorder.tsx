@@ -128,8 +128,8 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     console.log('Snapshot docs:', snapshot.docs);
     if (snapshot.docs.length > 0) {
       const transcript = snapshot.docs[0].data();
-      console.log('Most recent transcript: "', transcript.text, '" with topics: ', transcript.topics);
-      return {'transcript': transcript.text, topics: transcript.topics};
+      console.log('Most recent transcript: "', transcript.text, '" with entries: ', transcript.entries);
+      return {'transcript': transcript.text, entries: transcript.entries};
     } else {
       console.log('getMostRecentLogging: no transcripts found.');
       return null;
@@ -143,7 +143,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       try {
         const result = await getMostRecentLogging();
         setTranscriptionResult(result.transcript);
-        setTopicsResult(result.topics);
+        setTopicsResult(result.entries);
       } catch (error) {
         console.error(error);
       }
@@ -390,7 +390,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     const date = new Date();
     return `${date.getHours()}:${date.getMinutes()}`;
   }
-  
+
   function get_current_date() {
     const date = new Date();
     const year = date.getFullYear();
@@ -418,7 +418,7 @@ The user may be trying to log multiple topics. If so, you should complete the js
 # Time of day
 The user may also be trying to log a time of day for one or more of their entries. 
 If so, include a key "time" in the json, with the time they said, for that topic.
-If not, skip that key.
+If not, use whatever the date and/or time in the input is. Always populate both the date and time.
 
 # When nothing is being logged
 If there is nothing that could be logged from the transcript, complete an empty json: []. Do not say anything else,
@@ -433,26 +433,34 @@ No need to always use only English! Match the user's language as much as possibl
  today: "2023-01-01", time_now: "14:00"}
 ## output
 topics: [{"topic": "coffee", "value": "1", "time": 09:00", "date": "2023-01-01"}, 
-          {"topic": "gym", "value": "1", time": "12:00", "date": "2023-01-01"}]}
+          {"topic": "gym", "value": "1", time": "12:00", "date": "2023-01-01"}]
 
 ## input
 {"transcript": "I had 100 milligrams of caffeine",
  "today": "2023-06-17", "time_now": "14:37"}
 ## output
-[{"topic": "caffeine", "value": "100", "time": "14:37", "date": "2023-06-17"}]}
+[{"topic": "caffeine", "value": "100", "time": "14:37", "date": "2023-06-17"}]
  
 ## input
 {"transcript": "I ate four slices of pizza at 7pm yesterday",
  "today": "2021-02-14", "time_now": "18:00"}
 ## output
-[{"topic": "pizza (slices)", "value": "4", "time": "19:00", "date": "2021-02-13"}]}
+[{"topic": "pizza (slices)", "value": "4", "time": "19:00", "date": "2021-02-13"}]
 
 ## input
 {"transcript": "I had 4 drinks at 10pm yesterday and today I woke up at 11 a.m",
  "today": "2022-11-01", "time_now": "11:32"}
 ## output
 [{"topic": "drinks", "value": "4", "time": "22:00", "date": "2022-10-31"},
- {"topic": "wake up time", "value": "1", "time": "11:00", "date": "2022-11-01"}]}
+ {"topic": "wake up time", "value": "1", "time": "11:00", "date": "2022-11-01"}]
+
+## input
+{"transcript": "I ate 3 slices of pizza and 2 slices of cake today and I had two cigarettes at 2pm",
+ "today": "2024-09-15", "time_now": "21:31"}
+## output
+[{"topic": "pizza (slices)", "value": "3", "time": "21:31", "date": "2024-09-15"},
+ {"topic": "cake (slices)", "value": "2", "time": "21:31", "date": "2024-09-15"},
+ {"topic": "cigarettes", "value": "2", "time": "14:00", "date": "2024-09-15"}]
 
 # Format
 It is critical that you output a valid json list, no matter what.
@@ -549,13 +557,14 @@ It is critical that you output a valid json list, no matter what.
   console.log("entriesList: ", entriesList);
   let rows: { topic: string, entry: number }[] = [];
   if (entriesList && entriesList.length > 0) {
-    rows = entriesList.map(async ({topic, value, date, time}) => ({
+    rows = entriesList.map(({topic, value, date, time}) => ({
       topic,
       value,
       date,
       time
     }));
   }
+  console.log("rows: ", rows);
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (

@@ -85,6 +85,31 @@ function LogsList({userId, topic}) {
         });
   };
 
+  function formatDate(input: string): string {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    const date = new Date(input);
+    const year = date.getFullYear().toString().slice(2);
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+
+    return `${month} ${day} '${year}`;
+  }
+
+  function formatTime(input: string): string {
+    const [hourStr, minuteStr] = input.split(':');
+    const hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+
+    const amPm = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+    const formattedMinute = minute === 0 ? '' : `:${minute.toString().padStart(2, '0')}`;
+
+    return `${formattedHour}${formattedMinute}${amPm}`;
+  }
 
   const renderRightActions = (progress, dragX, log) => {
 
@@ -128,9 +153,9 @@ function LogsList({userId, topic}) {
   const time_format = {hour: "2-digit", minute: "2-digit", hour12: true};
   const day_format = {month: "short", day: "numeric"};
   const tableData = logsList.map((log) => ({
-    date: log.timestamp.toDate().toLocaleDateString([], day_format),
-    time: log.timestamp.toDate().toLocaleTimeString([], time_format),
-    value: log.number,
+    date: formatDate(log.date),
+    time: formatTime(log.time),
+    value: log.value,
     id: log.id
   }));
 
