@@ -342,16 +342,18 @@ function AudioRecorder({fbase, setSelectedTopic}) {
   }
 
   async function handleTopicsTextUpdate(topics) {
+    console.log("topics:", topics);
     const notParseable = !parseable(topics);
     if (
         !topics ||
-        topics === "{}" ||
-        topics == {} ||
+        topics === "[]" ||
+        topics == [] ||
         notParseable ||
         Object.keys(topics).length == 0
     ) {
+      console.log("topics:", topics);
       setTopicsStatus("Found no topics - sorry!");
-      topics = "{}";
+      topics = "[]";
     } else {
       setTopicsStatus(null);
     }
@@ -360,29 +362,43 @@ function AudioRecorder({fbase, setSelectedTopic}) {
   }
 
   async function computeAndWriteTopics(transcript, timestamp) {
-    const entries = await getTopicsTurbo(transcript); // getTopics(transcript);
+    const entries = await getTopicsTurbo(transcript);
     let entriesList;
     let entriesString;
     try {
       console.log("Trying to parse entries: ", entries);
       entriesList = JSON.parse(entries);
       entriesString = entries;
+      console.log("Parsed entries: ", entriesList);
     } catch (e) {
       console.log("Error parsing entries: ", e);
       entriesList = [];
       entriesString = "[]";
     }
     await transcriptsCollection
-        .add({text: transcript, topics: entriesString, timestamp: timestamp})
+        .add({text: transcript, entries: entriesString, timestamp: timestamp})
         .then((docRef) => {
           console.log("Transcript written with ID: ", docRef.id);
         });
 
     await writeEntriesToDB(transcript, entriesList, timestamp);
-    return topics;
+    return entriesString;
   }
 
-  const current_time = new Date().toLocaleTimeString();
+  // gets just the time, in the format HH:MM
+  function get_current_time() {
+    const date = new Date();
+    return `${date.getHours()}:${date.getMinutes()}`;
+  }
+  
+  function get_current_date() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
 
   const system_message = `# Role
 You are a topics categorizer. You only output a single valid json list, no matter what. Given an audio transcription and a list of existing topics, you output the topic or topics
@@ -457,9 +473,15 @@ It is critical that you output a valid json list, no matter what.
       console.log("existing topicsString: ", topicsString);
     });
 
-    const input = "{transcript: \"" + text +
-        "\", existing: \"" + topicsString +
-        "\", topics: "
+    const date = get_current_date();
+    const time = get_current_time();
+    console.log("date: ", date, "time: ", time);
+    const inputDict = {
+      "transcript": text, "existing": topicsString,
+      "date": date, "time": time
+    }
+
+    const input = "## input\n" + JSON.stringify(inputDict) + "\n## output\n";
 
     console.log("turbo input: ", input);
 
@@ -485,10 +507,10 @@ It is critical that you output a valid json list, no matter what.
     console.log("Completion: ", completion);
     const new_entry = completion['choices'][0]['message']['content'];
     // strip specifically { and } from new_entry. other characters are unchanged
-    const new_entry_stripped = new_entry.replace(/{/g, '').replace(/}/g, '');
-    const new_entry_final = "{" + new_entry_stripped + "}";
-    console.log("New entry final: ", new_entry_final);
-    return new_entry_final;
+    // const new_entry_stripped = new_entry.replace(/{/g, '').replace(/}/g, '');
+    // const new_entry_final = new_entry_stripped;
+    console.log("New entry: ", new_entry);
+    return new_entry;
   }
 
   const handleTopicPress = (topic) => {
@@ -514,29 +536,23 @@ It is critical that you output a valid json list, no matter what.
 
   console.log("topicsResult: ", topicsResult);
   if (!topicsResult) {
-    setTopicsResult(JSON.stringify({}));
+    setTopicsResult(JSON.stringify([]));
   }
-  let topicsDict;
+  let entriesList;
   try {
-    topicsDict = JSON.parse(topicsResult);
+    entriesList = JSON.parse(topicsResult);
   } catch (e) {
     console.log("Error parsing topicsResult: ", e);
-    topicsDict = {};
+    entriesList = [];
   }
 
-  let time;
-  if ("event_timestamp" in topicsDict) {
-    time = topicsDict["event_timestamp"];
-  } else {
-    time = current_time;
-  }
-
-  console.log("topicsDict: ", topicsDict);
+  console.log("entriesList: ", entriesList);
   let rows: { topic: string, entry: number }[] = [];
-  if (topicsDict) {
-    rows = Object.entries(topicsDict).map(([topic, entry]) => ({
+  if (entriesList && entriesList.length > 0) {
+    rows = entriesList.map(async ({topic, value, date, time}) => ({
       topic,
-      entry,
+      value,
+      date,
       time
     }));
   }
@@ -603,7 +619,7 @@ It is critical that you output a valid json list, no matter what.
                           {item.topic}
                         </Text>
                         <Text style={[newEntriesStyles.cell, {textAlign: "right"}]}>
-                          {item.entry}
+                          {item.value}
                         </Text>
                       </View>
                     </TouchableOpacity>
