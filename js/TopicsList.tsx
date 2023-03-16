@@ -84,11 +84,6 @@ export function TopicsList({userId, setSelectedTopic}) {
 
             snapshot.docs.forEach((doc) => {
               const data = doc.data();
-              // TODO: populate this with how many days back we are from today.
-              // const day = new Date(data.date);
-              // console.log("day: ", day);
-              // const day = moment(date)//.format("YYYY-MM-DD");
-              // const days_back = moment().diff(day, "days");
               const day = data.date;
               console.log("day: ", day);
               if (!counts[day]) {
@@ -137,24 +132,19 @@ export function TopicsList({userId, setSelectedTopic}) {
       <View
           style={[
             styles.topicsTableContainer,
-            {borderWidth: 1, borderColor: "black"},
+            { borderWidth: 1, borderColor: "black" },
           ]}
       >
         <FlatList
             data={Object.keys(entriesDayCounts)}
-            renderItem={({item}) => {
+            renderItem={({ item }) => {
               const rowHeight = 20;
               const allDates = Object.keys(entriesDayCounts).reduce(
                   (acc, topic) => [...acc, ...Object.keys(entriesDayCounts[topic])],
                   []
               );
               const uniqueDates = [...new Set(allDates)];
-              // convert to moment objects and sort
-              const sortedDates = uniqueDates
-                  .map((date) => moment(date))
-                  .sort((a, b) => a - b)
-                  .map((date) => date.toISOString().split("T")[0]);
-
+              const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
               const todayDate = moment().toISOString().split("T")[0];
               const maxDataValue = Math.max(
                   ...Object.values(entriesDayCounts[item])
@@ -173,26 +163,19 @@ export function TopicsList({userId, setSelectedTopic}) {
                     <View style={rowStyles.row}>
                       <Text style={styles.rowText}>{item}</Text>
                       <View style={rowStyles.chart}>
-                        {sortedDates.map((date, index) => {
-                          const dataValue = dateDict[date];
-                          const barWidth = dataValue * scaleFactor;
-                          const daysDiff = moment(todayDate).diff(moment(date), "days");
-                          const barLeftPosition = daysDiff * (barWidth); // You can adjust the padding between bars
-                          console.log("daysDiff: ", daysDiff, "for topic: ", item);
-
-
-                          return (<View
-                                  key={index}
-                                  style={[
-                                    rowStyles.bar,
-                                    {
-                                      height: barWidth * 10,
-                                      left: barLeftPosition,
-                                    },
-                                  ]}
-                              />
-                          )
-                        })}
+                        {sortedDates.map((date, index) => (
+                            <View
+                                key={index}
+                                style={[
+                                  rowStyles.bar,
+                                  {
+                                    height: dateDict[date] * 10 * scaleFactor,
+                                    left:
+                                        (moment(date) - todayDate) / (1000 * 60 * 60 * 24),
+                                  },
+                                ]}
+                            />
+                        ))}
                       </View>
                     </View>
                   </TouchableOpacity>
