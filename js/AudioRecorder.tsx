@@ -392,59 +392,44 @@ if their meaning is the same. If you can't assign an entry to an existing topic,
 
 The user may be trying to log multiple topics. If so, you should complete the json with multiple key-value pairs.
 
-The user may also be trying to log a time of day. If so, include a key "event_timestamp" in the json. If not, skip that key.
-If there is nothing that could be logged from the transcript, complete an empty json.
+# Time of day
+The user may also be trying to log a time of day for one or more of their entries. 
+If so, include a key "time" in the json, with the time they said, for that topic.
+If not, skip that key.
 
-# Examples
-{transcript: "walked two miles today", 
- existing: "walking distance, wake up time", 
- topics: {"walking distance (miles)": 2}}
- 
-{transcript: "woke up at 09:42 A.m and had 300 milligrams of caffeine", 
- existing: "walking distance, wake up time", 
- topics: {"wake up time": "09:42", "caffeine (mg)": 300}}
- 
-{transcript: "woke up at twelve thirty pm", 
- existing: "walking distance, wake up time", 
- topics: {"wake up time": "12:30"}}
- 
- {transcript: "woke up at twelve thirty pm", 
- existing: "walking distance, awakening time", 
- topics: {"awakening time": "12:30"}}
- 
-{transcript: "went to bed at 2am and woke up at 10am", 
- existing: "walking distance, wake up time", 
- topics: {"wake up time": "02:00", "hours slept": 8}}
- 
-{transcript: "ate four hundred calories", 
-existing: "walking distance, wake up time", topics: {"calories": 400}}
+# When nothing is being logged
+If there is nothing that could be logged from the transcript, complete an empty json: {}. Do not say anything else,
+because saying anything except an empty json for no topics would create an unparsable json.
 
-{transcript: "Today I ate three apples", 
- existing: "alcoholic beverages, wake up time", 
- topics: {"apples": 3}}
- 
-{transcript: "Today I ate 7 apples and had 6 ounces of alcohol", 
- existing: "", 
- topics: {"apples": 7, "alcohol (oz)": 6}}
- 
-{transcript: "Today I ate three apples and two oranges and two alcoholic drinks", 
- existing: "", 
- topics: {"apples": 3, "oranges": 2, "alcohol (drinks)": 2}}
- 
-{transcript: "I listened to rap music for two and a half hours today", 
- existing: "", 
- topics: {"rap music listening time (hours)": 2.5}}
- 
-{transcript: "I listened to rap music for two and a half hours today", 
- existing: "rap listening time", 
- topics: {"rap listening time": 2.5}}
- 
-{transcript: "", existing: "", topics: {}}
-
-{transcript: "Thank you.", existing: "rotis, calories", topics: {}}
- 
 # Output topic names and values in the user's language
 No need to always use only English! Match the user's language as much as possible.
+
+# Examples
+## input
+{transcript: "I drank a coffee at 9am and went to the gym at noon", 
+ today: "2023-01-01", time_now: "14:00"}
+## output
+topics: [{"topic": "coffee", "value": "1", "time": 09:00", "date": "2023-01-01"}, 
+          {"topic": "gym", "value": "1", time": "12:00", "date": "2023-01-01"}]}
+
+## input
+{"transcript": "I had 100 milligrams of caffeine",
+ "today": "2023-06-17", "time_now": "14:37"}
+## output
+[{"topic": "caffeine", "value": "100", "time": "14:37", "date": "2023-06-17"}]}
+ 
+## input
+{"transcript": "I ate four slices of pizza at 7pm yesterday",
+ "today": "2021-02-14", "time_now": "18:00"}
+## output
+[{"topic": "pizza (slices)", "value": "4", "time": "19:00", "date": "2021-02-13"}]}
+
+## input
+{"transcript": "I had 4 drinks at 10pm yesterday and today I woke up at 11 a.m",
+ "today": "2022-11-01", "time_now": "11:32"}
+## output
+[{"topic": "drinks", "value": "4", "time": "22:00", "date": "2022-10-31"},
+ {"topic": "wake up time", "value": "1", "time": "11:00", "date": "2022-11-01"}]}
 
 # Format
 It is critical that you output a valid json dictionary, no matter what.
@@ -525,19 +510,28 @@ It is critical that you output a valid json dictionary, no matter what.
   if (!topicsResult) {
     setTopicsResult(JSON.stringify({}));
   }
-  let topicsDict = {};
+  let topicsDict;
   try {
     topicsDict = JSON.parse(topicsResult);
   } catch (e) {
     console.log("Error parsing topicsResult: ", e);
     topicsDict = {};
   }
+
+  let time;
+  if ("event_timestamp" in topicsDict) {
+    time = topicsDict["event_timestamp"];
+  } else {
+    time = current_time;
+  }
+
   console.log("topicsDict: ", topicsDict);
   let rows: { topic: string, entry: number }[] = [];
   if (topicsDict) {
     rows = Object.entries(topicsDict).map(([topic, entry]) => ({
       topic,
       entry,
+      time
     }));
   }
   // records, then uploads the recording. The recording button
