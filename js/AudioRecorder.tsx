@@ -192,45 +192,51 @@ function AudioRecorder({fbase, setSelectedTopic}) {
   }
 
 
-  async function addEntryToTopic(topic, value, transcript, timestamp) {
+  async function addEntryToTopic(transcript, topic, value, time, date, log_timestamp) {
     // create the topic if it doesn't exist
     const topicCollection = firebase
         .firestore()
         .collection("users")
         .doc(userId)
         .collection("topics");
-    const topicDoc = await topicCollection.doc(topic).get();
-    if (!topicDoc.exists) {
-      topicCollection.doc(topic).set({
-        timestamp: timestamp,
-      });
-    }
+    // const topicDoc = await topicCollection.doc(topic).get();
+    // if (!topicDoc.exists) {
+    //   topicCollection.doc(topic).set({
+    //     timestamp: timestamp,
+    //   });
+    // }
+
     // add the entry to the topic
     const topicEntriesCollection = topicCollection
         .doc(topic)
         .collection("entries");
     topicEntriesCollection.add({
       transcript: transcript,
-      timestamp: timestamp,
-      number: value,
+      value: value,
+      time: time,
+      date: date,
+      log_time: log_timestamp
     });
     console.log("Added entry to topic", topic);
   }
 
-  async function writeTopicsToDB(jsonResponseTranscript, topicsDict, timestamp) {
+  async function writeEntriesToDB(transcript, entriesList, timestamp) {
 
-    const entryAddPromises = Object.entries(topicsDict).map(
-        async ([topic, value]) => {
-          // turns all non-numeric values into strings
-          if (isNaN(value)) {
-            value = value.toString();
-          } else {
-            value = Number(value);
-          }
+    const entryAddPromises = entriesList.map(async (entry) => {
+      const topic = entry.topic;
+      let value = entry.value;
+      const date = entry.date;
+      const time = entry.time;
 
-          await addEntryToTopic(topic, value, jsonResponseTranscript, timestamp);
-        }
-    );
+      if (isNaN(value)) {
+        value = value.toString();
+      } else {
+        value = Number(value);
+      }
+
+      await addEntryToTopic(transcript, topic, value, time, date, timestamp);
+
+    });
     return await Promise.all(entryAddPromises);
   }
 
@@ -334,6 +340,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       return false;
     }
   }
+
   async function handleTopicsTextUpdate(topics) {
     const notParseable = !parseable(topics);
     if (
@@ -353,32 +360,32 @@ function AudioRecorder({fbase, setSelectedTopic}) {
   }
 
   async function computeAndWriteTopics(transcript, timestamp) {
-    const topics = await getTopicsTurbo(transcript); // getTopics(transcript);
-    let topicsDict;
-    let topicsString;
+    const entries = await getTopicsTurbo(transcript); // getTopics(transcript);
+    let entriesList;
+    let entriesString;
     try {
-      console.log("Trying to parse topics entry: ", topics);
-      topicsDict = JSON.parse(topics);
-      topicsString = topics;
+      console.log("Trying to parse entries: ", entries);
+      entriesList = JSON.parse(entries);
+      entriesString = entries;
     } catch (e) {
-      console.log("Error parsing topics entry: ", e);
-      topicsDict = {};
-      topicsString = "{}";
+      console.log("Error parsing entries: ", e);
+      entriesList = [];
+      entriesString = "[]";
     }
     await transcriptsCollection
-        .add({text: transcript, topics: topicsString, timestamp: timestamp})
+        .add({text: transcript, topics: entriesString, timestamp: timestamp})
         .then((docRef) => {
           console.log("Transcript written with ID: ", docRef.id);
         });
 
-    await writeTopicsToDB(transcript, topicsDict, timestamp);
+    await writeEntriesToDB(transcript, entriesList, timestamp);
     return topics;
   }
 
   const current_time = new Date().toLocaleTimeString();
 
   const system_message = `# Role
-You are a topics categorizer. Given an audio transcription and a list of existing topics, you output the topic or topics
+You are a topics categorizer. You only output a single valid json list, no matter what. Given an audio transcription and a list of existing topics, you output the topic or topics
 that the user is trying to log. You speak all languages and name topics in the user's language. You only ever output
 valid json, no matter what. If there is nothing to log, you output an empty json.
 
@@ -398,7 +405,7 @@ If so, include a key "time" in the json, with the time they said, for that topic
 If not, skip that key.
 
 # When nothing is being logged
-If there is nothing that could be logged from the transcript, complete an empty json: {}. Do not say anything else,
+If there is nothing that could be logged from the transcript, complete an empty json: []. Do not say anything else,
 because saying anything except an empty json for no topics would create an unparsable json.
 
 # Output topic names and values in the user's language
@@ -432,9 +439,8 @@ topics: [{"topic": "coffee", "value": "1", "time": 09:00", "date": "2023-01-01"}
  {"topic": "wake up time", "value": "1", "time": "11:00", "date": "2022-11-01"}]}
 
 # Format
-It is critical that you output a valid json dictionary, no matter what.
+It is critical that you output a valid json list, no matter what.
 `
-
 
 
   async function getTopicsTurbo(text) {
