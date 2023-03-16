@@ -132,20 +132,30 @@ export function TopicsList({userId, setSelectedTopic}) {
       <View
           style={[
             styles.topicsTableContainer,
-            { borderWidth: 1, borderColor: "black" },
+            {borderWidth: 1, borderColor: "black"},
           ]}
       >
         <FlatList
             data={Object.keys(entriesDayCounts)}
-            renderItem={({ item }) => {
+            renderItem={({item}) => {
               const rowHeight = 20;
-              const allDates = Object.keys(entriesDayCounts).reduce(
-                  (acc, topic) => [...acc, ...Object.keys(entriesDayCounts[topic])],
-                  []
+              // const allDates = Object.keys(entriesDayCounts).reduce(
+              //     (acc, topic) => [...acc, ...Object.keys(entriesDayCounts[topic])],
+              //     []
+              // );
+              // const uniqueDates = [...new Set(allDates)];
+
+              // uniqueDates is the dates for the past 30 days, including today
+              const uniqueDates = Array.from({length: 30}, (_, i) =>
+                  moment()
+                      .subtract(i - 3, "days")
+                      .toISOString()
+                      .split("T")[0]
               );
-              const uniqueDates = [...new Set(allDates)];
               const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
+              console.log("sortedDates: ", sortedDates);
               const todayDate = moment().toISOString().split("T")[0];
+              console.log("todayDate: ", todayDate);
               const maxDataValue = Math.max(
                   ...Object.values(entriesDayCounts[item])
               );
@@ -158,11 +168,14 @@ export function TopicsList({userId, setSelectedTopic}) {
                   {}
               );
 
+              // 3/16: maybe this is not spacing them because there are only 3 indexes,
+              // and therefore not enough space, regardless of the math you do to change the left position.
               return (
                   <TouchableOpacity onPress={() => handleTopicPress(item)}>
                     <View style={rowStyles.row}>
                       <Text style={styles.rowText}>{item}</Text>
                       <View style={rowStyles.chart}>
+
                         {sortedDates.map((date, index) => (
                             <View
                                 key={index}
@@ -171,7 +184,7 @@ export function TopicsList({userId, setSelectedTopic}) {
                                   {
                                     height: dateDict[date] * 10 * scaleFactor,
                                     left:
-                                        (moment(date) - todayDate) / (1000 * 60 * 60 * 24),
+                                        (moment(date) - moment(todayDate)) / (1000 * 60 * 60 * 24),
                                   },
                                 ]}
                             />
