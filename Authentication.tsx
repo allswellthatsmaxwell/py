@@ -11,7 +11,6 @@ function SignUpOrSignIn() {
     const handleSignInWithEmailAndPassword = async () => {
         try {
             const result = await firebase.auth().signInWithEmailAndPassword(email, password);
-            setUser(result.user);
         } catch (error) {
             console.error(error);
         }
@@ -20,7 +19,6 @@ function SignUpOrSignIn() {
     const handleSignUpWithEmailAndPassword = async () => {
         try {
             const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
-            setUser(result.user);
         } catch (error) {
             // display a toast with the error message
 

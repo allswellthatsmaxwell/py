@@ -1,6 +1,5 @@
 import * as React from "react";
 import {useEffect} from "react";
-import {Table, Row, Rows} from "react-native-table-component";
 import {
   Text,
   View,
@@ -9,10 +8,9 @@ import {
   StyleSheet,
 } from "react-native";
 import * as firebase from "firebase";
-// import { Sparklines, SparklinesBars } from "react-sparklines";
 import moment from "moment";
 
-import {getStyles} from "./styles.js";
+import {getStyles} from "./styles";
 
 const styles = getStyles();
 
@@ -112,7 +110,7 @@ export function TopicsList({userId, setSelectedTopic}) {
         .collection("topics");
 
     const unsubscribe = topicsCollection.onSnapshot((snapshot) => {
-      const topics = snapshot.docs.map((doc) => doc.id);
+      const topics = snapshot.docs.map((doc: any) => doc.id);
       console.log("userId: ", userId);
       console.log("Topics: ", topics);
       setTopicsList(topics);
@@ -128,6 +126,8 @@ export function TopicsList({userId, setSelectedTopic}) {
     // console.log("entriesDayCounts: ", entriesDayCounts);
   }, [entriesDayCounts]);
 
+  console.log(entriesDayCounts);
+
   return (
       <View
           style={[
@@ -139,12 +139,6 @@ export function TopicsList({userId, setSelectedTopic}) {
             data={Object.keys(entriesDayCounts)}
             renderItem={({item}) => {
               const rowHeight = 20;
-              // const allDates = Object.keys(entriesDayCounts).reduce(
-              //     (acc, topic) => [...acc, ...Object.keys(entriesDayCounts[topic])],
-              //     []
-              // );
-              // const uniqueDates = [...new Set(allDates)];
-
               // uniqueDates is the dates for the past 30 days, including today
               const uniqueDates = Array.from({length: 30}, (_, i) =>
                   moment()
@@ -153,9 +147,9 @@ export function TopicsList({userId, setSelectedTopic}) {
                       .split("T")[0]
               );
               const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
-              console.log("sortedDates: ", sortedDates);
+              // console.log("sortedDates: ", sortedDates);
               const todayDate = moment().toISOString().split("T")[0];
-              console.log("todayDate: ", todayDate);
+              // console.log("todayDate: ", todayDate);
               const maxDataValue = Math.max(
                   ...Object.values(entriesDayCounts[item])
               );
@@ -168,8 +162,6 @@ export function TopicsList({userId, setSelectedTopic}) {
                   {}
               );
 
-              // 3/16: maybe this is not spacing them because there are only 3 indexes,
-              // and therefore not enough space, regardless of the math you do to change the left position.
               return (
                   <TouchableOpacity onPress={() => handleTopicPress(item)}>
                     <View style={rowStyles.row}>
@@ -182,7 +174,7 @@ export function TopicsList({userId, setSelectedTopic}) {
                                 style={[
                                   rowStyles.bar,
                                   {
-                                    height: dateDict[date] * 10 * scaleFactor,
+                                    height: (dateDict[date] ?? 0) * 10 * scaleFactor,
                                     left:
                                         (moment(date) - moment(todayDate)) / (1000 * 60 * 60 * 24),
                                   },

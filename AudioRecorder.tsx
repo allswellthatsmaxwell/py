@@ -9,12 +9,10 @@ import {
 } from "react-native";
 import {Audio} from "expo-av";
 import {FontAwesome, Feather} from "@expo/vector-icons";
-import axios from 'axios';
-import {Buffer} from "buffer";
 
 import * as firebase from "firebase";
 
-import {ASSEMBLYAI_API_KEY, OPENAI_API_KEY, DEEPGRAM_API_KEY} from "./Keys";
+import {OPENAI_API_KEY} from "./Keys";
 import {useEffect} from "react";
 
 

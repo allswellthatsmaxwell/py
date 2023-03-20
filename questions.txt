@@ -1,4 +1,0 @@
-I am making an app where I record a user's voice, transcribe it into text,
-and then send the transcription to a server for categorizing. my front end is using React, and my backend is Flask.
-The transcription takes some time, as does the subsequent categorizing. I don't want to make the app hang while
-these two steps are running. What design pattern is appropriate?
