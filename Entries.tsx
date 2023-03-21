@@ -1,29 +1,38 @@
-import {TouchableOpacity, View, Animated, FlatList, Text, StyleSheet} from "react-native";
+import {TouchableOpacity, View, FlatList, Text, StyleSheet} from "react-native";
 import * as React from "react";
 import {useEffect, useRef} from "react";
 import * as firebase from "firebase";
-import {Table, Row, Rows} from "react-native-table-component";
 import {Swipeable} from "react-native-gesture-handler";
 
 import {getStyles} from "./styles";
-import {Entypo, MaterialCommunityIcons} from "@expo/vector-icons";
+import {MaterialCommunityIcons} from "@expo/vector-icons";
 
 const projectStyles = getStyles();
 
 const styles = StyleSheet.create({
   container: {
-    height: 100,
-    width: 300,
+    height: 400,
+    width: 400,
     borderWidth: 1,
-    borderColor: "#bbb"
+    marginTop: 50,
+    borderColor: "#fff"
   },
-  header: {
-    backgroundColor: "#f1f8ff",
-    flexDirection: "row"
+  entryRow: {
+    backgroundColor: "#fff",
+    borderColor: "#000",
+    borderWidth: 1,
+    borderRadius: 50,
+    flex: 1,
+    flexDirection: "row",
+    marginBottom: 2,
+    height: 30
   },
   cell: {
-    margin: 1,
-    flex: 1
+    margin: 3,
+    alignContent: "center",
+    flex: 1,
+    fontSize: 18,
+    marginHorizontal: 10,
   }
 });
 
@@ -142,17 +151,24 @@ function LogsList({userId, topic}) {
     return (
         <Swipeable ref={swipeableRef}
                    renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>
-          <View style={styles.header}>
-            <Text style={styles.cell}>{item.date}</Text>
-            <Text style={styles.cell}>{item.time}</Text>
-            <Text style={styles.cell}>{item.value}</Text>
+          <View style={styles.entryRow}>
+            <Text style={[styles.cell, {textAlign: "left" }]}>{item.date}</Text>
+            <Text style={[styles.cell, {textAlign: "center" }]}>{item.time}</Text>
+            <Text style={[styles.cell, {textAlign: "right" }]}>{item.value}</Text>
           </View>
         </Swipeable>
     );
   };
 
-  const time_format = {hour: "2-digit", minute: "2-digit", hour12: true};
-  const day_format = {month: "short", day: "numeric"};
+  const renderHeader = () => (
+      <View style={[styles.entryRow, {borderWidth: 1, backgroundColor: "#B0E2FF"}]}>
+        <Text style={[styles.cell, {textAlign: "left" }]}>date</Text>
+        <Text style={[styles.cell, {textAlign: "center" }]}>time</Text>
+        <Text style={[styles.cell, {textAlign: "right" }]}>value</Text>
+      </View>
+  );
+
+
   const tableData = logsList.map((log) => ({
     date: formatDate(log.date),
     time: formatTime(log.time),
@@ -165,6 +181,8 @@ function LogsList({userId, topic}) {
         <FlatList
             data={tableData}
             renderItem={renderItem}
+            ListHeaderComponent={renderHeader}
+
             keyExtractor={(item, index) => item.id}
         />
       </View>
