@@ -1,22 +1,8 @@
 export function sortDateTime(a, b) {
   {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    if (dateA < dateB) {
-      return 1;
-    } else if (dateA > dateB) {
-      return -1;
-    } else {
-      const timeA = new Date(a.time);
-      const timeB = new Date(b.time);
-      if (timeA < timeB) {
-        return 1;
-      } else if (timeA > timeB) {
-        return -1;
-      } else {
-        return 0;
-      }
-    }
+    const datetimeA: any = new Date(a.date + " " + a.time);
+    const datetimeB: any = new Date(b.date + " " + b.time);
+    return datetimeB - datetimeA;
   }
 }
 

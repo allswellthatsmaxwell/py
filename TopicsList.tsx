@@ -136,78 +136,69 @@ export function TopicsList({userId, setSelectedTopic}) {
 
   console.log(entriesDayCounts);
 
+  function getSortedUniqueDates() {
+    // uniqueDates is the dates for the past 30 days, including today
+    const uniqueDates = Array.from({length: 30}, (_, i) =>
+        moment()
+            .subtract(i, "days")
+            .toISOString()
+            .split("T")[0]
+    );
+    return uniqueDates.sort((a, b) => a.localeCompare(b));
+  }
+
+  const renderItem = ({item}) => {
+    const rowHeight = 20;
+    const sortedDates = getSortedUniqueDates();
+    const todayDate = moment().toISOString().split("T")[0];
+    const maxDataValue = Math.max(
+        ...Object.values(entriesDayCounts[item])
+    );
+    const scaleFactor = maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
+    const dateDict = Object.keys(entriesDayCounts[item]).reduce((acc, date) => {
+          acc[date] = entriesDayCounts[item][date];
+          return acc;
+        }, {}
+    );
+
+    return (
+        <TouchableOpacity onPress={() => handleTopicPress(item)}>
+          <View>
+            <View style={rowStyles.row}>
+              <Text style={[rowStyles.rowText, {width: 200}]} numberOfLines={1}>{item}</Text>
+              <View style={rowStyles.chart}>
+                {sortedDates.map((date, index) => (
+                    <View
+                        key={index}
+                        style={[
+                          rowStyles.bar,
+                          {
+                            height: (dateDict[date] ?? 0) * 10 * scaleFactor,
+                            left:
+                                (moment(date) - moment(todayDate)) / (1000 * 60 * 60 * 24),
+                          },
+                        ]}
+                    />
+                ))}
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+    );
+  };
+
+
   return (
-      <View
-          style={[
-            styles.topicsTableContainer,
-            {borderWidth: 1, borderColor: "black"},
-          ]}
-      >
+      <View style={[styles.topicsTableContainer, {borderWidth: 1, borderColor: "black"}]}>
         <FlatList
             data={Object.keys(entriesDayCounts)}
-            renderItem={({item}) => {
-              const rowHeight = 20;
-              // uniqueDates is the dates for the past 30 days, including today
-              const uniqueDates = Array.from({length: 30}, (_, i) =>
-                  moment()
-                      .subtract(i, "days")
-                      .toISOString()
-                      .split("T")[0]
-              );
-              const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
-              // console.log("sortedDates: ", sortedDates);
-              const todayDate = moment().toISOString().split("T")[0];
-              const maxDataValue = Math.max(
-                  ...Object.values(entriesDayCounts[item])
-              );
-              const scaleFactor = maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
-              const dateDict = Object.keys(entriesDayCounts[item]).reduce(
-                  (acc, date) => {
-                    acc[date] = entriesDayCounts[item][date];
-                    return acc;
-                  },
-                  {}
-              );
-
-              return (
-                  <TouchableOpacity onPress={() => handleTopicPress(item)}>
-                    <View>
-                      <View style={rowStyles.row}>
-                          <Text style={[rowStyles.rowText, {width: 200}]} numberOfLines={1}>{item}</Text>
-                      <View style={rowStyles.chart}>
-                        {sortedDates.map((date, index) => (
-                            <View
-                                key={index}
-                                style={[
-                                  rowStyles.bar,
-                                  {
-                                    height: (dateDict[date] ?? 0) * 10 * scaleFactor,
-                                    left:
-                                        (moment(date) - moment(todayDate)) / (1000 * 60 * 60 * 24),
-                                  },
-                                ]}
-                            />
-                        ))}
-                      </View>
-                    </View>
-                    </View>
-                  </TouchableOpacity>
-              )
-                  ;
-            }}
-          keyExtractor={(item) => item}
-          style={styles.flatList}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={renderSeparator}
-          ListFooterComponent={() => (
-            <View
-                style={{
-                  borderBottomWidth: 1,
-                  borderBottomColor: "black",
-                }}
-            />
-        )}
-          />
+            renderItem={renderItem}
+            keyExtractor={(item) => item}
+            style={styles.flatList}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={renderSeparator}
+            ListFooterComponent={() => (<View style={{borderBottomWidth: 1, borderBottomColor: "black"}}/>)}
+        />
       </View>
   );
 }

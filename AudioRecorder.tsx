@@ -107,7 +107,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   const NO_TRANSCRIPTION_TEXT_MSG = "I didn't hear anything - sorry!";
 
-  const storage = fbase.storage();
   const userId = fbase.auth().currentUser.uid;
 
   const transcriptsCollection = firebase
@@ -136,8 +135,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
   }
 
   useEffect(() => {
-    console.log('Executing useEffect');
-
     async function fetchData() {
       try {
         const result = await getMostRecentLogging();
@@ -193,6 +190,11 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   async function addEntryToTopic(transcript, topic, value, time, date, log_timestamp) {
     // create the topic if it doesn't exist
+    if (!time || !date) {
+      console.error("ERROR - SKIPPING WRITE: addEntryToTopic: time or date is null");
+      return;
+    }
+
     const topicCollection = firebase
         .firestore()
         .collection("users")
@@ -248,9 +250,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       allowsRecordingIOS: true,
     });
 
-    // setTranscriptionStatus("Preparing audio...");
-    // const audio_url = await sendRecording(recording);
-    // console.log("upload_url response:", audio_url);
 
     setTranscriptionStatus("Figuring out what you said...");
     const transcript = await postAudioRecording(recording.getURI());
@@ -259,31 +258,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     await processTranscript(transcript, timestamp);
   }
 
-  // async function stopRecordingDeepgram() {
-  //   try {
-  //     console.log('Stopping recording');
-  //     await recording.stopAndUnloadAsync();
-  //
-  //     const { uri } = recording.getURI();
-  //     console.log('Recording URI:', uri);
-  //
-  //     const file = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-  //     const base64Data = `data:audio/x-m4a;base64,${file}`;
-  //
-  //     const streamSource = {
-  //       stream: Buffer.from(base64Data.split(',')[1], 'base64'),
-  //       mimetype: 'audio/x-m4a',
-  //     };
-  //
-  //     const response = await deepgram.transcription.preRecorded(streamSource, {
-  //       punctuate: true,
-  //     });
-  //
-  //     console.log('Transcription:', response.transcript);
-  //   } catch (err) {
-  //     console.error('Failed to stop recording and get transcript', err);
-  //   }
-  // }
 
   async function processTranscript(transcript, timestamp) {
     if (transcript) {
@@ -392,9 +366,7 @@ that the user is trying to log. You speak all languages and name topics in the u
 valid json, no matter what. If there is nothing to log, you output an empty json.
 
 # Instructions
-You do this by completing the json dictionary fragment the user gives you. 
-Do not output anything except the completion of the json the user gives you.
-You complete that json then stop, without saying anything else at all. 
+Output a json list of topics that the user is trying to log.
 The user may already have many existing topics. It is a better user experience if new logs that belong in an existing one
 are assigned to that existing one. So even if you feel like there is a better phrasing for the topic, use the existing one,
 if their meaning is the same. If you can't assign an entry to an existing topic, create a new topic.
@@ -454,6 +426,9 @@ topics: [{"topic": "coffee", "value": "1", "time": 09:00", "date": "2023-01-01"}
 
 # Format
 It is critical that you output a valid json list, no matter what.
+It is also critical that the value entries all be numbers, no matter what. (They should all be positive numbers too.)
+The time must never be blank, null, or empty. It must always be a valid time, in the format HH:MM.
+The date must never be blank, null, or empty. It must always be a valid date, in the format YYYY-MM-DD.
 `
 
 
@@ -486,14 +461,8 @@ It is critical that you output a valid json list, no matter what.
     const data = {
       model: 'gpt-3.5-turbo',
       messages: [
-        {
-          role: 'system',
-          content: system_message
-        },
-        {
-          role: 'user',
-          content: input
-        }]
+        {role: 'system', content: system_message},
+        {role: 'user', content: input}]
     };
 
     const completion = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -647,27 +616,4 @@ export default AudioRecorder;
 //   }
 //   console.log("Uploaded audio!");
 //   return storageRef.getDownloadURL();
-// }
-
-// async function callDeepgramAPI(audioUrl: string) {
-//   const requestOptions: RequestInit = {
-//     method: 'POST',
-//     headers: {
-//       'Authorization': `Token ${DEEPGRAM_API_KEY}`,
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({url: audioUrl}),
-//   };
-//
-//   try {
-//     const response = await fetch('https://api.deepgram.com/v1/listen', requestOptions);
-//     if (!response.ok) {
-//       throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-//     }
-//     const responseData = await response.json();
-//     console.log(responseData);
-//     return responseData;
-//   } catch (error) {
-//     console.error('Error calling Deepgram API:', error);
-//   }
 // }
