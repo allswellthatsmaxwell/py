@@ -39,8 +39,9 @@ const styles = StyleSheet.create({
 export function EntriesForTopic({userId, selectedTopic}) {
   return (
       <View>
-        <Text style={{fontSize: 26, textAlign: "center", marginTop: 10,
-                      textDecorationLine: "underline", textDecorationColor: 'gray',
+        <Text style={{
+          fontSize: 26, textAlign: "center", marginTop: 10,
+          textDecorationLine: "underline", textDecorationColor: 'gray',
         }}>
           {selectedTopic}
         </Text>
@@ -49,6 +50,28 @@ export function EntriesForTopic({userId, selectedTopic}) {
         </View>
       </View>
   );
+}
+
+function sortDateTime(a, b) {
+  {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    if (dateA < dateB) {
+      return 1;
+    } else if (dateA > dateB) {
+      return -1;
+    } else {
+      const timeA = new Date(a.time);
+      const timeB = new Date(b.time);
+      if (timeA < timeB) {
+        return 1;
+      } else if (timeA > timeB) {
+        return -1;
+      } else {
+        return 0;
+      }
+    }
+  }
 }
 
 function LogsList({userId, topic}) {
@@ -66,7 +89,8 @@ function LogsList({userId, topic}) {
 
     const unsubscribe = logsCollection.onSnapshot((snapshot) => {
       const logs = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
-      logs.sort((a, b) => b.timestamp - a.timestamp);
+      // sorts logs first by date, then by time
+      logs.sort(sortDateTime);
       console.log("Logs: ", logs);
       setLogsList(logs);
     });
