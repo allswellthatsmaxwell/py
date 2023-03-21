@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {View, FlatList, Text, StyleSheet} from 'react-native';
 import * as firebase from 'firebase';
 
-import {sortDateTime} from "./Utilities";
+import {parseEntriesFromJson, sortDateTime, Entry} from "./Utilities";
 import {getStyles} from './styles';
 
 const projectStyles = getStyles();
@@ -53,7 +53,7 @@ export function TranscriptHistory({userId}) {
     const unsubscribe = transcriptsCollection.onSnapshot((snapshot) => {
       const transcripts = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
       transcripts.sort((a, b) => b.timestamp - a.timestamp);
-      console.log("Logs: ", transcripts);
+      // console.log("Logs: ", transcripts);
       setTranscriptsList(transcripts);
     });
 
@@ -62,6 +62,26 @@ export function TranscriptHistory({userId}) {
     };
   }, [userId]);
 
+  function renderItem({item}) {
+    // console.log("item: ", item);
+    // console.log("item.entries: ", item.entries);
+    // console.log("item.entries fields: ", Object.keys(item.entries));
+    // console.log("item.entries.topic: ", item.entries.topic);
+    return (
+        <View style={styles.row}>
+          <Text style={[styles.cell, {textAlign: "left"}]}>
+            {item.text}
+          </Text>
+          <Text style={[styles.cell, {textAlign: "center"}]}>
+            {item.entries.map(entry => entry.topic).join(", ")}
+          </Text>
+          <Text style={[styles.cell, {textAlign: "right"}]}>
+            {item.timestamp}
+          </Text>
+        </View>
+    );
+  }
+
   const timestamp_format = {
     month: "short", day: "numeric",
     hour: "2-digit", minute: "2-digit", hour12: true
@@ -69,7 +89,12 @@ export function TranscriptHistory({userId}) {
   const tableData = transcriptsList.map((record) => ({
     timestamp: record.timestamp.toDate().toLocaleDateString([], timestamp_format),
     text: record.text,
-    topics: record.entries,
+    entries: parseEntriesFromJson(record.entries).entriesList.map(entry => {
+      console.log("entry: ", entry);
+      return {
+        topic: entry.topic
+      }
+    }),
     id: record.id
   }));
 
@@ -79,19 +104,7 @@ export function TranscriptHistory({userId}) {
           <FlatList
               data={tableData}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({item}) => (
-                  <View style={styles.row}>
-                    <Text style={[styles.cell, {textAlign: "left"}]}>
-                      {item.text}
-                    </Text>
-                    <Text style={[styles.cell, {textAlign: "center"}]}>
-                      {item.topics}
-                    </Text>
-                    <Text style={[styles.cell, {textAlign: "right"}]}>
-                      {item.timestamp}
-                    </Text>
-                  </View>
-              )}
+              renderItem={renderItem}
           />
         </View>
       </View>
