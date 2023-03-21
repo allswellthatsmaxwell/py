@@ -134,7 +134,7 @@ export default function App() {
   function Header() {
     return (
         <View style={styles.headerContainer}>
-          <Text style={{fontSize: 20, paddingTop: 35}}>{selectedTopic}</Text>
+          {/*<Text style={{fontSize: 20, paddingTop: 35}}>{selectedTopic}</Text>*/}
 
           <AuthStatusElements/>
           <HistoryButton/>

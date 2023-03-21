@@ -10,8 +10,6 @@ export function getStyles() {
             backgroundColor: "#EECBAD",
             width: "100%",
             height: 100,
-            alignItems: "center",
-            justifyContent: "center",
             borderRadius: 50,
             overflow: "hidden",
             fontWeight: "bold",

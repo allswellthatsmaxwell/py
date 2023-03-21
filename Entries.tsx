@@ -10,11 +10,11 @@ import {MaterialCommunityIcons} from "@expo/vector-icons";
 const projectStyles = getStyles();
 
 const styles = StyleSheet.create({
-  container: {
+  tableContainer: {
     height: 400,
     width: 400,
     borderWidth: 1,
-    marginTop: 50,
+    marginTop: 20,
     borderColor: "#fff"
   },
   entryRow: {
@@ -38,8 +38,15 @@ const styles = StyleSheet.create({
 
 export function EntriesForTopic({userId, selectedTopic}) {
   return (
-      <View style={projectStyles.topContainer}>
-        <LogsList userId={userId} topic={selectedTopic}/>
+      <View>
+        <Text style={{fontSize: 26, textAlign: "center", marginTop: 10,
+                      textDecorationLine: "underline", textDecorationColor: 'gray',
+        }}>
+          {selectedTopic}
+        </Text>
+        <View style={projectStyles.topContainer}>
+          <LogsList userId={userId} topic={selectedTopic}/>
+        </View>
       </View>
   );
 }
@@ -152,9 +159,9 @@ function LogsList({userId, topic}) {
         <Swipeable ref={swipeableRef}
                    renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>
           <View style={styles.entryRow}>
-            <Text style={[styles.cell, {textAlign: "left" }]}>{item.date}</Text>
-            <Text style={[styles.cell, {textAlign: "center" }]}>{item.time}</Text>
-            <Text style={[styles.cell, {textAlign: "right" }]}>{item.value}</Text>
+            <Text style={[styles.cell, {textAlign: "left"}]}>{item.date}</Text>
+            <Text style={[styles.cell, {textAlign: "center"}]}>{item.time}</Text>
+            <Text style={[styles.cell, {textAlign: "right"}]}>{item.value}</Text>
           </View>
         </Swipeable>
     );
@@ -162,9 +169,9 @@ function LogsList({userId, topic}) {
 
   const renderHeader = () => (
       <View style={[styles.entryRow, {borderWidth: 1, backgroundColor: "#B0E2FF"}]}>
-        <Text style={[styles.cell, {textAlign: "left" }]}>date</Text>
-        <Text style={[styles.cell, {textAlign: "center" }]}>time</Text>
-        <Text style={[styles.cell, {textAlign: "right" }]}>value</Text>
+        <Text style={[styles.cell, {textAlign: "left"}]}>date</Text>
+        <Text style={[styles.cell, {textAlign: "center"}]}>time</Text>
+        <Text style={[styles.cell, {textAlign: "right"}]}>value</Text>
       </View>
   );
 
@@ -177,14 +184,17 @@ function LogsList({userId, topic}) {
   }));
 
   return (
-      <View style={styles.container}>
-        <FlatList
-            data={tableData}
-            renderItem={renderItem}
-            ListHeaderComponent={renderHeader}
+      <View>
+        <View style={styles.tableContainer}>
 
-            keyExtractor={(item, index) => item.id}
-        />
+          <FlatList
+              data={tableData}
+              renderItem={renderItem}
+              ListHeaderComponent={renderHeader}
+              nestedScrollEnabled={true}
+              keyExtractor={(item, index) => item.id}
+          />
+        </View>
       </View>
   );
 }
