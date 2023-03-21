@@ -5,6 +5,7 @@ import * as firebase from "firebase";
 import {Swipeable} from "react-native-gesture-handler";
 
 import {getStyles} from "./styles";
+import {sortDateTime, Entry} from "./Utilities";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 
 const projectStyles = getStyles();
@@ -50,28 +51,6 @@ export function EntriesForTopic({userId, selectedTopic}) {
         </View>
       </View>
   );
-}
-
-function sortDateTime(a, b) {
-  {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    if (dateA < dateB) {
-      return 1;
-    } else if (dateA > dateB) {
-      return -1;
-    } else {
-      const timeA = new Date(a.time);
-      const timeB = new Date(b.time);
-      if (timeA < timeB) {
-        return 1;
-      } else if (timeA > timeB) {
-        return -1;
-      } else {
-        return 0;
-      }
-    }
-  }
 }
 
 function LogsList({userId, topic}) {
@@ -125,33 +104,6 @@ function LogsList({userId, topic}) {
         });
   };
 
-  function formatDate(input: string): string {
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-
-    const date = new Date(input);
-    const year = date.getFullYear().toString().slice(2);
-    const month = months[date.getMonth()];
-    const day = date.getDate();
-
-    return `${month} ${day} '${year}`;
-  }
-
-  function formatTime(input: string): string {
-    const [hourStr, minuteStr] = input.split(':');
-    const hour = parseInt(hourStr, 10);
-    const minute = parseInt(minuteStr, 10);
-
-    const amPm = hour >= 12 ? 'PM' : 'AM';
-    const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
-    const formattedMinute = minute === 0 ? '' : `:${minute.toString().padStart(2, '0')}`;
-
-    return `${formattedHour}${formattedMinute}${amPm}`;
-  }
-
-
   const renderRightActions = (progress, dragX, log) => {
 
     const trans = dragX.interpolate({
@@ -200,12 +152,7 @@ function LogsList({userId, topic}) {
   );
 
 
-  const tableData = logsList.map((log) => ({
-    date: formatDate(log.date),
-    time: formatTime(log.time),
-    value: log.value,
-    id: log.id
-  }));
+  const tableData = logsList.map(log => new Entry(log));
 
   return (
       <View>

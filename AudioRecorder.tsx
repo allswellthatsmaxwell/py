@@ -14,6 +14,7 @@ import * as firebase from "firebase";
 
 import {OPENAI_API_KEY} from "./Keys";
 import {useEffect} from "react";
+import {parseEntriesFromJson} from "./Utilities";
 
 
 const textStyles = StyleSheet.create({
@@ -288,9 +289,9 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     if (transcript) {
       setTranscriptionResult(transcript);
       setTopicsStatus("Figuring out what you're logging...");
-      const topics = await computeAndWriteTopics(transcript, timestamp);
-      console.log("topicssss:", topics);
-      await handleTopicsTextUpdate(topics);
+      const parsedEntries = await computeAndWriteTopics(transcript, timestamp);
+      console.log("entriesString:", parsedEntries.entriesString);
+      await handleTopicsTextUpdate(parsedEntries.entriesString);
     } else {
       setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
     }
@@ -330,57 +331,44 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     }
   }
 
-  function parseable(topics) {
+  function parseable(entriesString: string) {
     try {
-      JSON.parse(topics);
+      JSON.parse(entriesString);
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  async function handleTopicsTextUpdate(topics) {
-    console.log("topics:", topics);
-    const notParseable = !parseable(topics);
+  async function handleTopicsTextUpdate(entriesString: string) {
+    const notParseable = !parseable(entriesString);
     if (
-        !topics ||
-        topics === "[]" ||
-        topics == [] ||
+        !entriesString ||
+        entriesString === "[]" ||
         notParseable ||
-        Object.keys(topics).length == 0
+        Object.keys(entriesString).length == 0
     ) {
-      console.log("topics:", topics);
+      console.log("entriesString:", entriesString);
       setTopicsStatus("Found no topics - sorry!");
-      topics = "[]";
+      entriesString = "[]";
     } else {
       setTopicsStatus(null);
     }
-    setTopicsResult(topics);
+    setTopicsResult(entriesString);
     return;
   }
 
-  async function computeAndWriteTopics(transcript, timestamp) {
+  async function computeAndWriteTopics(transcript: string, timestamp) {
     const entries = await getTopicsTurbo(transcript);
-    let entriesList;
-    let entriesString;
-    try {
-      console.log("Trying to parse entries: ", entries);
-      entriesList = JSON.parse(entries);
-      entriesString = entries;
-      console.log("Parsed entries: ", entriesList);
-    } catch (e) {
-      console.log("Error parsing entries: ", e);
-      entriesList = [];
-      entriesString = "[]";
-    }
+    const parsedEntries = parseEntriesFromJson(entries);
     await transcriptsCollection
-        .add({text: transcript, entries: entriesString, timestamp: timestamp})
+        .add({text: transcript, entries: parsedEntries.entriesString, timestamp: timestamp})
         .then((docRef) => {
           console.log("Transcript written with ID: ", docRef.id);
         });
 
-    await writeEntriesToDB(transcript, entriesList, timestamp);
-    return entriesString;
+    await writeEntriesToDB(transcript, parsedEntries.entriesList, timestamp);
+    return parsedEntries;
   }
 
   // gets just the time, in the format HH:MM
@@ -516,9 +504,6 @@ It is critical that you output a valid json list, no matter what.
 
     console.log("Completion: ", completion);
     const new_entry = completion['choices'][0]['message']['content'];
-    // strip specifically { and } from new_entry. other characters are unchanged
-    // const new_entry_stripped = new_entry.replace(/{/g, '').replace(/}/g, '');
-    // const new_entry_final = new_entry_stripped;
     console.log("New entry: ", new_entry);
     return new_entry;
   }
@@ -608,8 +593,6 @@ It is critical that you output a valid json list, no matter what.
                         <FontAwesome name="microphone" size={56} color={micColor}/>
                       </View>
                   )}
-
-                  {console.log("isProcessing: ", isProcessing)}
                 </Text>
             )}
           </TouchableOpacity>

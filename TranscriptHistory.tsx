@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {View, FlatList, Text, StyleSheet} from 'react-native';
 import * as firebase from 'firebase';
 
+import {sortDateTime} from "./Utilities";
 import {getStyles} from './styles';
 
 const projectStyles = getStyles();
@@ -68,7 +69,7 @@ export function TranscriptHistory({userId}) {
   const tableData = transcriptsList.map((record) => ({
     timestamp: record.timestamp.toDate().toLocaleDateString([], timestamp_format),
     text: record.text,
-    topics: record.topics,
+    topics: record.entries,
     id: record.id
   }));
 

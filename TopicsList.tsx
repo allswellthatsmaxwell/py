@@ -157,8 +157,6 @@ export function TopicsList({userId, setSelectedTopic}) {
               const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
               // console.log("sortedDates: ", sortedDates);
               const todayDate = moment().toISOString().split("T")[0];
-              console.log("todayDate: ", todayDate);
-              console.log("moment(todayDate): ", moment(todayDate));
               const maxDataValue = Math.max(
                   ...Object.values(entriesDayCounts[item])
               );
