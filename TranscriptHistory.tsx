@@ -1,156 +1,203 @@
-import React, {useEffect} from 'react';
-import {View, FlatList, Text, StyleSheet} from 'react-native';
-import * as firebase from 'firebase';
-
+import React, {useState, useEffect} from "react";
 import {
-  parseEntriesFromJson, getEnglishTimeDifference,
-  formatDate, formatTime
-} from "./Utilities";
-import {getStyles} from './styles';
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Animated,
+} from "react-native";
+import {LinearGradient} from "expo-linear-gradient";
+import firebase from "firebase";
+import Swiper from "react-native-deck-swiper";
 
-const projectStyles = getStyles();
+class TranscriptEntry {
+  topic: string;
+  value: string;
+  time: string;
+  date: string;
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 2,
-    backgroundColor: "white",
-    width: "100%",
-    flexWrap: "wrap",
-    borderBottomWidth: 1,
-  },
-  mainTextContainer: {
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    // alignSelf: "flex-start",
-    maxWidth: "100%",
-    width: 400,
-    height: 600,
-    maxHeight: 600,
-    // padding: 10,
-    paddingHorizontal: 10,
-    marginTop: 0,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#000000",
-    overflow: "hidden",
-  },
-  cell: {
-    flex: 1,
-    alignItems: "center",
-  },
-  separator: {
-    height: '100%',
-    width: 1,
-    backgroundColor: 'gray',
-    marginHorizontal: 8,
-  },
-});
+  constructor(topic, value, time, date) {
+    this.topic = topic;
+    this.value = value;
+    this.time = time;
+    this.date = date;
+  }
+}
 
-const subTableStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-  },
-  cell: {
-    flex: 1,
-  },
-  scrollViewContainer: {
-    flexGrow: 1,
-  },
-  entryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  entryTopic: {
-    textAlign: 'left',
-  },
-  entryValue: {
-    textAlign: 'right',
-  },
-  separator: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#CCCCCC',
-  },
-});
+// Define a class to represent the entire transcript data
+class Transcript {
+  text: string;
+  timestamp: Date;
+  entries: TranscriptEntry[];
+
+  constructor(text, timestamp, entries) {
+    this.text = text;
+    this.timestamp = timestamp;
+    this.entries = entries.map(
+        (entry) => new TranscriptEntry(entry.topic, entry.value, entry.time, entry.date)
+    );
+  }
+}
+
+// A function to parse the raw data from Firebase and return an instance of the `Transcript` class
+function parseTranscriptData(rawData) {
+  const {text, timestamp, entries} = rawData;
+  const parsedEntries = JSON.parse(entries);
+  const parsedTimestamp = new Date(timestamp); // assuming timestamp is already a valid Date object, otherwise use `new Date(timestamp.toDate())`
+  return new Transcript(text, parsedTimestamp, parsedEntries);
+}
 
 export function TranscriptHistory({userId}) {
-
-  const [transcriptsList, setTranscriptsList] = React.useState([]);
+  const [transcripts, setTranscripts] = useState([]);
 
   useEffect(() => {
-    const transcriptsCollection = firebase
+    const unsubscribe = firebase
         .firestore()
         .collection("users")
         .doc(userId)
-        .collection("transcripts");
+        .collection("transcripts")
+        // .orderBy("timestamp", "desc")
+        .onSnapshot((snapshot) => {
+          const fetchedTranscripts = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          console.log("fetchedTranscripts: ", fetchedTranscripts);
+          setTranscripts(fetchedTranscripts);
+        });
 
-    const unsubscribe = transcriptsCollection.onSnapshot((snapshot) => {
-      const transcripts = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
-      transcripts.sort((a, b) => b.timestamp - a.timestamp);
-      // console.log("Logs: ", transcripts);
-      setTranscriptsList(transcripts);
-    });
-
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, [userId]);
 
-  function formatEntry(entry) {
-    let s = "";
-    if (entry.topic) {
-      s += `${entry.topic}: `;
-    }
-    if (entry.value) {
-      s += `\n${entry.value}`;
-    }
-    if (entry.date) {
-      s += '\n' + formatDate(entry.date, false);
-    }
-    if (entry.time) {
-      s += ', ' + formatTime(entry.time);
-    }
-    return s
-  }
+  const onDelete = async (transcriptId, entries) => {
+    Alert.alert(
+        "Delete Transcript",
+        "Are you sure you want to delete this transcript?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            onPress: async () => {
+              const batch = firebase.firestore().batch();
 
-  function renderItem({item}) {
+              // Delete transcript
+              const transcriptRef = firebase
+                  .firestore()
+                  .collection("users")
+                  .doc(userId)
+                  .collection("transcripts")
+                  .doc(transcriptId);
+              batch.delete(transcriptRef);
+
+              // Delete entries
+              for (const entry of JSON.parse(entries)) {
+                const entryRef = firebase
+                    .firestore()
+                    .collection("users")
+                    .doc(userId)
+                    .collection("topics")
+                    .doc(entry.topic)
+                    .collection("entries")
+                    .doc(entry.date + "_" + entry.time);
+                batch.delete(entryRef);
+              }
+
+              await batch.commit();
+            },
+          },
+        ]
+    );
+  };
+
+  const renderCard = (item) => {
+    // const { item } = props;
+    console.log("renderCard item: ", item);
+    if (!item) {
+      return (
+          // Return an empty card component or null
+          // You can customize the appearance of the empty card as needed
+          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Text>No more transcripts</Text>
+          </View>
+      );
+    } else {
+      return (
+          <LinearGradient
+              colors={["#ffffff", "#e6e6e6"]}
+              style={{
+                flex: 1,
+                borderRadius: 10,
+                padding: 20,
+                justifyContent: "space-between",
+              }}
+          >
+            <TouchableOpacity
+                style={{
+                  alignSelf: "flex-end",
+                  backgroundColor: "red",
+                  borderRadius: 50,
+                  width: 30,
+                  height: 30,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onPress={() => onDelete(item.id, item.entries)}
+            >
+              <Text style={{color: "white", fontWeight: "bold"}}>X</Text>
+            </TouchableOpacity>
+            <ScrollView>
+              <Text style={{fontWeight: "bold", fontSize: 18}}>Transcript:</Text>
+              <Text>{item.text}</Text>
+            </ScrollView>
+            <View>
+              <Text style={{fontWeight: "bold", fontSize: 18}}>Entries:</Text>
+              {JSON.parse(item.entries).map((entry, index) => (
+                  <Text key={index}>
+                    {entry.topic} - {entry.value} at {entry.time} on {entry.date}
+                  </Text>
+              ))}
+            </View>
+            <View style={{alignItems: "flex-end"}}>
+              <Text style={{fontStyle: "italic"}}>
+                {new Date(item.timestamp?.toDate()).toLocaleString()}
+              </Text>
+            </View>
+          </LinearGradient>
+      );
+    }
+  };
+
+  if (transcripts.length === 0) {
     return (
-        <View style={styles.row}>
-          <Text style={[styles.cell, {textAlign: "left"}]}>
-            {item.text}
-          </Text>
-          <View style={styles.separator}/>
-          <Text style={[styles.cell, {textAlign: "left"}]}>
-            {item.entries.map(formatEntry).join("\n\n")}
-          </Text>
-          <View style={styles.separator}/>
-
-          <Text style={[styles.cell, {textAlign: "right"}]}>
-            {getEnglishTimeDifference(item.timestamp)}
-          </Text>
+        <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
+          <Text>Loading transcripts...</Text>
+        </View>
+    );
+  } else {
+    console.log("transcripts: ", transcripts);
+    console.log("transcripts[1]: ", transcripts[1]);
+    return (
+        <View style={{flex: 1}}>
+          <Swiper
+              cards={transcripts}
+              renderCard={renderCard}
+              backgroundColor="transparent"
+              cardIndex={0}
+              stackSize={3}
+              stackSeparation={15}
+              animateCardOpacity
+              showSecondCard
+              disableBottomSwipe
+              disableTopSwipe
+              onSwiped={(cardIndex) => console.log(cardIndex)}
+              onSwipedAll={() => console.log("All cards swiped")}
+          />
         </View>
     );
   }
+};
 
-  const tableData = transcriptsList.map((record) => ({
-    timestamp: record.timestamp.toDate(),//.toLocaleDateString([], timestamp_format),
-    text: record.text,
-    entries: parseEntriesFromJson(record.entries).entriesList.map(entry => {
-      return entry
-    }),
-    id: record.id
-  }));
-
-  return (
-      <View style={projectStyles.topContainer}>
-        <View style={[styles.mainTextContainer, {alignSelf: "flex-end"}]}>
-          <FlatList
-              data={tableData}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={renderItem}
-          />
-        </View>
-      </View>
-  );
-}
