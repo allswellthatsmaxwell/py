@@ -11,6 +11,8 @@ import {LinearGradient} from "expo-linear-gradient";
 import firebase from "firebase";
 import Swiper from "react-native-deck-swiper";
 
+import {formatDate} from "./Utilities";
+
 class TranscriptEntry {
   topic: string;
   value: string;
@@ -73,7 +75,7 @@ export function TranscriptHistory({userId}) {
   const onDelete = async (transcriptId, entries) => {
     Alert.alert(
         "Delete Transcript",
-        "Are you sure you want to delete this transcript?",
+        "Are you sure you want to delete this transcript and its entries?",
         [
           {
             text: "Cancel",
@@ -121,18 +123,22 @@ export function TranscriptHistory({userId}) {
           // Return an empty card component or null
           // You can customize the appearance of the empty card as needed
           <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Text>No more transcripts</Text>
+            <Text>Something went wrong.</Text>
           </View>
       );
     } else {
       return (
-          <LinearGradient
-              colors={["#ffffff", "#e6e6e6"]}
+          <View
               style={{
-                flex: 1,
                 borderRadius: 10,
                 padding: 20,
+                alignSelf: "center",
+                height: "50%",
+                width: "80%",
                 justifyContent: "space-between",
+                backgroundColor: "white",
+                borderColor: "black",
+                borderWidth: 1,
               }}
           >
             <TouchableOpacity
@@ -149,24 +155,24 @@ export function TranscriptHistory({userId}) {
             >
               <Text style={{color: "white", fontWeight: "bold"}}>X</Text>
             </TouchableOpacity>
-            <ScrollView>
-              <Text style={{fontWeight: "bold", fontSize: 18}}>Transcript:</Text>
-              <Text>{item.text}</Text>
-            </ScrollView>
             <View>
-              <Text style={{fontWeight: "bold", fontSize: 18}}>Entries:</Text>
+              <Text style={{fontWeight: "bold", fontSize: 18}}>Transcript</Text>
+              <Text>{item.text}</Text>
+            </View>
+            <View style={{flex: 1, marginTop: 20}}>
+              <Text style={{fontWeight: "bold", fontSize: 18}}>Entries</Text>
               {JSON.parse(item.entries).map((entry, index) => (
                   <Text key={index}>
-                    {entry.topic} - {entry.value} at {entry.time} on {entry.date}
+                    {entry.topic}: {entry.value} at {entry.time} on {formatDate(entry.date)}
                   </Text>
               ))}
             </View>
             <View style={{alignItems: "flex-end"}}>
               <Text style={{fontStyle: "italic"}}>
-                {new Date(item.timestamp?.toDate()).toLocaleString()}
+                Recorded {new Date(item.timestamp?.toDate()).toLocaleString()}
               </Text>
             </View>
-          </LinearGradient>
+          </View>
       );
     }
   };
@@ -178,8 +184,6 @@ export function TranscriptHistory({userId}) {
         </View>
     );
   } else {
-    console.log("transcripts: ", transcripts);
-    console.log("transcripts[1]: ", transcripts[1]);
     return (
         <View style={{flex: 1}}>
           <Swiper
