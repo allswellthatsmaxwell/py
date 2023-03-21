@@ -111,6 +111,7 @@ function LogsList({userId, topic}) {
     return `${formattedHour}${formattedMinute}${amPm}`;
   }
 
+
   const renderRightActions = (progress, dragX, log) => {
 
     const trans = dragX.interpolate({

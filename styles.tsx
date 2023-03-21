@@ -29,15 +29,6 @@ export function getStyles() {
             top: 0,
             borderBottomWidth: 0,
         },
-        // row: {
-        //     flexDirection: "row",
-        //     justifyContent: "space-between",
-        //     alignItems: "center",
-        //     paddingVertical: 10,
-        //     borderBottomWidth: 1,
-        //     borderBottomColor: "lightgray",
-        //     backgroundColor: "#f1f8ff",
-        // },
 
         centerContainer: {
             flex: 1,
@@ -47,7 +38,6 @@ export function getStyles() {
         topicsTableContainer: {
             width: "100%",
             flex: 1,
-            alignItems: "left",
             justifyContent: "center",
             //   marginTop: 5,
             marginLeft: 0,
@@ -60,22 +50,10 @@ export function getStyles() {
             justifyContent: "flex-start",
             paddingTop: 0,
         },
-        // bottomContainer: {
-        //     flex: 1,
-        //     alignItems: "center",
-        //     justifyContent: "flex-end",
-        //     paddingBottom: 0,
-        // },
         flatList: {
             maxHeight: "100%",
             width: "100%",
         },
-        // bottomLeftCornerContainer: {
-        //     position: "absolute",
-        //     bottom: 0,
-        //     left: 0,
-        //     width: "100%",
-        // },
         topLeftCornerContainer: {
             position: "absolute",
             top: 50,
