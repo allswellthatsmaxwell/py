@@ -38,12 +38,7 @@ export function getStyles() {
         //     borderBottomColor: "lightgray",
         //     backgroundColor: "#f1f8ff",
         // },
-        rowText: {
-            fontSize: 20,
-            color: "black",
-            verticalMargin: 1,
-            paddingLeft: 5,
-        },
+
         centerContainer: {
             flex: 1,
             alignItems: "center",

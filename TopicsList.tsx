@@ -17,8 +17,8 @@ const styles = getStyles();
 const rowStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
+    flex: 1,
     alignItems: "flex-end",
-    justifyContent: "space-between",
     marginRight: 2,
   },
   bar: {
@@ -30,6 +30,14 @@ const rowStyles = StyleSheet.create({
   chart: {
     flexDirection: "row",
     alignItems: "flex-end",
+    justifyContent: "flex-end",
+    flex: 1,
+  },
+  rowText: {
+    fontSize: 20,
+    color: "black",
+    justifyContent: "flex-end",
+    paddingLeft: 5
   },
 });
 
@@ -142,14 +150,15 @@ export function TopicsList({userId, setSelectedTopic}) {
               // uniqueDates is the dates for the past 30 days, including today
               const uniqueDates = Array.from({length: 30}, (_, i) =>
                   moment()
-                      .subtract(i - 3, "days")
+                      .subtract(i, "days")
                       .toISOString()
                       .split("T")[0]
               );
               const sortedDates = uniqueDates.sort((a, b) => a.localeCompare(b));
               // console.log("sortedDates: ", sortedDates);
               const todayDate = moment().toISOString().split("T")[0];
-              // console.log("todayDate: ", todayDate);
+              console.log("todayDate: ", todayDate);
+              console.log("moment(todayDate): ", moment(todayDate));
               const maxDataValue = Math.max(
                   ...Object.values(entriesDayCounts[item])
               );
@@ -164,10 +173,10 @@ export function TopicsList({userId, setSelectedTopic}) {
 
               return (
                   <TouchableOpacity onPress={() => handleTopicPress(item)}>
-                    <View style={rowStyles.row}>
-                      <Text style={styles.rowText}>{item}</Text>
+                    <View>
+                      <View style={rowStyles.row}>
+                          <Text style={[rowStyles.rowText, {width: 200}]} numberOfLines={1}>{item}</Text>
                       <View style={rowStyles.chart}>
-
                         {sortedDates.map((date, index) => (
                             <View
                                 key={index}
@@ -183,23 +192,24 @@ export function TopicsList({userId, setSelectedTopic}) {
                         ))}
                       </View>
                     </View>
+                    </View>
                   </TouchableOpacity>
-              );
+              )
+                  ;
             }}
-            keyExtractor={(item) => item}
-            style={styles.flatList}
-            showsVerticalScrollIndicator={false}
-            ItemSeparatorComponent={renderSeparator}
-            ListFooterComponent={() => (
-                <View
-                    style={{
-                      borderBottomWidth: 1,
-                      borderBottomColor: "black",
-                    }}
-                />
-            )}
-        />
+          keyExtractor={(item) => item}
+          style={styles.flatList}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={renderSeparator}
+          ListFooterComponent={() => (
+            <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: "black",
+                }}
+            />
+        )}
+          />
       </View>
   );
 }
-

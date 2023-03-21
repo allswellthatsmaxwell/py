@@ -12,6 +12,7 @@
     "@expo/webpack-config": "^0.17.2",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
+    "d3-scale": "^4.0.2",
     "expo": "^48.0.8",
     "expo-av": "~13.0.2",
     "expo-dev-client": "~2.0.1",
@@ -27,6 +28,8 @@
     "react-native": "0.70.5",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.9.0",
+    "react-native-svg": "^13.8.0",
+    "react-native-svg-charts": "^5.4.0",
     "react-native-table-component": "*",
     "react-native-web": "~0.18.7",
     "typescript": "^5.0.2"
