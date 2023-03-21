@@ -36,7 +36,39 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     alignItems: "center",
-  }
+  },
+  separator: {
+    height: '100%',
+    width: 1,
+    backgroundColor: 'gray',
+    marginHorizontal: 8,
+  },
+});
+
+const subTableStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+  },
+  cell: {
+    flex: 1,
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
+  },
+  entryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  entryTopic: {
+    textAlign: 'left',
+  },
+  entryValue: {
+    textAlign: 'right',
+  },
+  separator: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#CCCCCC',
+  },
 });
 
 export function TranscriptHistory({userId}) {
@@ -62,21 +94,66 @@ export function TranscriptHistory({userId}) {
     };
   }, [userId]);
 
+  function getEnglishTimeDifference(timestamp: string) {
+    // gets the difference between the current time and the timestamp.
+    // If it was less than a minute ago, it returns "just now"
+    // If it was less than an hour ago, it returns "x minutes ago"
+    // If it was less than a day ago, it returns "x hours ago"
+    // If it was less than a week ago, it returns "x days ago"
+    // If it was less than a month ago, it returns "x weeks ago"
+    // If it was less than a year ago, it returns "x months ago"
+    // If it was more than a year ago, it returns "x years ago"
+
+    console.log("Timestamp: ", timestamp);
+    const time = new Date(timestamp);
+    const now = new Date();
+    const difference = now.getTime() - time.getTime();
+    console.log("Time: ", time);
+    console.log("Now: ", now);
+    console.log("Difference: ", difference);
+
+
+    const seconds = difference / 1000;
+    const minutes = seconds / 60;
+    const hours = minutes / 60;
+    const days = hours / 24;
+    const weeks = days / 7;
+    const months = days / 30;
+    const years = days / 365;
+    if (seconds < 60) {
+      return "just now";
+    } else if (minutes < 60) {
+      return Math.round(minutes) + " min";
+    } else if (hours < 24) {
+      return Math.round(hours) + " hours";
+    } else if (days < 7) {
+      return Math.round(days) + " days";
+    } else if (weeks < 4) {
+      return Math.round(weeks) + " weeks";
+    } else if (months < 12) {
+      return Math.round(months) + " months";
+    } else {
+      return Math.round(years) + " years";
+    }
+
+  }
+
   function renderItem({item}) {
-    // console.log("item: ", item);
-    // console.log("item.entries: ", item.entries);
-    // console.log("item.entries fields: ", Object.keys(item.entries));
-    // console.log("item.entries.topic: ", item.entries.topic);
     return (
         <View style={styles.row}>
           <Text style={[styles.cell, {textAlign: "left"}]}>
             {item.text}
           </Text>
+          <View style={styles.separator}/>
+
+
           <Text style={[styles.cell, {textAlign: "center"}]}>
-            {item.entries.map(entry => entry.topic).join(", ")}
+            {item.entries.map(entry => entry.topic + ": " + entry.value).join("\n")}
           </Text>
+          <View style={styles.separator}/>
+
           <Text style={[styles.cell, {textAlign: "right"}]}>
-            {item.timestamp}
+            {getEnglishTimeDifference(item.timestamp)}
           </Text>
         </View>
     );
@@ -87,12 +164,13 @@ export function TranscriptHistory({userId}) {
     hour: "2-digit", minute: "2-digit", hour12: true
   };
   const tableData = transcriptsList.map((record) => ({
-    timestamp: record.timestamp.toDate().toLocaleDateString([], timestamp_format),
+    timestamp: record.timestamp.toDate(),//.toLocaleDateString([], timestamp_format),
     text: record.text,
     entries: parseEntriesFromJson(record.entries).entriesList.map(entry => {
       console.log("entry: ", entry);
       return {
-        topic: entry.topic
+        topic: entry.topic,
+        value: entry.value
       }
     }),
     id: record.id
