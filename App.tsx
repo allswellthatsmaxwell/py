@@ -100,7 +100,7 @@ export default function App() {
 
   function MainDisplay() {
     return (
-        <ScrollView>
+        <ScrollView scrollEnabled={false}>
           <View>
             <View style={[styles.topContainer, {height: 600}]}>
               <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic}/>

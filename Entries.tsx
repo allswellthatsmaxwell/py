@@ -168,7 +168,7 @@ function LogsList({userId, topic}) {
   };
 
   const renderHeader = () => (
-      <View style={[styles.entryRow, {borderWidth: 1, backgroundColor: "#B0E2FF"}]}>
+      <View style={[styles.entryRow, {borderWidth: 1, backgroundColor: "#B0C4DE"}]}>
         <Text style={[styles.cell, {textAlign: "left"}]}>date</Text>
         <Text style={[styles.cell, {textAlign: "center"}]}>time</Text>
         <Text style={[styles.cell, {textAlign: "right"}]}>value</Text>
@@ -185,13 +185,13 @@ function LogsList({userId, topic}) {
 
   return (
       <View>
-        <View style={styles.tableContainer}>
-
+        <View style={[styles.tableContainer]}>
           <FlatList
               data={tableData}
               renderItem={renderItem}
               ListHeaderComponent={renderHeader}
               nestedScrollEnabled={true}
+              overScrollMode={"never"}
               keyExtractor={(item, index) => item.id}
           />
         </View>
