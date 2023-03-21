@@ -2,7 +2,10 @@ import React, {useEffect} from 'react';
 import {View, FlatList, Text, StyleSheet} from 'react-native';
 import * as firebase from 'firebase';
 
-import {parseEntriesFromJson, sortDateTime, Entry} from "./Utilities";
+import {
+  parseEntriesFromJson, getEnglishTimeDifference,
+  formatDate, formatTime
+} from "./Utilities";
 import {getStyles} from './styles';
 
 const projectStyles = getStyles();
@@ -94,48 +97,21 @@ export function TranscriptHistory({userId}) {
     };
   }, [userId]);
 
-  function getEnglishTimeDifference(timestamp: string) {
-    // gets the difference between the current time and the timestamp.
-    // If it was less than a minute ago, it returns "just now"
-    // If it was less than an hour ago, it returns "x minutes ago"
-    // If it was less than a day ago, it returns "x hours ago"
-    // If it was less than a week ago, it returns "x days ago"
-    // If it was less than a month ago, it returns "x weeks ago"
-    // If it was less than a year ago, it returns "x months ago"
-    // If it was more than a year ago, it returns "x years ago"
-
-    console.log("Timestamp: ", timestamp);
-    const time = new Date(timestamp);
-    const now = new Date();
-    const difference = now.getTime() - time.getTime();
-    console.log("Time: ", time);
-    console.log("Now: ", now);
-    console.log("Difference: ", difference);
-
-
-    const seconds = difference / 1000;
-    const minutes = seconds / 60;
-    const hours = minutes / 60;
-    const days = hours / 24;
-    const weeks = days / 7;
-    const months = days / 30;
-    const years = days / 365;
-    if (seconds < 60) {
-      return "just now";
-    } else if (minutes < 60) {
-      return Math.round(minutes) + " min";
-    } else if (hours < 24) {
-      return Math.round(hours) + " hours";
-    } else if (days < 7) {
-      return Math.round(days) + " days";
-    } else if (weeks < 4) {
-      return Math.round(weeks) + " weeks";
-    } else if (months < 12) {
-      return Math.round(months) + " months";
-    } else {
-      return Math.round(years) + " years";
+  function formatEntry(entry) {
+    let s = "";
+    if (entry.topic) {
+      s += `${entry.topic}: `;
     }
-
+    if (entry.value) {
+      s += `\n${entry.value}`;
+    }
+    if (entry.date) {
+      s += '\n' + formatDate(entry.date, false);
+    }
+    if (entry.time) {
+      s += ', ' + formatTime(entry.time);
+    }
+    return s
   }
 
   function renderItem({item}) {
@@ -145,10 +121,8 @@ export function TranscriptHistory({userId}) {
             {item.text}
           </Text>
           <View style={styles.separator}/>
-
-
-          <Text style={[styles.cell, {textAlign: "center"}]}>
-            {item.entries.map(entry => entry.topic + ": " + entry.value).join("\n")}
+          <Text style={[styles.cell, {textAlign: "left"}]}>
+            {item.entries.map(formatEntry).join("\n\n")}
           </Text>
           <View style={styles.separator}/>
 
@@ -159,19 +133,11 @@ export function TranscriptHistory({userId}) {
     );
   }
 
-  const timestamp_format = {
-    month: "short", day: "numeric",
-    hour: "2-digit", minute: "2-digit", hour12: true
-  };
   const tableData = transcriptsList.map((record) => ({
     timestamp: record.timestamp.toDate(),//.toLocaleDateString([], timestamp_format),
     text: record.text,
     entries: parseEntriesFromJson(record.entries).entriesList.map(entry => {
-      console.log("entry: ", entry);
-      return {
-        topic: entry.topic,
-        value: entry.value
-      }
+      return entry
     }),
     id: record.id
   }));
