@@ -80,10 +80,12 @@ async def transcribe():
     print("Entering routes.transcribe...")
     
     audio_data = request.get_data()
+    user_id = request.args.get('userId', None)
+    print(f"userId: {user_id}")
 
     print("/transcribe: len(audio_data):", len(audio_data))
     
-    dest_dir = os.path.join(filesystem.root, "recordings")
+    dest_dir = os.path.join(filesystem.root, user_id, "recordings")
     os.makedirs(dest_dir, exist_ok=True)
     
     destpath = f"{dest_dir}/rec1.wav"

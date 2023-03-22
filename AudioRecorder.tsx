@@ -287,7 +287,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       const audioResponse = await fetch(audioUri);
       const audioBlob = await audioResponse.blob();
       console.log("audioBlob: ", audioBlob);
-      const response = await fetch('http://159.65.244.4:5555/transcribe', {
+      const response = await fetch(`http://159.65.244.4:5555/transcribe?userId=${encodeURIComponent(userId)}`, {
         method: 'POST',
         body: audioBlob,
         headers: {
