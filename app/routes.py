@@ -70,6 +70,12 @@ def remove_silence_and_save(input_file, output_file) -> bool:
     else:
         return False
 
+
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        print(f"The file {file_path} does not exist")
     
 
 filesystem = FileSystem(root=APPDATA_PATH)
@@ -106,4 +112,8 @@ async def transcribe():
         app.logger.info("No non-silent audio detected.")
         transcript = "SYSTEM: No audio detected. Output an empty list."
     response_data = {'transcription': transcript}
+    
+    delete_file(destpath)
+    delete_file(trimmed_path)
+
     return make_response(jsonify(response_data))
