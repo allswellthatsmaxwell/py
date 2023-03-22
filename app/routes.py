@@ -20,7 +20,7 @@ APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
 LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 
 
-def remove_silence(audio_file, silence_threshold=-50, min_silence_duration=100, padding=50):
+def remove_silence(audio_file, silence_threshold=-20, min_silence_duration=100, padding=50):
     audio = AudioSegment.from_wav(audio_file)
     nonsilent_ranges = detect_nonsilent(audio, min_silence_len=min_silence_duration, silence_thresh=silence_threshold)
 
