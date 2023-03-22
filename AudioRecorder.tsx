@@ -287,7 +287,9 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       const audioResponse = await fetch(audioUri);
       const audioBlob = await audioResponse.blob();
       console.log("audioBlob: ", audioBlob);
-      const response = await fetch(`http://159.65.244.4:5555/transcribe?userId=${encodeURIComponent(userId)}`, {
+      const url = `http://159.65.244.4:5555/transcribe?userId=${userId}`
+      console.log("url: ", url);
+      const response = await fetch(url, {
         method: 'POST',
         body: audioBlob,
         headers: {
@@ -432,6 +434,18 @@ topics: [{"topic": "coffee", "value": "1", "time": 09:00", "date": "2023-01-01"}
 [{"topic": "pizza (slices)", "value": "3", "time": "21:31", "date": "2024-09-15"},
  {"topic": "cake (slices)", "value": "2", "time": "21:31", "date": "2024-09-15"},
  {"topic": "cigarettes", "value": "2", "time": "14:00", "date": "2024-09-15"}]
+ 
+## input
+{"transcript": "We are gonna make it through, you know who it is",
+ "today": "2024-09-15", "time_now": "21:31"}
+## output
+[]
+
+## input
+{"transcript": "Oh, sorry",
+ "today": "2021-09-15", "time_now": "04:22"}
+## output
+[]
 
 # Format
 It is critical that you output a valid json list, AND NOTHING ELSE, no matter what. Your output will be parsed by the program,
