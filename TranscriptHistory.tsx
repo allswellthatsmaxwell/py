@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {
   View,
   Text,
@@ -13,42 +13,6 @@ import Swiper from "react-native-deck-swiper";
 
 import {formatDate} from "./Utilities";
 
-class TranscriptEntry {
-  topic: string;
-  value: string;
-  time: string;
-  date: string;
-
-  constructor(topic, value, time, date) {
-    this.topic = topic;
-    this.value = value;
-    this.time = time;
-    this.date = date;
-  }
-}
-
-// Define a class to represent the entire transcript data
-class Transcript {
-  text: string;
-  timestamp: Date;
-  entries: TranscriptEntry[];
-
-  constructor(text: string, timestamp, entries) {
-    this.text = text;
-    this.timestamp = timestamp;
-    this.entries = entries.map(
-        (entry) => new TranscriptEntry(entry.topic, entry.value, entry.time, entry.date)
-    );
-  }
-}
-
-// A function to parse the raw data from Firebase and return an instance of the `Transcript` class
-function parseTranscriptData(rawData) {
-  const {text, timestamp, entries} = rawData;
-  const parsedEntries = JSON.parse(entries);
-  const parsedTimestamp = new Date(timestamp); // assuming timestamp is already a valid Date object, otherwise use `new Date(timestamp.toDate())`
-  return new Transcript(text, parsedTimestamp, parsedEntries);
-}
 
 export function TranscriptHistory({userId}: { userId: string }) {
   const [transcripts, setTranscripts] = useState([]);
@@ -59,7 +23,7 @@ export function TranscriptHistory({userId}: { userId: string }) {
         .collection("users")
         .doc(userId)
         .collection("transcripts")
-        // .orderBy("timestamp", "desc")
+        .orderBy("timestamp", "desc")
         .onSnapshot((snapshot) => {
           const fetchedTranscripts = snapshot.docs.map((doc) => ({
             id: doc.id,
@@ -146,12 +110,9 @@ export function TranscriptHistory({userId}: { userId: string }) {
   };
 
   const renderCard = (item) => {
-    // const { item } = props;
     console.log("renderCard item: ", item);
     if (!item) {
       return (
-          // Return an empty card component or null
-          // You can customize the appearance of the empty card as needed
           <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <Text>Something went wrong.</Text>
           </View>
