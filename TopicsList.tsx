@@ -74,8 +74,6 @@ export function TopicsList({userId, setSelectedTopic}) {
           .where(firebase.firestore.FieldPath.documentId(), "in", batch)
           .get();
 
-      console.log("getEntriesDayCounts entriesCollection: ", entriesCollection);
-
       return entriesCollection;
     });
 
@@ -91,7 +89,6 @@ export function TopicsList({userId, setSelectedTopic}) {
             snapshot.docs.forEach((doc) => {
               const data = doc.data();
               const day = data.date;
-              console.log("day: ", day);
               if (!counts[day]) {
                 counts[day] = 0;
               }
@@ -119,8 +116,8 @@ export function TopicsList({userId, setSelectedTopic}) {
 
     const unsubscribe = topicsCollection.onSnapshot((snapshot) => {
       const topics = snapshot.docs.map((doc: any) => doc.id);
-      console.log("userId: ", userId);
-      console.log("Topics: ", topics);
+      // console.log("userId: ", userId);
+      // console.log("Topics: ", topics);
       setTopicsList(topics);
       getEntriesDayCounts(snapshot);
     });
@@ -134,7 +131,7 @@ export function TopicsList({userId, setSelectedTopic}) {
     // console.log("entriesDayCounts: ", entriesDayCounts);
   }, [entriesDayCounts]);
 
-  console.log(entriesDayCounts);
+  // console.log(entriesDayCounts);
 
   function getSortedUniqueDates() {
     // uniqueDates is the dates for the past 30 days, including today

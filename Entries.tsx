@@ -70,7 +70,7 @@ function LogsList({userId, topic}) {
       const logs = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
       // sorts logs first by date, then by time
       logs.sort(sortDateTime);
-      console.log("Logs: ", logs);
+      // console.log("Logs: ", logs);
       setLogsList(logs);
     });
 

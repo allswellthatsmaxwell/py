@@ -33,7 +33,7 @@ class Transcript {
   timestamp: Date;
   entries: TranscriptEntry[];
 
-  constructor(text, timestamp, entries) {
+  constructor(text: string, timestamp, entries) {
     this.text = text;
     this.timestamp = timestamp;
     this.entries = entries.map(
@@ -50,7 +50,7 @@ function parseTranscriptData(rawData) {
   return new Transcript(text, parsedTimestamp, parsedEntries);
 }
 
-export function TranscriptHistory({userId}) {
+export function TranscriptHistory({userId}: { userId: string }) {
   const [transcripts, setTranscripts] = useState([]);
 
   useEffect(() => {
@@ -72,7 +72,28 @@ export function TranscriptHistory({userId}) {
     return () => unsubscribe();
   }, [userId]);
 
-  const onDelete = async (transcriptId, entries) => {
+  async function deleteMatchingEntries(topic: string, entryIds: string[],
+                                       batch: firebase.firestore.WriteBatch): Promise<void> {
+    const entriesRef = firebase
+        .firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('topics')
+        .doc(topic)
+        .collection('entries');
+
+    for (const entryId of entryIds) {
+      const entryRef = entriesRef.doc(entryId);
+      const entryDoc = await entryRef.get();
+      if (entryDoc.exists) {
+        const entryData = entryDoc.data();
+        console.log("Deleting entryRef with entryData: ", entryData);
+      }
+      batch.delete(entryRef);
+    }
+  }
+
+  const onDelete = async (transcriptId: string, entries) => {
     Alert.alert(
         "Delete Transcript",
         "Are you sure you want to delete this transcript and its entries?",
@@ -93,21 +114,30 @@ export function TranscriptHistory({userId}) {
                   .doc(userId)
                   .collection("transcripts")
                   .doc(transcriptId);
-              batch.delete(transcriptRef);
+
+              async function fetchIdsField() {
+                try {
+                  const doc = await transcriptRef.get();
+                  if (doc.exists) {
+                    const idsList = doc.data().ids;
+                    console.log('ids list:', idsList);
+                    return idsList;
+                  } else {
+                    console.log('No such document!');
+                  }
+                } catch (error) {
+                  console.error('Error fetching ids field:', error);
+                }
+              }
+
+              const entryIds = await fetchIdsField();
 
               // Delete entries
               for (const entry of JSON.parse(entries)) {
-                const entryRef = firebase
-                    .firestore()
-                    .collection("users")
-                    .doc(userId)
-                    .collection("topics")
-                    .doc(entry.topic)
-                    .collection("entries")
-                    .doc(entry.date + "_" + entry.time);
-                batch.delete(entryRef);
+                await deleteMatchingEntries(entry.topic, entryIds, batch);
               }
 
+              batch.delete(transcriptRef);
               await batch.commit();
             },
           },

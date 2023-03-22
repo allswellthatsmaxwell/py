@@ -123,7 +123,6 @@ function AudioRecorder({fbase, setSelectedTopic}) {
 
   async function getMostRecentLogging() {
     const snapshot = await transcriptsCollection.orderBy("timestamp", "desc").limit(1).get();
-    console.log('Snapshot docs:', snapshot.docs);
     if (snapshot.docs.length > 0) {
       const transcript = snapshot.docs[0].data();
       console.log('Most recent transcript: "', transcript.text, '" with entries: ', transcript.entries);
@@ -211,14 +210,19 @@ function AudioRecorder({fbase, setSelectedTopic}) {
     const topicEntriesCollection = topicCollection
         .doc(topic)
         .collection("entries");
-    topicEntriesCollection.add({
+
+    return await topicEntriesCollection.add({
       transcript: transcript,
       value: value,
       time: time,
       date: date,
       log_time: log_timestamp
+    }).then(function (docRef) {
+      console.log("Entry added to topic: ", docRef.id);
+      return docRef.id;
+    }).catch(function (error) {
+      console.error("Error adding entry to topic: ", error);
     });
-    console.log("Added entry to topic", topic);
   }
 
   async function writeEntriesToDB(transcript, entriesList, timestamp) {
@@ -235,7 +239,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
         value = Number(value);
       }
 
-      await addEntryToTopic(transcript, topic, value, time, date, timestamp);
+      return await addEntryToTopic(transcript, topic, value, time, date, timestamp);
 
     });
     return await Promise.all(entryAddPromises);
@@ -335,17 +339,22 @@ function AudioRecorder({fbase, setSelectedTopic}) {
   async function computeAndWriteTopics(transcript: string, timestamp) {
     const entries = await getTopicsTurbo(transcript);
     const parsedEntries = parseEntriesFromJson(entries);
+    const ids = await writeEntriesToDB(transcript, parsedEntries.entriesList, timestamp);
+    console.log("computeAndWriteTopics ids:", ids);
     await transcriptsCollection
-        .add({text: transcript, entries: parsedEntries.entriesString, timestamp: timestamp})
+        .add({
+          text: transcript, entries: parsedEntries.entriesString, timestamp: timestamp,
+          ids: ids
+        })
         .then((docRef) => {
           console.log("Transcript written with ID: ", docRef.id);
         });
 
-    await writeEntriesToDB(transcript, parsedEntries.entriesList, timestamp);
+
     return parsedEntries;
   }
 
-  // gets just the time, in the format HH:MM
+// gets just the time, in the format HH:MM
   function get_current_time() {
     const date = new Date();
     return `${date.getHours()}:${date.getMinutes()}`;
@@ -472,7 +481,9 @@ The date must never be blank, null, or empty. It must always be a valid date, in
     }).then(res => res.json());
 
     console.log("Completion: ", completion);
-    const new_entry = completion['choices'][0]['message']['content'];
+    const new_entry = completion['choices'][0]['message']['content'].replace("topics: ", "");
+    // remove the string "topics: " from the beginning of the output if it exists
+
     console.log("New entry: ", new_entry);
     return new_entry;
   }
@@ -521,6 +532,7 @@ The date must never be blank, null, or empty. It must always be a valid date, in
     }));
   }
   console.log("rows: ", rows);
+
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
