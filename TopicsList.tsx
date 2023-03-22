@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import * as firebase from "firebase";
+import firebase from "firebase";
 import moment from "moment";
 
 import {getStyles} from "./styles";
@@ -42,10 +42,9 @@ const rowStyles = StyleSheet.create({
 });
 
 export function TopicsList({userId, setSelectedTopic}) {
-  const [topicsList, setTopicsList] = React.useState([]);
   const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
 
-  const handleTopicPress = (topic) => {
+  const handleTopicPress = (topic: string) => {
     setSelectedTopic(topic);
   };
 
@@ -53,56 +52,32 @@ export function TopicsList({userId, setSelectedTopic}) {
     return <View style={{height: 1, backgroundColor: "gray"}}/>;
   };
 
-  function getEntriesDayCounts(topics_snapshot) {
-    // returns a mapping from entry to day to count
-    const topicsList = topics_snapshot.docs.map((doc) => doc.id);
+
+  function getEntriesDayCounts(topicsWithEntries) {
     const dayCounts = {};
 
-    const batchSize = 10; // maximum number of topics per query
-    const batches = [];
-    for (let i = 0; i < topicsList.length; i += batchSize) {
-      batches.push(topicsList.slice(i, i + batchSize));
-    }
-    console.log("getEntriesDayCounts batches: ", batches);
+    topicsWithEntries.forEach((topicDoc) => {
+      const topic = topicDoc.id;
+      const entriesSnapshot = topicDoc.ref.collection("entries");
 
-    const promises = batches.map((batch) => {
-      const entriesCollection = firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .collection("topics")
-          .where(firebase.firestore.FieldPath.documentId(), "in", batch)
-          .get();
+      entriesSnapshot.onSnapshot((snapshot) => {
+        const counts = {};
 
-      return entriesCollection;
-    });
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          const day = data.date;
+          if (!counts[day]) {
+            counts[day] = 0;
+          }
 
-    Promise.all(promises).then((snapshots) => {
-      snapshots.forEach((snapshot) => {
-        snapshot.forEach((doc) => {
-          const topic = doc.id;
-          const entriesSnapshot = doc.ref.collection("entries");
-
-          entriesSnapshot.onSnapshot((snapshot) => {
-            const counts = {};
-
-            snapshot.docs.forEach((doc) => {
-              const data = doc.data();
-              const day = data.date;
-              if (!counts[day]) {
-                counts[day] = 0;
-              }
-
-              counts[day] += data.value;
-            });
-
-            dayCounts[topic] = counts;
-            setEntriesDayCounts((prevDayCounts) => ({
-              ...prevDayCounts,
-              ...dayCounts,
-            }));
-          });
+          counts[day] += data.value;
         });
+
+        dayCounts[topic] = counts;
+        setEntriesDayCounts((prevDayCounts) => ({
+          ...prevDayCounts,
+          ...dayCounts,
+        }));
       });
     });
   }
@@ -110,28 +85,30 @@ export function TopicsList({userId, setSelectedTopic}) {
   useEffect(() => {
     const topicsCollection = firebase
         .firestore()
-        .collection("users")
+        .collection('users')
         .doc(userId)
-        .collection("topics");
+        .collection('topics');
 
-    const unsubscribe = topicsCollection.onSnapshot((snapshot) => {
-      const topics = snapshot.docs.map((doc: any) => doc.id);
-      // console.log("userId: ", userId);
-      // console.log("Topics: ", topics);
-      setTopicsList(topics);
-      getEntriesDayCounts(snapshot);
+    const unsubscribe = topicsCollection.onSnapshot(async (snapshot) => {
+      const topics = snapshot.docs;
+      const topicsWithEntries = [];
+
+      const checkEntriesPromises = topics.map(async (topicDoc) => {
+        const entriesSnapshot = await topicDoc.ref.collection('entries').limit(1).get();
+        if (!entriesSnapshot.empty) {
+          topicsWithEntries.push(topicDoc);
+        }
+      });
+
+      await Promise.all(checkEntriesPromises);
+
+      getEntriesDayCounts(topicsWithEntries);
     });
 
     return () => {
       unsubscribe();
     };
   }, [userId]);
-
-  useEffect(() => {
-    // console.log("entriesDayCounts: ", entriesDayCounts);
-  }, [entriesDayCounts]);
-
-  // console.log(entriesDayCounts);
 
   function getSortedUniqueDates() {
     // uniqueDates is the dates for the past 30 days, including today

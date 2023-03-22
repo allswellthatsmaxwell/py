@@ -129,7 +129,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       return {'transcript': transcript.text, entries: transcript.entries};
     } else {
       console.log('getMostRecentLogging: no transcripts found.');
-      return null;
+      return "";
     }
   }
 
@@ -434,7 +434,10 @@ topics: [{"topic": "coffee", "value": "1", "time": 09:00", "date": "2023-01-01"}
  {"topic": "cigarettes", "value": "2", "time": "14:00", "date": "2024-09-15"}]
 
 # Format
-It is critical that you output a valid json list, no matter what.
+It is critical that you output a valid json list, AND NOTHING ELSE, no matter what. Your output will be parsed by the program,
+so additional commentary will break the program. If you absolutely must comment, add an additional key-value pair to the json,
+like this: [{"topic": "pizza (slices)", "value": "3", "time": "21:31", "date": "2024-09-15", "comment": "I'm just commenting"}].
+
 It is also critical that the value entries all be numbers, no matter what. (They should all be positive numbers too.)
 The time must never be blank, null, or empty. It must always be a valid time, in the format HH:MM.
 The date must never be blank, null, or empty. It must always be a valid date, in the format YYYY-MM-DD.

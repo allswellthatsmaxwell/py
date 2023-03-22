@@ -93,6 +93,21 @@ export function TranscriptHistory({userId}: { userId: string }) {
     }
   }
 
+  async function fetchIdsField(ref: firebase.firestore.DocumentReference) {
+    try {
+      const doc = await ref.get();
+      if (doc.exists) {
+        const idsList = doc.data().ids;
+        console.log('ids list:', idsList);
+        return idsList;
+      } else {
+        console.log('No such document!');
+      }
+    } catch (error) {
+      console.error('Error fetching ids field:', error);
+    }
+  }
+
   const onDelete = async (transcriptId: string, entries) => {
     Alert.alert(
         "Delete Transcript",
@@ -114,23 +129,8 @@ export function TranscriptHistory({userId}: { userId: string }) {
                   .doc(userId)
                   .collection("transcripts")
                   .doc(transcriptId);
-
-              async function fetchIdsField() {
-                try {
-                  const doc = await transcriptRef.get();
-                  if (doc.exists) {
-                    const idsList = doc.data().ids;
-                    console.log('ids list:', idsList);
-                    return idsList;
-                  } else {
-                    console.log('No such document!');
-                  }
-                } catch (error) {
-                  console.error('Error fetching ids field:', error);
-                }
-              }
-
-              const entryIds = await fetchIdsField();
+              
+              const entryIds = await fetchIdsField(transcriptRef);
 
               // Delete entries
               for (const entry of JSON.parse(entries)) {
