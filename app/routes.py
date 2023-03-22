@@ -2,9 +2,13 @@ from flask import request, Blueprint, Flask, make_response, jsonify
 
 import os
 import json
-import openai
 
 from typing import Any
+
+import openai
+from pydub import AudioSegment
+from pydub.silence import detect_nonsilent
+
 
 app = Flask(__name__)
 app_routes = Blueprint("app_routes", __name__)
@@ -15,6 +19,21 @@ HOMEDIR = os.path.expanduser("~")
 APPDATA_PATH = f"{HOMEDIR}/structured-voice-logging/dev_app_data"
 LOGFILES_DIR = f"{APPDATA_PATH}/logfiles"
 
+
+def remove_silence(audio_file, silence_threshold=-50, min_silence_duration=100, padding=50):
+    audio = AudioSegment.from_wav(audio_file)
+    nonsilent_ranges = detect_nonsilent(audio, min_silence_len=min_silence_duration, silence_thresh=silence_threshold)
+
+    if not nonsilent_ranges:
+        return None
+
+    trimmed_audio = AudioSegment.empty()
+    for start, end in nonsilent_ranges:
+        start = max(0, start - padding)
+        end += padding
+        trimmed_audio += audio[start:end]
+
+    return trimmed_audio
 
 
 def _get_write_type(content: Any):
@@ -44,6 +63,15 @@ class WhisperTranscriber:
         print(json.dumps(transcript, indent=4))
         return transcript
 
+
+def remove_silence_and_save(input_file, output_file) -> bool:
+    trimmed_audio = remove_silence(input_file)
+    if trimmed_audio:
+        trimmed_audio.export(output_file, format="wav")
+        return True
+    else:
+        return False
+
     
 
 filesystem = FileSystem(root=APPDATA_PATH)
@@ -65,10 +93,17 @@ async def transcribe():
     with open(destpath, "wb") as f:
         f.write(audio_data)
     app.logger.info("Done writing.")
+
+    trimmed_path = destpath.replace(".wav", "_trimmed.wav")
+    has_audio = remove_silence_and_save(destpath, trimmed_path)
     
-    app.logger.info("Transcribing...")
-    transcript = await transcriber.transcribe(destpath)
-    app.logger.info("Done transcribing.")
-    print(transcript)
+    if has_audio:
+        app.logger.info("Transcribing...")
+        transcript = await transcriber.transcribe(destpath)
+        app.logger.info("Done transcribing.")
+        print(transcript)
+    else:
+        app.logger.info("No non-silent audio detected.")
+        transcript = "SYSTEM: No audio detected. Output an empty list."
     response_data = {'transcription': transcript}
     return make_response(jsonify(response_data))
