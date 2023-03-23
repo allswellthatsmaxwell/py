@@ -1,23 +1,20 @@
 import * as React from "react";
-import {
-  Text,
-  View,
-  Button,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-} from "react-native";
+import {View} from "react-native";
 import {useEffect} from "react";
-import {FontAwesome, Feather, AntDesign, Entypo, MaterialCommunityIcons} from "@expo/vector-icons";
 
-import * as firebase from "firebase";
+import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
+import {NavigationContainer} from '@react-navigation/native';
+
+
+import firebase from "firebase";
 
 import SignUpOrSignIn from "./Authentication";
 import AudioRecorder from "./AudioRecorder";
 import {TopicsList} from "./TopicsList";
 import {EntriesForTopic} from "./Entries";
-import {getStyles} from "./styles";
 import {TranscriptHistory} from "./TranscriptHistory";
+import {Header} from "./Header";
+import {getStyles} from "./styles";
 
 const styles = getStyles();
 
@@ -40,7 +37,36 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-export default function App() {
+const config = {
+  animation: 'spring',
+  config: {
+    stiffness: 1000,
+    damping: 500,
+    mass: 3,
+    overshootClamping: true,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+  },
+};
+
+const closeConfig = {
+  ...config,
+  animation: 'timing',
+};
+
+const screenOptions = {
+  gestureEnabled: true,
+  gestureDirection: 'horizontal',
+  cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+  transitionSpec: {
+    open: config,
+    close: closeConfig,
+  },
+};
+
+const Stack = createStackNavigator();
+
+function AppNavigator() {
   const [user, setUser] = React.useState(null);
   const [selectedTopic, setSelectedTopic] = React.useState(null);
   const [historySelected, setHistorySelected] = React.useState(false);
@@ -52,7 +78,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    firebase.auth().onAuthStateChanged((user) => {
+    firebase.auth().onAuthStateChanged((user: any) => {
       if (user) {
         setUser(user);
       } else {
@@ -60,45 +86,6 @@ export default function App() {
       }
     });
   }, []);
-
-  function BackButton() {
-    return (
-        <View style={styles.topLeftCornerContainer}>
-          <TouchableOpacity onPress={handleBackPress}>
-            <Feather name="arrow-left-circle" size={36} color="black"/>
-          </TouchableOpacity>
-        </View>
-    );
-  }
-
-  function AuthStatusElements() {
-    const [showMenu, setShowMenu] = React.useState(false);
-
-    const handlePress = () => {
-      setShowMenu(!showMenu);
-    };
-
-    return (
-        <View style={styles.topRightCornerFirstPositionContainer}>
-          <TouchableOpacity onPress={handlePress}>
-            <FontAwesome name="user-circle" size={34} color="black"/>
-          </TouchableOpacity>
-          <Modal visible={showMenu} animationType="fade" transparent={true}>
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <Text>Signed in as {user.email}.</Text>
-                <Button
-                    title="Sign Out"
-                    onPress={() => firebase.auth().signOut()}
-                />
-                <Button title="Close" onPress={handlePress}/>
-              </View>
-            </View>
-          </Modal>
-        </View>
-    );
-  }
-
 
   function LoginPage() {
     return (
@@ -108,26 +95,6 @@ export default function App() {
     );
   }
 
-  function HistoryButton() {
-    return (
-        <View style={styles.topRightCornerSecondPositionContainer}>
-          <TouchableOpacity onPress={() => setHistorySelected(true)}>
-            <MaterialCommunityIcons name="file-document-multiple" size={34} color="black"/>
-          </TouchableOpacity>
-        </View>
-    );
-  }
-
-  function Header() {
-    return (
-        <View style={styles.headerContainer}>
-          <AuthStatusElements/>
-          <HistoryButton/>
-
-          {(selectedTopic || historySelected) && (<BackButton/>)}
-        </View>
-    );
-  }
 
   function MainDisplay() {
     return (
@@ -145,14 +112,21 @@ export default function App() {
     );
   }
 
-  function HomePage() {
+  function HomePage({navigation}: any) {
+    useEffect(() => {
+      if (selectedTopic) {
+        navigation.navigate('EntriesForTopic', {userId: user.uid, selectedTopic: selectedTopic});
+      }
+    }, [selectedTopic, navigation]);
 
     return (
         <View>
-          <Header/>
-          {selectedTopic ? (
-              <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic}/>
-          ) : historySelected ? (
+          <Header user={user}
+                  selectedTopic={selectedTopic}
+                  historySelected={historySelected}
+                  setHistorySelected={setHistorySelected}
+                  handleBackPress={handleBackPress}/>
+          {historySelected ? (
               <TranscriptHistory userId={user.uid}/>
           ) : (
               <MainDisplay/>
@@ -161,5 +135,22 @@ export default function App() {
     );
   }
 
-  return user ? <HomePage/> : <LoginPage/>;
+  return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: false}}>
+          {user ? (
+              <>
+                <Stack.Screen name="HomePage" component={HomePage}/>
+                <Stack.Screen name="EntriesForTopic" component={EntriesForTopic}/>
+              </>
+          ) : (
+              <Stack.Screen name="LoginPage" component={LoginPage}/>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return <AppNavigator/>;
 }

@@ -1,12 +1,14 @@
 import {TouchableOpacity, View, FlatList, Text, StyleSheet} from "react-native";
 import * as React from "react";
 import {useEffect, useRef} from "react";
-import * as firebase from "firebase";
+import firebase from "firebase";
 import {Swipeable} from "react-native-gesture-handler";
 
 import {getStyles} from "./styles";
 import {sortDateTime, Entry} from "./Utilities";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
+
+import {Header} from "./Header";
 
 const projectStyles = getStyles();
 
@@ -37,9 +39,17 @@ const styles = StyleSheet.create({
   }
 });
 
-export function EntriesForTopic({userId, selectedTopic}) {
+export function EntriesForTopic({route, navigation}: any) {
+  const {userId, selectedTopic} = route.params;
+
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
+
+  console.log(`EntriesForTopic: userId: ${userId}, selectedTopic: ${selectedTopic}`);
   return (
       <View>
+        <Header handleBackPress={handleBackPress} />
         <Text style={{
           fontSize: 26, textAlign: "center", marginTop: 10,
           textDecorationLine: "underline", textDecorationColor: 'gray',
@@ -53,7 +63,7 @@ export function EntriesForTopic({userId, selectedTopic}) {
   );
 }
 
-function LogsList({userId, topic}) {
+function LogsList({userId, topic}: any) {
   const [logsList, setLogsList] = React.useState([]);
 
 
@@ -81,7 +91,7 @@ function LogsList({userId, topic}) {
 
 
   const swipeableRef = useRef(null);
-  const handleDelete = (logId) => {
+  const handleDelete = (logId: string) => {
     // Delete the log from the database
     console.log("Deleting log ID: ", logId, " for topic: ", topic);
     firebase

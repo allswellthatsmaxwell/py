@@ -10,7 +10,8 @@ import {
 import {Audio} from "expo-av";
 import {FontAwesome, Feather} from "@expo/vector-icons";
 
-import * as firebase from "firebase";
+
+import firebase from "firebase";
 
 import {OPENAI_API_KEY} from "./Keys";
 import {useEffect} from "react";
@@ -91,6 +92,7 @@ const micStyles = StyleSheet.create({
     paddingTop: 5,
   }
 });
+
 
 
 function AudioRecorder({fbase, setSelectedTopic}) {
