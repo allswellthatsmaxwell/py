@@ -60,7 +60,7 @@ export function Header({navigation}: any) {
   }
 
 
-  function HistoryButton({ navigation }: any) {
+  function HistoryButton() {
     return (
         <View style={styles.topRightCornerSecondPositionContainer}>
           <TouchableOpacity onPress={() => { setHistorySelected(true)} }>

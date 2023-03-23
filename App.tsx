@@ -63,6 +63,7 @@ const screenOptions = {
     open: config,
     close: closeConfig,
   },
+  headerShown: false,
 };
 
 const Stack = createStackNavigator();
@@ -109,7 +110,6 @@ function AppNavigator() {
         </View>
     );
   }
-
   function HomePage({ navigation }: any) {
     useEffect(() => {
       if (selectedTopic) {
@@ -117,18 +117,19 @@ function AppNavigator() {
       }
     }, [selectedTopic, navigation]);
 
+    useEffect(() => {
+      if (historySelected) {
+        navigation.navigate("TranscriptHistory", { userId: user.uid, historySelected: historySelected });
+      }
+    }, [historySelected, navigation]);
+
     return (
         <View>
           <Header navigation={navigation} />
-          {historySelected ? (
-              <TranscriptHistory userId={user.uid} navigation={navigation} />
-          ) : (
-              <MainDisplay />
-          )}
+          <MainDisplay />
         </View>
     );
   }
-
   return (
       <NavigationContainer>
         <HeaderProvider
@@ -140,7 +141,7 @@ function AppNavigator() {
               setHistorySelected
             }}
         >
-          <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: true}}>
+          <Stack.Navigator screenOptions={screenOptions}>
             {user ? (
                 <>
                   <Stack.Screen name="HomePage" component={HomePage}/>

@@ -12,7 +12,8 @@ import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import {Header} from "./Header";
 
 
-export function TranscriptHistory({userId, navigation}: { userId: string, navigation: any }) {
+export function TranscriptHistory({route, navigation}: any) {
+  const {userId} = route.params;
   const [transcripts, setTranscripts] = useState([]);
 
   useEffect(() => {
@@ -199,32 +200,33 @@ export function TranscriptHistory({userId, navigation}: { userId: string, naviga
     const arrowColor = "#EECBAD";
     return (
         <View>
-            <View style={{paddingTop: 40}}>
-              {renderCard(transcripts[swiperIndex])}
-              <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    width: '100%',
-                    paddingLeft: 50,
-                    paddingRight: 50,
-                    marginTop: 20
-                  }}>
-                <TouchableOpacity onPress={onPrevCard} disabled={swiperIndex === 0}>
-                  <Text>{swiperIndex === 0 ? '' :
-                      <Ionicons name="arrow-undo-sharp" size={arrowSize} color={arrowColor}/>}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={onNextCard} disabled={swiperIndex === transcripts.length - 1}>
-                  <Text>{
-                    swiperIndex === transcripts.length - 1 ?
-                        '' :
-                        <Ionicons name="arrow-redo-sharp" size={arrowSize} color={arrowColor}/>}</Text>
-                </TouchableOpacity>
-              </View>
+          <Header navigation={navigation}/>
+          <View style={{paddingTop: 40}}>
+            {renderCard(transcripts[swiperIndex])}
+            <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                  paddingLeft: 50,
+                  paddingRight: 50,
+                  marginTop: 20
+                }}>
+              <TouchableOpacity onPress={onPrevCard} disabled={swiperIndex === 0}>
+                <Text>{swiperIndex === 0 ? '' :
+                    <Ionicons name="arrow-undo-sharp" size={arrowSize} color={arrowColor}/>}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onNextCard} disabled={swiperIndex === transcripts.length - 1}>
+                <Text>{
+                  swiperIndex === transcripts.length - 1 ?
+                      '' :
+                      <Ionicons name="arrow-redo-sharp" size={arrowSize} color={arrowColor}/>}</Text>
+              </TouchableOpacity>
             </View>
+          </View>
         </View>
-  );
+    );
   }
-  };
+};
 

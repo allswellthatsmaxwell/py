@@ -87,6 +87,7 @@ const micStyles = StyleSheet.create({
     borderRadius: 40,
     borderWidth: 2,
     borderColor: micColor,
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
     paddingTop: 5,
