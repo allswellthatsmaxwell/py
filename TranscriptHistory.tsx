@@ -3,19 +3,16 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   Alert,
-  Animated,
 } from "react-native";
-import {LinearGradient} from "expo-linear-gradient";
 import firebase from "firebase";
-import Swiper from "react-native-deck-swiper";
 
 import {formatDate} from "./Utilities";
-import {FontAwesome, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
+import {Header} from "./Header";
 
 
-export function TranscriptHistory({userId}: { userId: string }) {
+export function TranscriptHistory({userId, navigation}: { userId: string, navigation: any }) {
   const [transcripts, setTranscripts] = useState([]);
 
   useEffect(() => {
@@ -73,6 +70,7 @@ export function TranscriptHistory({userId}: { userId: string }) {
     }
   }
 
+  // @ts-ignore
   const onDelete = async (transcriptId: string, entries) => {
     Alert.alert(
         "Delete Transcript",
@@ -110,6 +108,7 @@ export function TranscriptHistory({userId}: { userId: string }) {
     );
   };
 
+  // @ts-ignore
   const renderCard = (item) => {
     console.log("renderCard item: ", item);
     if (!item) {
@@ -121,6 +120,8 @@ export function TranscriptHistory({userId}: { userId: string }) {
     } else {
       const titleFontSize = 24;
       const textFontSize = 18;
+      // @ts-ignore
+      // @ts-ignore
       return (
           <View
               style={{
@@ -157,7 +158,7 @@ export function TranscriptHistory({userId}: { userId: string }) {
             </View>
             <View style={{flex: 1, marginTop: 20}}>
               <Text style={{fontWeight: "bold", fontSize: titleFontSize}}>Entries</Text>
-              {JSON.parse(item.entries).map((entry, index) => (
+              {JSON.parse(item.entries).map((entry: any, index: number) => (
                   <Text key={index} style={{fontSize: textFontSize}}>
                     {entry.topic}: {entry.value} at {entry.time} on {formatDate(entry.date)}
                   </Text>
@@ -197,30 +198,33 @@ export function TranscriptHistory({userId}: { userId: string }) {
     const arrowSize = 100;
     const arrowColor = "#EECBAD";
     return (
-        <View style={{paddingTop: 40}}>
-          {renderCard(transcripts[swiperIndex])}
-          <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                width: '100%',
-                paddingLeft: 50,
-                paddingRight: 50,
-                marginTop: 20
-              }}>
-            <TouchableOpacity onPress={onPrevCard} disabled={swiperIndex === 0}>
-              <Text>{swiperIndex === 0 ? '' : <Ionicons name="arrow-undo-sharp" size={arrowSize} color={arrowColor} />}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onNextCard} disabled={swiperIndex === transcripts.length - 1}>
-              <Text>{
-                swiperIndex === transcripts.length - 1 ?
-                    '' :
-                    <Ionicons name="arrow-redo-sharp" size={arrowSize} color={arrowColor} />}</Text>
-            </TouchableOpacity>
-          </View>
+        <View>
+            <View style={{paddingTop: 40}}>
+              {renderCard(transcripts[swiperIndex])}
+              <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%',
+                    paddingLeft: 50,
+                    paddingRight: 50,
+                    marginTop: 20
+                  }}>
+                <TouchableOpacity onPress={onPrevCard} disabled={swiperIndex === 0}>
+                  <Text>{swiperIndex === 0 ? '' :
+                      <Ionicons name="arrow-undo-sharp" size={arrowSize} color={arrowColor}/>}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onNextCard} disabled={swiperIndex === transcripts.length - 1}>
+                  <Text>{
+                    swiperIndex === transcripts.length - 1 ?
+                        '' :
+                        <Ionicons name="arrow-redo-sharp" size={arrowSize} color={arrowColor}/>}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
         </View>
-    );
+  );
   }
-};
+  };
 

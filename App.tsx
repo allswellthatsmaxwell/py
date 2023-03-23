@@ -67,11 +67,13 @@ const screenOptions = {
 
 const Stack = createStackNavigator();
 
+
 function AppNavigator() {
   const [user, setUser] = React.useState(null);
   const [selectedTopic, setSelectedTopic] = React.useState(null);
   const [historySelected, setHistorySelected] = React.useState(false);
   const [topicsData, setTopicsData] = React.useState({});
+
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged((user: any) => {
@@ -108,20 +110,20 @@ function AppNavigator() {
     );
   }
 
-  function HomePage({navigation}: any) {
+  function HomePage({ navigation }: any) {
     useEffect(() => {
       if (selectedTopic) {
-        navigation.navigate('EntriesForTopic');
+        navigation.navigate("EntriesForTopic");
       }
     }, [selectedTopic, navigation]);
 
     return (
         <View>
-          <Header navigation={navigation}/>
+          <Header navigation={navigation} />
           {historySelected ? (
-              <TranscriptHistory userId={user.uid}/>
+              <TranscriptHistory userId={user.uid} navigation={navigation} />
           ) : (
-              <MainDisplay/>
+              <MainDisplay />
           )}
         </View>
     );
@@ -143,6 +145,7 @@ function AppNavigator() {
                 <>
                   <Stack.Screen name="HomePage" component={HomePage}/>
                   <Stack.Screen name="EntriesForTopic" component={EntriesForTopic}/>
+                  <Stack.Screen name="TranscriptHistory" component={TranscriptHistory}/>
                 </>
             ) : (
                 <Stack.Screen name="LoginPage" component={LoginPage}/>

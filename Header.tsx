@@ -60,11 +60,11 @@ export function Header({navigation}: any) {
   }
 
 
-  function HistoryButton() {
+  function HistoryButton({ navigation }: any) {
     return (
         <View style={styles.topRightCornerSecondPositionContainer}>
-          <TouchableOpacity onPress={handleBackPress}>
-            <MaterialCommunityIcons name="file-document-multiple" size={34} color="black"/>
+          <TouchableOpacity onPress={() => { setHistorySelected(true)} }>
+            <MaterialCommunityIcons name="file-document-multiple" size={34} color="black" />
           </TouchableOpacity>
         </View>
     );
