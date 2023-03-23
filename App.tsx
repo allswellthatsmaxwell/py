@@ -15,6 +15,7 @@ import {EntriesForTopic} from "./Entries";
 import {TranscriptHistory} from "./TranscriptHistory";
 import {Header} from "./Header";
 import {getStyles} from "./styles";
+import {HeaderProvider} from './HeaderContext';
 
 const styles = getStyles();
 
@@ -72,11 +73,6 @@ function AppNavigator() {
   const [historySelected, setHistorySelected] = React.useState(false);
   const [topicsData, setTopicsData] = React.useState({});
 
-  const handleBackPress = () => {
-    setSelectedTopic(null);
-    setHistorySelected(false);
-  };
-
   useEffect(() => {
     firebase.auth().onAuthStateChanged((user: any) => {
       if (user) {
@@ -115,17 +111,13 @@ function AppNavigator() {
   function HomePage({navigation}: any) {
     useEffect(() => {
       if (selectedTopic) {
-        navigation.navigate('EntriesForTopic', {userId: user.uid, selectedTopic: selectedTopic});
+        navigation.navigate('EntriesForTopic');
       }
     }, [selectedTopic, navigation]);
 
     return (
         <View>
-          <Header user={user}
-                  selectedTopic={selectedTopic}
-                  historySelected={historySelected}
-                  setHistorySelected={setHistorySelected}
-                  handleBackPress={handleBackPress}/>
+          <Header navigation={navigation}/>
           {historySelected ? (
               <TranscriptHistory userId={user.uid}/>
           ) : (
@@ -137,16 +129,26 @@ function AppNavigator() {
 
   return (
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: false}}>
-          {user ? (
-              <>
-                <Stack.Screen name="HomePage" component={HomePage}/>
-                <Stack.Screen name="EntriesForTopic" component={EntriesForTopic}/>
-              </>
-          ) : (
-              <Stack.Screen name="LoginPage" component={LoginPage}/>
-          )}
-        </Stack.Navigator>
+        <HeaderProvider
+            value={{
+              user,
+              selectedTopic,
+              setSelectedTopic,
+              historySelected,
+              setHistorySelected
+            }}
+        >
+          <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: false}}>
+            {user ? (
+                <>
+                  <Stack.Screen name="HomePage" component={HomePage}/>
+                  <Stack.Screen name="EntriesForTopic" component={EntriesForTopic}/>
+                </>
+            ) : (
+                <Stack.Screen name="LoginPage" component={LoginPage}/>
+            )}
+          </Stack.Navigator>
+        </HeaderProvider>
       </NavigationContainer>
   );
 }

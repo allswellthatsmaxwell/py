@@ -9,6 +9,8 @@ import {sortDateTime, Entry} from "./Utilities";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
 
 import {Header} from "./Header";
+import HeaderContext from './HeaderContext';
+
 
 const projectStyles = getStyles();
 
@@ -39,17 +41,17 @@ const styles = StyleSheet.create({
   }
 });
 
-export function EntriesForTopic({route, navigation}: any) {
-  const {userId, selectedTopic} = route.params;
+export function EntriesForTopic({navigation}: any) {
+  const { user, selectedTopic } = React.useContext(HeaderContext);
 
-  const handleBackPress = () => {
-    navigation.goBack();
-  };
+  const userId = user.uid;
+  // const {userId, selectedTopic} = route.params;
+
 
   console.log(`EntriesForTopic: userId: ${userId}, selectedTopic: ${selectedTopic}`);
   return (
       <View>
-        <Header handleBackPress={handleBackPress} />
+        <Header navigation={navigation}/>
         <Text style={{
           fontSize: 26, textAlign: "center", marginTop: 10,
           textDecorationLine: "underline", textDecorationColor: 'gray',
@@ -114,6 +116,7 @@ function LogsList({userId, topic}: any) {
         });
   };
 
+  // @ts-ignore
   const renderRightActions = (progress, dragX, log) => {
 
     const trans = dragX.interpolate({
@@ -139,6 +142,7 @@ function LogsList({userId, topic}: any) {
     );
   };
 
+  // @ts-ignore
   const renderItem = ({item}) => {
 
     return (

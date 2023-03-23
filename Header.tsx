@@ -4,25 +4,22 @@ import {Feather, FontAwesome, MaterialCommunityIcons} from "@expo/vector-icons";
 import firebase from "firebase";
 
 import {getStyles} from "./styles";
+import HeaderContext from './HeaderContext';
 
 const styles = getStyles();
 
-export function Header({user, selectedTopic, historySelected, setHistorySelected, handleBackPress}:
-                           {
-                             user: any,
-                             selectedTopic: string,
-                             historySelected: boolean,
-                             setHistorySelected: (historySelected: boolean) => void,
-                             handleBackPress: () => void
-                           }) {
-  return (
-      <View style={styles.headerContainer}>
-        <AuthStatusElements/>
-        <HistoryButton setHistorySelected={setHistorySelected}/>
+// @ts-ignore
+export function Header({navigation}: any) {
+  const { user, selectedTopic, setSelectedTopic, historySelected, setHistorySelected } = React.useContext(HeaderContext);
 
-        {(selectedTopic || historySelected) && (<BackButton/>)}
-      </View>
-  );
+
+  // @ts-ignore
+  const handleBackPress = () => {
+    navigation.goBack();
+    setSelectedTopic(null);
+    setHistorySelected(false);
+  };
+
 
   function AuthStatusElements() {
     const [showMenu, setShowMenu] = React.useState(false);
@@ -63,13 +60,23 @@ export function Header({user, selectedTopic, historySelected, setHistorySelected
   }
 
 
-  function HistoryButton({setHistorySelected}: any) {
+  function HistoryButton() {
     return (
         <View style={styles.topRightCornerSecondPositionContainer}>
-          <TouchableOpacity onPress={() => setHistorySelected(true)}>
+          <TouchableOpacity onPress={handleBackPress}>
             <MaterialCommunityIcons name="file-document-multiple" size={34} color="black"/>
           </TouchableOpacity>
         </View>
     );
   }
+
+  return (
+      <View style={styles.headerContainer}>
+        <AuthStatusElements/>
+        <HistoryButton/>
+
+        {(selectedTopic || historySelected) && (<BackButton/>)}
+      </View>
+  );
+
 }
