@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from "react";
+import React, {useState, useEffect, useCallback, useRef} from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import firebase from "firebase";
 import Swiper from "react-native-deck-swiper";
 
 import {formatDate} from "./Utilities";
+import {FontAwesome, Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 
 
 export function TranscriptHistory({userId}: { userId: string }) {
@@ -93,7 +94,7 @@ export function TranscriptHistory({userId}: { userId: string }) {
                   .doc(userId)
                   .collection("transcripts")
                   .doc(transcriptId);
-              
+
               const entryIds = await fetchIdsField(transcriptRef);
 
               // Delete entries
@@ -118,13 +119,15 @@ export function TranscriptHistory({userId}: { userId: string }) {
           </View>
       );
     } else {
+      const titleFontSize = 24;
+      const textFontSize = 18;
       return (
           <View
               style={{
-                borderRadius: 10,
-                padding: 20,
+                borderRadius: 5,
+                padding: 5,
                 alignSelf: "center",
-                height: "50%",
+                height: "70%",
                 width: "80%",
                 justifyContent: "space-between",
                 backgroundColor: "white",
@@ -135,25 +138,27 @@ export function TranscriptHistory({userId}: { userId: string }) {
             <TouchableOpacity
                 style={{
                   alignSelf: "flex-end",
-                  backgroundColor: "red",
+                  backgroundColor: "#EE4000",
                   borderRadius: 50,
-                  width: 30,
-                  height: 30,
+                  width: 40,
+                  height: 40,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
                 onPress={() => onDelete(item.id, item.entries)}
             >
-              <Text style={{color: "white", fontWeight: "bold"}}>X</Text>
+              <Text style={{color: "white", fontSize: 30, fontWeight: "bold"}}>
+                <MaterialCommunityIcons name="delete-forever" size={34} color="white"/>
+              </Text>
             </TouchableOpacity>
             <View>
-              <Text style={{fontWeight: "bold", fontSize: 18}}>Transcript</Text>
-              <Text>{item.text}</Text>
+              <Text style={{fontWeight: "bold", fontSize: titleFontSize}}>Transcript</Text>
+              <Text style={{fontSize: textFontSize}}>{item.text}</Text>
             </View>
             <View style={{flex: 1, marginTop: 20}}>
-              <Text style={{fontWeight: "bold", fontSize: 18}}>Entries</Text>
+              <Text style={{fontWeight: "bold", fontSize: titleFontSize}}>Entries</Text>
               {JSON.parse(item.entries).map((entry, index) => (
-                  <Text key={index}>
+                  <Text key={index} style={{fontSize: textFontSize}}>
                     {entry.topic}: {entry.value} at {entry.time} on {formatDate(entry.date)}
                   </Text>
               ))}
@@ -168,6 +173,20 @@ export function TranscriptHistory({userId}: { userId: string }) {
     }
   };
 
+  const [swiperIndex, setSwiperIndex] = useState(0);
+
+  const onPrevCard = () => {
+    if (swiperIndex > 0) {
+      setSwiperIndex(swiperIndex - 1);
+    }
+  };
+
+  const onNextCard = () => {
+    if (swiperIndex < transcripts.length - 1) {
+      setSwiperIndex(swiperIndex + 1);
+    }
+  };
+
   if (transcripts.length === 0) {
     return (
         <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
@@ -175,22 +194,31 @@ export function TranscriptHistory({userId}: { userId: string }) {
         </View>
     );
   } else {
+    const arrowSize = 100;
+    const arrowColor = "#EECBAD";
     return (
-        <View style={{flex: 1}}>
-          <Swiper
-              cards={transcripts}
-              renderCard={renderCard}
-              backgroundColor="transparent"
-              cardIndex={0}
-              stackSize={3}
-              stackSeparation={15}
-              animateCardOpacity
-              showSecondCard
-              disableBottomSwipe
-              disableTopSwipe
-              onSwiped={(cardIndex) => console.log(cardIndex)}
-              onSwipedAll={() => console.log("All cards swiped")}
-          />
+        <View style={{paddingTop: 40}}>
+          {renderCard(transcripts[swiperIndex])}
+          <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                paddingLeft: 50,
+                paddingRight: 50,
+                marginTop: 20
+              }}>
+            <TouchableOpacity onPress={onPrevCard} disabled={swiperIndex === 0}>
+              <Text>{swiperIndex === 0 ? '' : <Ionicons name="arrow-undo-sharp" size={arrowSize} color={arrowColor} />}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onNextCard} disabled={swiperIndex === transcripts.length - 1}>
+              <Text>{
+                swiperIndex === transcripts.length - 1 ?
+                    '' :
+                    <Ionicons name="arrow-redo-sharp" size={arrowSize} color={arrowColor} />}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
     );
   }
