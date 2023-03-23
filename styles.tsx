@@ -43,7 +43,6 @@ export function getStyles() {
             borderTopWidth: 1,
         },
         topContainer: {
-            flex: 1,
             alignItems: "center",
             justifyContent: "flex-start",
             paddingTop: 0,

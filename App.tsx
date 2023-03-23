@@ -44,6 +44,7 @@ export default function App() {
   const [user, setUser] = React.useState(null);
   const [selectedTopic, setSelectedTopic] = React.useState(null);
   const [historySelected, setHistorySelected] = React.useState(false);
+  const [topicsData, setTopicsData] = React.useState({});
 
   const handleBackPress = () => {
     setSelectedTopic(null);
@@ -98,20 +99,6 @@ export default function App() {
     );
   }
 
-  function MainDisplay() {
-    return (
-        <ScrollView scrollEnabled={false}>
-          <View>
-            <View style={[styles.topContainer, {height: 600}]}>
-              <TopicsList userId={user.uid} setSelectedTopic={setSelectedTopic}/>
-            </View>
-            <View style={styles.footer}>
-              <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic}/>
-            </View>
-          </View>
-        </ScrollView>
-    );
-  }
 
   function LoginPage() {
     return (
@@ -134,8 +121,6 @@ export default function App() {
   function Header() {
     return (
         <View style={styles.headerContainer}>
-          {/*<Text style={{fontSize: 20, paddingTop: 35}}>{selectedTopic}</Text>*/}
-
           <AuthStatusElements/>
           <HistoryButton/>
 
@@ -144,15 +129,32 @@ export default function App() {
     );
   }
 
+  function MainDisplay() {
+    return (
+        <View>
+          <View style={[styles.topContainer, {height: 600}]}>
+            <TopicsList userId={user.uid}
+                        setSelectedTopic={setSelectedTopic}
+                        topicsData={topicsData}
+                        setTopicsData={setTopicsData}/>
+          </View>
+          <View style={styles.footer}>
+            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic}/>
+          </View>
+        </View>
+    );
+  }
+
   function HomePage() {
+
     return (
         <View>
           <Header/>
           {selectedTopic ? (
               <EntriesForTopic userId={user.uid} selectedTopic={selectedTopic}/>
           ) : historySelected ? (
-              <TranscriptHistory userId={user.uid} />
-            ) : (
+              <TranscriptHistory userId={user.uid}/>
+          ) : (
               <MainDisplay/>
           )}
         </View>

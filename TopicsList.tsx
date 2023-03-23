@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect} from "react";
+import {useEffect, useMemo} from "react";
 import {
   Text,
   View,
@@ -41,8 +41,7 @@ const rowStyles = StyleSheet.create({
   },
 });
 
-export function TopicsList({userId, setSelectedTopic}) {
-  const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
+export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData}) {
 
   const handleTopicPress = (topic: string) => {
     setSelectedTopic(topic);
@@ -74,7 +73,7 @@ export function TopicsList({userId, setSelectedTopic}) {
         });
 
         dayCounts[topic] = counts;
-        setEntriesDayCounts((prevDayCounts) => ({
+        setTopicsData((prevDayCounts) => ({
           ...prevDayCounts,
           ...dayCounts,
         }));
@@ -83,32 +82,39 @@ export function TopicsList({userId, setSelectedTopic}) {
   }
 
   useEffect(() => {
-    const topicsCollection = firebase
-        .firestore()
-        .collection('users')
-        .doc(userId)
-        .collection('topics');
+    if (Object.keys(topicsData).length === 0) {
+      console.log("DEBUG: TopicsList.useEffect: topicsData is empty; refreshing.")
+      const topicsCollection = firebase
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("topics");
 
-    const unsubscribe = topicsCollection.onSnapshot(async (snapshot) => {
-      const topics = snapshot.docs;
-      const topicsWithEntries = [];
+      const unsubscribe = topicsCollection.onSnapshot(async (snapshot) => {
+        const topics = snapshot.docs;
+        const topicsWithEntries: any[] = [];
 
-      const checkEntriesPromises = topics.map(async (topicDoc) => {
-        const entriesSnapshot = await topicDoc.ref.collection('entries').limit(1).get();
-        if (!entriesSnapshot.empty) {
-          topicsWithEntries.push(topicDoc);
-        }
+        const checkEntriesPromises = topics.map(async (topicDoc) => {
+          const entriesSnapshot = await topicDoc.ref
+              .collection("entries")
+              .limit(1)
+              .get();
+          if (!entriesSnapshot.empty) {
+            topicsWithEntries.push(topicDoc);
+          }
+        });
+
+        await Promise.all(checkEntriesPromises);
+
+        getEntriesDayCounts(topicsWithEntries);
       });
 
-      await Promise.all(checkEntriesPromises);
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [userId, topicsData]);
 
-      getEntriesDayCounts(topicsWithEntries);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [userId]);
 
   function getSortedUniqueDates() {
     // uniqueDates is the dates for the past 30 days, including today
@@ -126,11 +132,11 @@ export function TopicsList({userId, setSelectedTopic}) {
     const sortedDates = getSortedUniqueDates();
     const todayDate = moment().toISOString().split("T")[0];
     const maxDataValue = Math.max(
-        ...Object.values(entriesDayCounts[item])
+        ...Object.values(topicsData[item])
     );
     const scaleFactor = maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
-    const dateDict = Object.keys(entriesDayCounts[item]).reduce((acc, date) => {
-          acc[date] = entriesDayCounts[item][date];
+    const dateDict = Object.keys(topicsData[item]).reduce((acc, date) => {
+          acc[date] = topicsData[item][date];
           return acc;
         }, {}
     );
@@ -165,7 +171,7 @@ export function TopicsList({userId, setSelectedTopic}) {
   return (
       <View style={[styles.topicsTableContainer, {borderWidth: 1, borderColor: "black"}]}>
         <FlatList
-            data={Object.keys(entriesDayCounts)}
+            data={Object.keys(topicsData)}
             renderItem={renderItem}
             keyExtractor={(item) => item}
             style={styles.flatList}
