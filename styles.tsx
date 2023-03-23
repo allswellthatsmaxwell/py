@@ -2,6 +2,9 @@ import { StyleSheet } from "react-native";
 
 export function getStyles() {
     return StyleSheet.create({
+        globalBackground: {
+            backgroundColor: "#FAFAFA",
+        },
         container: {
             flex: 1,
             alignItems: "center",

@@ -11,6 +11,10 @@ import {formatDate} from "./Utilities";
 import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import {Header} from "./Header";
 
+import {getStyles} from "./styles";
+
+const styles = getStyles();
+
 
 export function TranscriptHistory({route, navigation}: any) {
   const {userId} = route.params;
@@ -199,7 +203,7 @@ export function TranscriptHistory({route, navigation}: any) {
     const arrowSize = 100;
     const arrowColor = "#EECBAD";
     return (
-        <View>
+        <View style={styles.globalBackground}>
           <Header navigation={navigation}/>
           <View style={{paddingTop: 40}}>
             {renderCard(transcripts[swiperIndex])}

@@ -73,7 +73,9 @@ export function Header({navigation}: any) {
   return (
       <View style={styles.headerContainer}>
         <AuthStatusElements/>
-        <HistoryButton/>
+        {(!historySelected && !selectedTopic) &&
+          <HistoryButton/>
+        }
 
         {(selectedTopic || historySelected) && (<BackButton/>)}
       </View>

@@ -124,7 +124,7 @@ function AppNavigator() {
     }, [historySelected, navigation]);
 
     return (
-        <View>
+        <View style={styles.globalBackground}>
           <Header navigation={navigation} />
           <MainDisplay />
         </View>

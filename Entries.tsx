@@ -16,7 +16,7 @@ const projectStyles = getStyles();
 
 const styles = StyleSheet.create({
   tableContainer: {
-    height: 400,
+    height: "100%",
     width: 400,
     borderWidth: 1,
     marginTop: 20,
@@ -50,7 +50,7 @@ export function EntriesForTopic({navigation}: any) {
 
   console.log(`EntriesForTopic: userId: ${userId}, selectedTopic: ${selectedTopic}`);
   return (
-      <View>
+      <View style={projectStyles.globalBackground}>
         <Header navigation={navigation}/>
         <Text style={{
           fontSize: 26, textAlign: "center", marginTop: 10,
@@ -67,7 +67,6 @@ export function EntriesForTopic({navigation}: any) {
 
 function LogsList({userId, topic}: any) {
   const [logsList, setLogsList] = React.useState([]);
-
 
   useEffect(() => {
     if (userId && topic) {
@@ -96,6 +95,7 @@ function LogsList({userId, topic}: any) {
 
 
   const swipeableRef = useRef(null);
+
   const handleDelete = (logId: string) => {
     // Delete the log from the database
     console.log("Deleting log ID: ", logId, " for topic: ", topic);
@@ -121,12 +121,6 @@ function LogsList({userId, topic}: any) {
 
   // @ts-ignore
   const renderRightActions = (progress, dragX, log) => {
-
-    const trans = dragX.interpolate({
-      inputRange: [0, 50, 100],
-      outputRange: [-20, 0, 100],
-    });
-
     return (
         <TouchableOpacity
             style={{
@@ -172,7 +166,7 @@ function LogsList({userId, topic}: any) {
   const tableData = logsList.map(log => new Entry(log));
 
   return (
-      <View>
+      <View style={projectStyles.globalBackground}>
         <View style={[styles.tableContainer]}>
           <FlatList
               data={tableData}
