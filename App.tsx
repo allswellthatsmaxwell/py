@@ -138,7 +138,7 @@ function AppNavigator() {
               setHistorySelected
             }}
         >
-          <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: false}}>
+          <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: true}}>
             {user ? (
                 <>
                   <Stack.Screen name="HomePage" component={HomePage}/>

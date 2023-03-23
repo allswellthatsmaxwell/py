@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 });
 
 export function EntriesForTopic({navigation}: any) {
-  const { user, selectedTopic } = React.useContext(HeaderContext);
+  const {user, selectedTopic} = React.useContext(HeaderContext);
 
   const userId = user.uid;
   // const {userId, selectedTopic} = route.params;
@@ -70,25 +70,28 @@ function LogsList({userId, topic}: any) {
 
 
   useEffect(() => {
-    const logsCollection = firebase
-        .firestore()
-        .collection("users")
-        .doc(userId)
-        .collection("topics")
-        .doc(topic)
-        .collection("entries");
+    if (userId && topic) {
 
-    const unsubscribe = logsCollection.onSnapshot((snapshot) => {
-      const logs = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
-      // sorts logs first by date, then by time
-      logs.sort(sortDateTime);
-      // console.log("Logs: ", logs);
-      setLogsList(logs);
-    });
+      const logsCollection = firebase
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("topics")
+          .doc(topic)
+          .collection("entries");
 
-    return () => {
-      unsubscribe();
-    };
+      const unsubscribe = logsCollection.onSnapshot((snapshot) => {
+        const logs = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
+        // sorts logs first by date, then by time
+        logs.sort(sortDateTime);
+        // console.log("Logs: ", logs);
+        setLogsList(logs);
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
   }, [userId, topic]);
 
 

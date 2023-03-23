@@ -41,6 +41,7 @@ const rowStyles = StyleSheet.create({
   },
 });
 
+// @ts-ignore
 export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData}) {
 
   const handleTopicPress = (topic: string) => {
