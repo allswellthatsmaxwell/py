@@ -16,7 +16,7 @@ export function formatDate(input: string, include_year: boolean = true): string 
   const date = new Date(input);
   const year = date.getFullYear().toString().slice(2);
   const month = months[date.getMonth()];
-  const day = date.getDate();
+  const day = date.getDate() + 1;
 
   if (include_year) {
     return `${month} ${day}, ${year}`;

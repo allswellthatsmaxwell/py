@@ -45,8 +45,6 @@ export function EntriesForTopic({navigation}: any) {
   const {user, selectedTopic} = React.useContext(HeaderContext);
 
   const userId = user.uid;
-  // const {userId, selectedTopic} = route.params;
-
 
   console.log(`EntriesForTopic: userId: ${userId}, selectedTopic: ${selectedTopic}`);
   return (

@@ -398,7 +398,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
     return new_entry;
   }
 
-  async function getEntryClaude(input: string, headers: any) {
+  async function getEntryClaude(input: string) {
     const full_prompt = prompt + '\n' + input;
     console.log("full_prompt for Claude: ", full_prompt);
     const data = {
@@ -429,8 +429,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
     const time = get_current_time();
     console.log("date: ", date, "time: ", time);
     return {
-      "transcript": text, "existing": topicsString,
-      "date": date, "time": time
+      "transcript": text, "date": date, "time": time, "existing": topicsString,
     }
   }
 
@@ -445,8 +444,8 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
     const input = "## input\n" + JSON.stringify(inputDict) + "\n## output\n";
     console.log("LLM input: ", input);
 
-    // const new_entry = await getEntryTurbo(input, headers);
-    const new_entry = await getEntryClaude(input, headers);
+    const new_entry = await getEntryTurbo(input, headers);
+    // const new_entry = await getEntryClaude(input);
     console.log("New entry: ", new_entry);
     return new_entry;
   }
