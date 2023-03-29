@@ -405,7 +405,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
       model: 'claude-instant-v1',
       prompt: full_prompt,
       max_tokens_to_sample: 200,
-      stop_sequences: ["\n\nHuman:"],
+      stop_sequences: ["\n\nHuman:", "## input"],
       temperature: 0.3,
     };
 
