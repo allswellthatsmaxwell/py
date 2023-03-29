@@ -43,6 +43,9 @@ const rowStyles = StyleSheet.create({
 
 // @ts-ignore
 export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData, refreshData, setRefreshData}: any) {
+  const [topicsWithEntries, setTopicsWithEntries] = React.useState([]);
+  const [firstLoad, setFirstLoad] = React.useState(true);
+
   const handleTopicPress = (topic: string) => {
     setSelectedTopic(topic);
   };
@@ -74,42 +77,53 @@ export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData,
     });
 
     await Promise.all(updateCountsPromises);
-    setTopicsData((prevDayCounts) => ({ ...prevDayCounts, ...dayCounts }));
+    return dayCounts;
   }
-  
+
+
+
   useEffect(() => {
-    if (refreshData) {
+    if (firstLoad) {
       const topicsCollection = firebase
           .firestore()
           .collection("users")
           .doc(userId)
           .collection("topics");
 
-      const unsubscribe = topicsCollection.onSnapshot(async (snapshot) => {
+      const fetchTopics = async () => {
+        const snapshot = await topicsCollection.get();
         const topics = snapshot.docs;
-        const topicsWithEntries: any[] = [];
+        const topicsWithEntriesPromises = [];
 
-        const checkEntriesPromises = topics.map(async (topicDoc) => {
+        for (const topicDoc of topics) {
           const entriesSnapshot = await topicDoc.ref
               .collection("entries")
               .limit(1)
               .get();
           if (!entriesSnapshot.empty) {
-            topicsWithEntries.push(topicDoc);
+            topicsWithEntriesPromises.push(topicDoc);
           }
-        });
+        }
 
-        await Promise.all(checkEntriesPromises);
-
-        await getEntriesDayCounts(topicsWithEntries);
-        setRefreshData(false);
-      });
-
-      return () => {
-        unsubscribe();
+        setTopicsWithEntries(topicsWithEntriesPromises);
+        setFirstLoad(false); // Set firstLoad to false after fetching topics
       };
+
+      fetchTopics();
     }
-  }, [userId, refreshData]);
+  }, [userId, firstLoad]);
+
+// Second effect: Fetch the entries for the topics in topicsWithEntries
+  useEffect(() => {
+    if (topicsWithEntries.length > 0) {
+      const fetchEntriesDayCounts = async () => {
+        const dayCounts = await getEntriesDayCounts(topicsWithEntries);
+        setTopicsData((prevDayCounts) => ({...prevDayCounts, ...dayCounts}));
+      };
+
+      fetchEntriesDayCounts();
+    }
+  }, [topicsWithEntries]);
 
 
   function getSortedUniqueDates() {
