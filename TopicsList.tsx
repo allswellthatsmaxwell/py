@@ -42,8 +42,7 @@ const rowStyles = StyleSheet.create({
 });
 
 // @ts-ignore
-export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData}) {
-
+export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData, refreshData, setRefreshData}: any) {
   const handleTopicPress = (topic: string) => {
     setSelectedTopic(topic);
   };
@@ -52,39 +51,34 @@ export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData}
     return <View style={{height: 1, backgroundColor: "gray"}}/>;
   };
 
-
-  function getEntriesDayCounts(topicsWithEntries) {
+  async function getEntriesDayCounts(topicsWithEntries) {
     const dayCounts = {};
 
-    topicsWithEntries.forEach((topicDoc) => {
+    const updateCountsPromises = topicsWithEntries.map(async (topicDoc) => {
       const topic = topicDoc.id;
-      const entriesSnapshot = topicDoc.ref.collection("entries");
+      const entriesSnapshot = await topicDoc.ref.collection("entries").get();
 
-      entriesSnapshot.onSnapshot((snapshot) => {
-        const counts = {};
+      const counts = {};
 
-        snapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          const day = data.date;
-          if (!counts[day]) {
-            counts[day] = 0;
-          }
+      entriesSnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const day = data.date;
+        if (!counts[day]) {
+          counts[day] = 0;
+        }
 
-          counts[day] += data.value;
-        });
-
-        dayCounts[topic] = counts;
-        setTopicsData((prevDayCounts) => ({
-          ...prevDayCounts,
-          ...dayCounts,
-        }));
+        counts[day] += data.value;
       });
-    });
-  }
 
+      dayCounts[topic] = counts;
+    });
+
+    await Promise.all(updateCountsPromises);
+    setTopicsData((prevDayCounts) => ({ ...prevDayCounts, ...dayCounts }));
+  }
+  
   useEffect(() => {
-    if (Object.keys(topicsData).length === 0) {
-      console.log("DEBUG: TopicsList.useEffect: topicsData is empty; refreshing.")
+    if (refreshData) {
       const topicsCollection = firebase
           .firestore()
           .collection("users")
@@ -107,14 +101,15 @@ export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData}
 
         await Promise.all(checkEntriesPromises);
 
-        getEntriesDayCounts(topicsWithEntries);
+        await getEntriesDayCounts(topicsWithEntries);
+        setRefreshData(false);
       });
 
       return () => {
         unsubscribe();
       };
     }
-  }, [userId, topicsData]);
+  }, [userId, refreshData]);
 
 
   function getSortedUniqueDates() {

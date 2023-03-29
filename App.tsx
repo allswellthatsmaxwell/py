@@ -74,6 +74,7 @@ function AppNavigator() {
   const [selectedTopic, setSelectedTopic] = React.useState(null);
   const [historySelected, setHistorySelected] = React.useState(false);
   const [topicsData, setTopicsData] = React.useState({});
+  const [refreshData, setRefreshData] = React.useState(true);
 
 
   useEffect(() => {
@@ -102,15 +103,18 @@ function AppNavigator() {
             <TopicsList userId={user.uid}
                         setSelectedTopic={setSelectedTopic}
                         topicsData={topicsData}
-                        setTopicsData={setTopicsData}/>
+                        setTopicsData={setTopicsData}
+                        refreshData={refreshData}
+                        setRefreshData={setRefreshData}/>
           </View>
           <View style={styles.footer}>
-            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic}/>
+            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic} setRefreshData={setRefreshData}/>
           </View>
         </View>
     );
   }
-  function HomePage({ navigation }: any) {
+
+  function HomePage({navigation}: any) {
     useEffect(() => {
       if (selectedTopic) {
         navigation.navigate("EntriesForTopic");
@@ -119,17 +123,18 @@ function AppNavigator() {
 
     useEffect(() => {
       if (historySelected) {
-        navigation.navigate("TranscriptHistory", { userId: user.uid, historySelected: historySelected });
+        navigation.navigate("TranscriptHistory", {userId: user.uid, historySelected: historySelected});
       }
     }, [historySelected, navigation]);
 
     return (
         <View style={styles.globalBackground}>
-          <Header navigation={navigation} />
-          <MainDisplay />
+          <Header navigation={navigation}/>
+          <MainDisplay/>
         </View>
     );
   }
+
   return (
       <NavigationContainer>
         <HeaderProvider

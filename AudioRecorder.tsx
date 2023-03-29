@@ -96,7 +96,7 @@ const micStyles = StyleSheet.create({
 
 
 
-function AudioRecorder({fbase, setSelectedTopic}) {
+function AudioRecorder({fbase, setSelectedTopic, setRefreshData}: any) {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recording, setRecording] = React.useState();
 
@@ -273,6 +273,7 @@ function AudioRecorder({fbase, setSelectedTopic}) {
       const parsedEntries = await computeAndWriteTopics(transcript, timestamp);
       console.log("entriesString:", parsedEntries.entriesString);
       await handleTopicsTextUpdate(parsedEntries.entriesString);
+      setRefreshData(true);
     } else {
       setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
     }
