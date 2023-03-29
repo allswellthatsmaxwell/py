@@ -96,7 +96,7 @@ const micStyles = StyleSheet.create({
 
 
 
-function AudioRecorder({fbase, setSelectedTopic, setRefreshData}: any) {
+function AudioRecorder({fbase, setSelectedTopic}: any) {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recording, setRecording] = React.useState();
 
@@ -266,6 +266,7 @@ function AudioRecorder({fbase, setSelectedTopic, setRefreshData}: any) {
   }
 
 
+  // @ts-ignore
   async function processTranscript(transcript, timestamp) {
     if (transcript) {
       setTranscriptionResult(transcript);
@@ -273,13 +274,12 @@ function AudioRecorder({fbase, setSelectedTopic, setRefreshData}: any) {
       const parsedEntries = await computeAndWriteTopics(transcript, timestamp);
       console.log("entriesString:", parsedEntries.entriesString);
       await handleTopicsTextUpdate(parsedEntries.entriesString);
-      setRefreshData(true);
     } else {
       setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
     }
   }
 
-  async function postAudioRecording(audioUri) {
+  async function postAudioRecording(audioUri: any) {
     try {
       if (!audioUri) {
         console.error('Invalid audio URI');

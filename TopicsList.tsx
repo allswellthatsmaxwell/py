@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect, useMemo} from "react";
+import {useEffect} from "react";
 import {
   Text,
   View,
@@ -41,10 +41,8 @@ const rowStyles = StyleSheet.create({
   },
 });
 
-// @ts-ignore
-export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData, refreshData, setRefreshData}: any) {
-  const [topicsWithEntries, setTopicsWithEntries] = React.useState([]);
-  const [firstLoad, setFirstLoad] = React.useState(true);
+export function TopicsList({userId, setSelectedTopic}) {
+  const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
 
   const handleTopicPress = (topic: string) => {
     setSelectedTopic(topic);
@@ -54,77 +52,63 @@ export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData,
     return <View style={{height: 1, backgroundColor: "gray"}}/>;
   };
 
-  async function getEntriesDayCounts(topicsWithEntries) {
+
+  function getEntriesDayCounts(topicsWithEntries) {
     const dayCounts = {};
 
-    const updateCountsPromises = topicsWithEntries.map(async (topicDoc) => {
+    topicsWithEntries.forEach((topicDoc) => {
       const topic = topicDoc.id;
-      const entriesSnapshot = await topicDoc.ref.collection("entries").get();
+      const entriesSnapshot = topicDoc.ref.collection("entries");
 
-      const counts = {};
+      entriesSnapshot.onSnapshot((snapshot) => {
+        const counts = {};
 
-      entriesSnapshot.docs.forEach((doc) => {
-        const data = doc.data();
-        const day = data.date;
-        if (!counts[day]) {
-          counts[day] = 0;
-        }
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          const day = data.date;
+          if (!counts[day]) {
+            counts[day] = 0;
+          }
 
-        counts[day] += data.value;
+          counts[day] += data.value;
+        });
+
+        dayCounts[topic] = counts;
+        setEntriesDayCounts((prevDayCounts) => ({
+          ...prevDayCounts,
+          ...dayCounts,
+        }));
       });
-
-      dayCounts[topic] = counts;
     });
-
-    await Promise.all(updateCountsPromises);
-    return dayCounts;
   }
 
-
-
   useEffect(() => {
-    if (firstLoad) {
-      const topicsCollection = firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .collection("topics");
+    const topicsCollection = firebase
+        .firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('topics');
 
-      const fetchTopics = async () => {
-        const snapshot = await topicsCollection.get();
-        const topics = snapshot.docs;
-        const topicsWithEntriesPromises = [];
+    const unsubscribe = topicsCollection.onSnapshot(async (snapshot) => {
+      const topics = snapshot.docs;
+      const topicsWithEntries = [];
 
-        for (const topicDoc of topics) {
-          const entriesSnapshot = await topicDoc.ref
-              .collection("entries")
-              .limit(1)
-              .get();
-          if (!entriesSnapshot.empty) {
-            topicsWithEntriesPromises.push(topicDoc);
-          }
+      const checkEntriesPromises = topics.map(async (topicDoc) => {
+        const entriesSnapshot = await topicDoc.ref.collection('entries').limit(1).get();
+        if (!entriesSnapshot.empty) {
+          topicsWithEntries.push(topicDoc);
         }
+      });
 
-        setTopicsWithEntries(topicsWithEntriesPromises);
-        setFirstLoad(false); // Set firstLoad to false after fetching topics
-      };
+      await Promise.all(checkEntriesPromises);
 
-      fetchTopics();
-    }
-  }, [userId, firstLoad]);
+      getEntriesDayCounts(topicsWithEntries);
+    });
 
-// Second effect: Fetch the entries for the topics in topicsWithEntries
-  useEffect(() => {
-    if (topicsWithEntries.length > 0) {
-      const fetchEntriesDayCounts = async () => {
-        const dayCounts = await getEntriesDayCounts(topicsWithEntries);
-        setTopicsData((prevDayCounts) => ({...prevDayCounts, ...dayCounts}));
-      };
-
-      fetchEntriesDayCounts();
-    }
-  }, [topicsWithEntries]);
-
+    return () => {
+      unsubscribe();
+    };
+  }, [userId]);
 
   function getSortedUniqueDates() {
     // uniqueDates is the dates for the past 30 days, including today
@@ -142,11 +126,11 @@ export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData,
     const sortedDates = getSortedUniqueDates();
     const todayDate = moment().toISOString().split("T")[0];
     const maxDataValue = Math.max(
-        ...Object.values(topicsData[item])
+        ...Object.values(entriesDayCounts[item])
     );
     const scaleFactor = maxDataValue > 0 ? rowHeight / (maxDataValue * 10) : 1;
-    const dateDict = Object.keys(topicsData[item]).reduce((acc, date) => {
-          acc[date] = topicsData[item][date];
+    const dateDict = Object.keys(entriesDayCounts[item]).reduce((acc, date) => {
+          acc[date] = entriesDayCounts[item][date];
           return acc;
         }, {}
     );
@@ -181,7 +165,7 @@ export function TopicsList({userId, setSelectedTopic, topicsData, setTopicsData,
   return (
       <View style={[styles.topicsTableContainer, {borderWidth: 1, borderColor: "black"}]}>
         <FlatList
-            data={Object.keys(topicsData)}
+            data={Object.keys(entriesDayCounts)}
             renderItem={renderItem}
             keyExtractor={(item) => item}
             style={styles.flatList}

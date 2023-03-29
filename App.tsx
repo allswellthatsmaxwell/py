@@ -74,7 +74,6 @@ function AppNavigator() {
   const [selectedTopic, setSelectedTopic] = React.useState(null);
   const [historySelected, setHistorySelected] = React.useState(false);
   const [topicsData, setTopicsData] = React.useState({});
-  const [refreshData, setRefreshData] = React.useState(true);
 
 
   useEffect(() => {
@@ -101,14 +100,10 @@ function AppNavigator() {
         <View>
           <View style={[styles.topContainer, {height: 600}]}>
             <TopicsList userId={user.uid}
-                        setSelectedTopic={setSelectedTopic}
-                        topicsData={topicsData}
-                        setTopicsData={setTopicsData}
-                        refreshData={refreshData}
-                        setRefreshData={setRefreshData}/>
+                        setSelectedTopic={setSelectedTopic}/>
           </View>
           <View style={styles.footer}>
-            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic} setRefreshData={setRefreshData}/>
+            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic}/>
           </View>
         </View>
     );
