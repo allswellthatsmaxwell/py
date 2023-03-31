@@ -88,7 +88,7 @@ function AppNavigator() {
 
   function LoginPage() {
     return (
-        <View style={styles.centerContainer}>
+        <View style={styles.loginWrapContainer}>
           <SignUpOrSignIn/>
         </View>
     );

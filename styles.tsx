@@ -30,11 +30,17 @@ export function getStyles() {
             top: 0,
             borderBottomWidth: 0,
         },
-
         centerContainer: {
             flex: 1,
             alignItems: "center",
             justifyContent: "center",
+            backgroundColor: "#FFFFFF",
+        },
+        loginWrapContainer: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#FFFFFF",
         },
         topicsTableContainer: {
             width: "100%",
