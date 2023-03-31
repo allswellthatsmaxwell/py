@@ -138,7 +138,6 @@ function LogsList({userId, topic}: any) {
 
   // @ts-ignore
   const renderItem = ({item}) => {
-
     return (
         <Swipeable ref={swipeableRef}
                    renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, item)}>

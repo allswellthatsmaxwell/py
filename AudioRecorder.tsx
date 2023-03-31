@@ -78,9 +78,13 @@ const newEntriesStyles = StyleSheet.create({
     flexWrap: "wrap",
     borderBottomWidth: 1,
   },
-  cell: {
+  leftCell: {
     flex: 1,
-    alignItems: "center",
+    width: "90%",
+    alignItems: "flex-start",
+  },
+  rightCell: {
+    alignItems: "flex-end",
   }
 });
 
@@ -550,10 +554,10 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
                 renderItem={({item}) => (
                     <TouchableOpacity onPress={() => handleTopicPress(item.topic)}>
                       <View style={newEntriesStyles.row}>
-                        <Text style={[newEntriesStyles.cell, {textAlign: "left"}]}>
+                        <Text style={[newEntriesStyles.leftCell, {textAlign: "left"}]}>
                           {item.topic}
                         </Text>
-                        <Text style={[newEntriesStyles.cell, {textAlign: "right"}]}>
+                        <Text style={[newEntriesStyles.rightCell, {textAlign: "right"}]}>
                           {item.value}
                         </Text>
                       </View>

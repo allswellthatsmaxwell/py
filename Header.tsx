@@ -1,4 +1,4 @@
-import {Button, Modal, Text, TouchableOpacity, View} from "react-native";
+import {Button, Modal, Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import * as React from "react";
 import {Feather, FontAwesome, MaterialCommunityIcons} from "@expo/vector-icons";
 import firebase from "firebase";
@@ -7,6 +7,14 @@ import {getStyles} from "./styles";
 import HeaderContext from './HeaderContext';
 
 const styles = getStyles();
+
+const specificStyles = StyleSheet.create({
+  smallText: {
+    fontSize: 8, // Set the text size to be small
+    color: '#000000', // Set the text color
+    textAlign: 'center', // Center the text under the icon
+  }
+});
 
 // @ts-ignore
 export function Header({navigation}: any) {
@@ -65,6 +73,7 @@ export function Header({navigation}: any) {
         <View style={styles.topRightCornerSecondPositionContainer}>
           <TouchableOpacity onPress={() => { setHistorySelected(true)} }>
             <MaterialCommunityIcons name="file-document-multiple" size={34} color="black" />
+            <Text style={specificStyles.smallText}>History</Text>
           </TouchableOpacity>
         </View>
     );
