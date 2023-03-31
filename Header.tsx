@@ -72,7 +72,7 @@ export function Header({navigation}: any) {
 
   return (
       <View style={styles.headerContainer}>
-        <AuthStatusElements/>
+        {user && user.email && <AuthStatusElements/>}
         {(!historySelected && !selectedTopic) &&
           <HistoryButton/>
         }
