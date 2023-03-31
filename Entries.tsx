@@ -122,16 +122,15 @@ function LogsList({userId, topic}: any) {
     return (
         <TouchableOpacity
             style={{
-              backgroundColor: "#EE3B3B",
               justifyContent: "center",
               alignItems: "flex-end",
-              paddingHorizontal: 10,
+              paddingHorizontal: -10,
               height: 70
             }}
             onPress={() => handleDelete(log.id)}
         >
           <View style={{width: 50, flex: 1}}>
-            <MaterialCommunityIcons name="delete-forever" size={34} color="white"/>
+            <MaterialCommunityIcons name="delete-forever" size={34} color="red"/>
           </View>
         </TouchableOpacity>
     );
