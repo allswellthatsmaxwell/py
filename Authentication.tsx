@@ -18,14 +18,14 @@ const styles = StyleSheet.create({
     // fontFamily: 'Poppins-Bold', // Use the custom font
     color: '#E3A869', // Dark tan text color
     marginBottom: 20, // Add some space below the title
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    // marginLeft: 70,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    marginLeft: 55,
     height: 100,
-    // height: "50%"
   },
   inputContainer: {
-    width: 120,
+    width: 320,
+    height: 40,
     marginBottom: 15,
     borderRadius: 5,
     borderWidth: 1,
@@ -34,8 +34,9 @@ const styles = StyleSheet.create({
   },
   input: {
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    color: '#000000', // Dark tan text color
+    paddingVertical: 9,
+    fontSize: 18,
+    color: '#000000',
   },
   button: {
     width: '80%',
