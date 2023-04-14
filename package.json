@@ -16,6 +16,7 @@
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
     "d3-scale": "^4.0.2",
+    "dotenv": "^16.0.3",
     "expo": "^48.0.9",
     "expo-av": "~13.0.2",
     "expo-dev-client": "~2.0.1",

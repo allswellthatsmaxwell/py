@@ -366,7 +366,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
     return parsedEntries;
   }
 
-// gets just the time, in the format HH:MM
+  // gets just the time, in the format HH:MM
   function get_current_time() {
     const date = new Date();
     return `${date.getHours()}:${date.getMinutes()}`;
