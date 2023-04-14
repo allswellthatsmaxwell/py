@@ -8,20 +8,20 @@ import {
   FlatList,
 } from "react-native";
 import {Audio} from "expo-av";
-import {FontAwesome, Feather} from "@expo/vector-icons";
+import {FontAwesome} from "@expo/vector-icons";
 
 
 import firebase from "firebase";
+import Constants from 'expo-constants';
 
-import {OPENAI_API_KEY, ANTHROPIC_API_KEY} from "./Keys";
 import {useEffect} from "react";
 import {parseEntriesFromJson} from "./Utilities";
 import {prompt} from "./prompt";
 import {Client} from "@anthropic-ai/sdk";
 
 
-const client = new Client(ANTHROPIC_API_KEY);
-
+// const client = new Client(ANTHROPIC_API_KEY);
+const OPENAI_API_KEY = Constants.manifest.extra.openaiApiKey;
 
 const textStyles = StyleSheet.create({
   buttonContainer: {
@@ -29,7 +29,6 @@ const textStyles = StyleSheet.create({
     alignItems: "center",
   },
   smallTextContainer: {
-    // backgroundColor: "#9E9E9E",
     paddingTop: 5,
     paddingHorizontal: 10,
     marginRight: 10,
