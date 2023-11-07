@@ -385,7 +385,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
 
   async function getEntryTurbo(input: string, headers: any) {
     const data = {
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-3.5-turbo-1106',
       messages: [
         {role: 'system', content: prompt},
         {role: 'user', content: input}]
@@ -397,7 +397,10 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
       body: JSON.stringify(data)
     }).then(res => res.json());
     console.log("Completion: ", completion);
-    const new_entry = completion['choices'][0]['message']['content'].replace("topics: ", "");
+    const new_entry = completion['choices'][0]['message']['content']
+      .replace("json\n", "")
+      .replace("```", "")
+      .replace("```", "");
     console.log("new_entry: ", new_entry);
     return new_entry;
   }

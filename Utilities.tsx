@@ -68,6 +68,10 @@ export function parseEntriesFromJson(entries: string): parsedEntries {
     console.log("Trying to parse entries: ", entries);
     entriesList = JSON.parse(entries);
     entriesString = entries;
+    if ("topics" in entriesList) {
+      entriesList = entriesList["topics"];
+    }
+    
     console.log("Parsed entries: ", entriesList);
   } catch (e) {
     console.log("Error parsing entries: ", e);
