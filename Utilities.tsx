@@ -210,3 +210,11 @@ export const onDelete = async (userId: string, transcriptId: string, entries: st
     ]
   );
 };
+
+export const onDeleteWithSetters = async (
+  userId: string, transcriptId: string, entries: string,
+  setTopicsResult: any, setTranscriptionResult: any) => {
+    onDelete(userId, transcriptId, entries);
+    setTopicsResult(null);
+    setTranscriptionResult(null);
+  }

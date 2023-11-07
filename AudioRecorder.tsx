@@ -20,7 +20,7 @@ import { parseEntriesFromJson } from "./Utilities";
 import { prompt } from "./prompt";
 import { Client } from "@anthropic-ai/sdk";
 
-import { onDelete } from "./Utilities";
+import { onDeleteWithSetters } from "./Utilities";
 
 
 const client = new Client(ANTHROPIC_API_KEY);
@@ -152,12 +152,15 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
   }
 
   const DeleteButton = ({ userId, transcriptId, entries }: any) => {
+    // setTopicsResult(null);
+    // setTranscriptionResult(null);
     return (
       <TouchableOpacity
-        onPress={() => onDelete(userId, transcriptId, entries)}
-        style={{ height: 0, marginTop: 30 }}
+        onPress={() => onDeleteWithSetters(
+          userId, transcriptId, entries, setTopicsResult, setTranscriptionResult)}
+        style={{ height: 20, marginTop: 30 }}
       >
-        <Text style={{ height: 40 }}>Undo</Text>
+        <Text><FontAwesome name="undo" size={20} color="#EE4000" /></Text>
       </TouchableOpacity>
     );
   };
@@ -216,8 +219,7 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
   }
 
 
-  async function addEntryToTopic(transcript, topic, value, time, date, log_timestamp) {
-    // create the topic if it doesn't exist
+  async function addEntryToTopic(transcript, topic, value, time, date, log_timestamp) {    
     if (!time || !date) {
       console.error("ERROR - SKIPPING WRITE: addEntryToTopic: time or date is null");
       return;
@@ -562,7 +564,7 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
             </Text>
           )}
         </TouchableOpacity>
-        
+
         {showDeleteButton && (
           <DeleteButton
             userId={userId}
