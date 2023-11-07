@@ -6,18 +6,21 @@ import {
   StyleSheet,
   ScrollView,
   FlatList,
+  Button
 } from "react-native";
-import {Audio} from "expo-av";
-import {FontAwesome, Feather} from "@expo/vector-icons";
+import { Audio } from "expo-av";
+import { FontAwesome, Feather } from "@expo/vector-icons";
 
 
 import firebase from "firebase";
 
-import {OPENAI_API_KEY, ANTHROPIC_API_KEY} from "./Keys";
-import {useEffect} from "react";
-import {parseEntriesFromJson} from "./Utilities";
-import {prompt} from "./prompt";
-import {Client} from "@anthropic-ai/sdk";
+import { OPENAI_API_KEY, ANTHROPIC_API_KEY } from "./Keys";
+import { useEffect } from "react";
+import { parseEntriesFromJson } from "./Utilities";
+import { prompt } from "./prompt";
+import { Client } from "@anthropic-ai/sdk";
+
+import { onDelete } from "./Utilities";
 
 
 const client = new Client(ANTHROPIC_API_KEY);
@@ -104,7 +107,7 @@ const micStyles = StyleSheet.create({
 });
 
 
-function AudioRecorder({fbase, setSelectedTopic}: any) {
+function AudioRecorder({ fbase, setSelectedTopic }: any) {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recording, setRecording] = React.useState();
 
@@ -116,33 +119,48 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
 
   const [isProcessing, setIsProcessing] = React.useState(false);
 
+  const [transcriptId, setTranscriptId] = React.useState(null);
+  const [showDeleteButton, setShowDeleteButton] = React.useState(false);
+  const [entriesField, setEntriesField] = React.useState({});
+
   const NO_TRANSCRIPTION_TEXT_MSG = "I didn't hear anything - sorry!";
 
   const userId = fbase.auth().currentUser.uid;
 
   const transcriptsCollection = firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("transcripts");
+    .firestore()
+    .collection("users")
+    .doc(userId)
+    .collection("transcripts");
 
   const topicsCollection = firebase
-      .firestore()
-      .collection('users')
-      .doc(userId)
-      .collection('topics');
+    .firestore()
+    .collection('users')
+    .doc(userId)
+    .collection('topics');
 
   async function getMostRecentLogging() {
     const snapshot = await transcriptsCollection.orderBy("timestamp", "desc").limit(1).get();
     if (snapshot.docs.length > 0) {
       const transcript = snapshot.docs[0].data();
       console.log('Most recent transcript: "', transcript.text, '" with entries: ', transcript.entries);
-      return {'transcript': transcript.text, entries: transcript.entries};
+      return { 'transcript': transcript.text, entries: transcript.entries };
     } else {
       console.log('getMostRecentLogging: no transcripts found.');
       return "";
     }
   }
+
+  const DeleteButton = ({ userId, transcriptId, entries }: any) => {
+    return (
+      <TouchableOpacity
+        onPress={() => onDelete(userId, transcriptId, entries)}
+        style={{ height: 0, marginTop: 30 }}
+      >
+        <Text style={{ height: 40 }}>Undo</Text>
+      </TouchableOpacity>
+    );
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -188,7 +206,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
         },
       };
 
-      const {recording} = await Audio.Recording.createAsync(recordingOptions);
+      const { recording } = await Audio.Recording.createAsync(recordingOptions);
       setRecording(recording);
       console.log("Recording started");
       await recording.startAsync();
@@ -206,10 +224,10 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
     }
 
     const topicCollection = firebase
-        .firestore()
-        .collection("users")
-        .doc(userId)
-        .collection("topics");
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("topics");
     const topicDoc = await topicCollection.doc(topic).get();
     if (!topicDoc.exists) {
       topicCollection.doc(topic).set({
@@ -219,8 +237,8 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
 
     // add the entry to the topic
     const topicEntriesCollection = topicCollection
-        .doc(topic)
-        .collection("entries");
+      .doc(topic)
+      .collection("entries");
 
     return await topicEntriesCollection.add({
       transcript: transcript,
@@ -265,7 +283,6 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
       allowsRecordingIOS: true,
     });
 
-
     setTranscriptionStatus("Figuring out what you said...");
     const transcript = await postAudioRecording(recording.getURI());
     setTranscriptionStatus(null);
@@ -280,7 +297,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
       setTranscriptionResult(transcript);
       setTopicsStatus("Figuring out what you're logging...");
       const parsedEntries = await computeAndWriteTopics(transcript, timestamp);
-      console.log("entriesString:", parsedEntries.entriesString);
+      console.log("entriesString: ", parsedEntries.entriesString);
       await handleTopicsTextUpdate(parsedEntries.entriesString);
     } else {
       setTranscriptionStatus(NO_TRANSCRIPTION_TEXT_MSG);
@@ -334,16 +351,18 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
   async function handleTopicsTextUpdate(entriesString: string) {
     const notParseable = !parseable(entriesString);
     if (
-        !entriesString ||
-        entriesString === "[]" ||
-        notParseable ||
-        Object.keys(entriesString).length == 0
+      !entriesString ||
+      entriesString === "[]" ||
+      notParseable ||
+      Object.keys(entriesString).length == 0
     ) {
       console.log("entriesString:", entriesString);
       setTopicsStatus("Found no topics - sorry!");
+      setShowDeleteButton(false);
       entriesString = "[]";
     } else {
       setTopicsStatus(null);
+      setShowDeleteButton(true);
     }
     setTopicsResult(entriesString);
     return;
@@ -354,20 +373,18 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
     const parsedEntries = parseEntriesFromJson(entries);
     const ids = await writeEntriesToDB(transcript, parsedEntries.entriesList, timestamp);
     console.log("computeAndWriteTopics ids:", ids);
-    await transcriptsCollection
-        .add({
-          text: transcript, entries: parsedEntries.entriesString, timestamp: timestamp,
-          ids: ids
-        })
-        .then((docRef) => {
-          console.log("Transcript written with ID: ", docRef.id);
-        });
-
-
+    const docRef = await transcriptsCollection
+      .add({
+        text: transcript, entries: parsedEntries.entriesString, timestamp: timestamp,
+        ids: ids
+      });
+    setTranscriptId(docRef.id);
+    setEntriesField(parsedEntries.entriesList);
+    console.log("Transcript written with ID: ", docRef.id);
     return parsedEntries;
   }
 
-// gets just the time, in the format HH:MM
+  // gets just the time, in the format HH:MM
   function get_current_time() {
     const date = new Date();
     return `${date.getHours()}:${date.getMinutes()}`;
@@ -387,8 +404,8 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
     const data = {
       model: 'gpt-3.5-turbo-1106',
       messages: [
-        {role: 'system', content: prompt},
-        {role: 'user', content: input}]
+        { role: 'system', content: prompt },
+        { role: 'user', content: input }]
     };
 
     const completion = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -492,7 +509,7 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
 
   let rows: { topic: string, entry: number }[] = [];
   if (entriesList && entriesList.length > 0) {
-    rows = entriesList.map(({topic, value, date, time}) => ({
+    rows = entriesList.map(({ topic, value, date, time }) => ({
       topic,
       value,
       date,
@@ -503,73 +520,82 @@ function AudioRecorder({fbase, setSelectedTopic}: any) {
   // records, then uploads the recording. The recording button
   // changes to a stop button when recording.
   return (
-      <View style={[textStyles.rowContainer, {alignItems: "center"}]}>
-        <View style={{width: "35%"}}>
-          <View style={textStyles.smallTextContainer}>
-            <Text style={textStyles.smallText}>{transcriptionStatus}</Text>
-          </View>
-          <View style={textStyles.mainTextContainer}>
-            <ScrollView contentContainerStyle={{alignItems: "flex-start"}}>
-              <Text style={textStyles.mainText}>{transcriptionResult}</Text>
-            </ScrollView>
-          </View>
+    <View style={[textStyles.rowContainer, { alignItems: "center" }]}>
+      <View style={{ width: "35%" }}>
+        <View style={textStyles.smallTextContainer}>
+          <Text style={textStyles.smallText}>{transcriptionStatus}</Text>
         </View>
-
-        <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              alignSelf: "stretch",
-            }}
-        >
-          <TouchableOpacity
-              onPress={handlePress}
-              underlayColor={isProcessing ? "red" : "white"}
-              style={{height: 56}}
-          >
-            {isRecording ? (
-                <Text>
-                  <FontAwesome name="stop" size={56} color="#CD2626"/>
-                </Text>
-            ) : (
-                <Text>
-                  {isProcessing ? (
-                      <FontAwesome name="gear" color="gray" size={56}/>
-                  ) : (
-                      <View style={micStyles.circle}>
-                        <FontAwesome name="microphone" size={56} color={micColor}/>
-                      </View>
-                  )}
-                </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={{width: "35%"}}>
-          <View style={textStyles.smallTextContainer}>
-            <Text style={textStyles.smallText}>{topicsStatus}</Text>
-          </View>
-          <View style={[textStyles.mainTextContainer, {alignSelf: "flex-end"}]}>
-            <FlatList
-                data={rows}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({item}) => (
-                    <TouchableOpacity onPress={() => handleTopicPress(item.topic)}>
-                      <View style={newEntriesStyles.row}>
-                        <Text style={[newEntriesStyles.leftCell, {textAlign: "left"}]}>
-                          {item.topic}
-                        </Text>
-                        <Text style={[newEntriesStyles.rightCell, {textAlign: "right"}]}>
-                          {item.value}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                )}
-            />
-          </View>
+        <View style={textStyles.mainTextContainer}>
+          <ScrollView contentContainerStyle={{ alignItems: "flex-start" }}>
+            <Text style={textStyles.mainText}>{transcriptionResult}</Text>
+          </ScrollView>
         </View>
       </View>
+
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          alignSelf: "stretch",
+        }}
+      >
+        <TouchableOpacity
+          onPress={handlePress}
+          underlayColor={isProcessing ? "red" : "white"}
+          style={{ height: 56 }}
+        >
+          {isRecording ? (
+            <Text>
+              <FontAwesome name="stop" size={56} color="#CD2626" />
+            </Text>
+          ) : (
+            <Text>
+              {isProcessing ? (
+                <FontAwesome name="gear" color="gray" size={56} />
+              ) : (
+                <View style={micStyles.circle}>
+                  <FontAwesome name="microphone" size={56} color={micColor} />
+                </View>
+              )}
+            </Text>
+          )}
+        </TouchableOpacity>
+        
+        {showDeleteButton && (
+          <DeleteButton
+            userId={userId}
+            transcriptId={transcriptId}
+            entries={entriesField}
+          />
+        )}
+      </View>
+
+
+      <View style={{ width: "35%" }}>
+        <View style={textStyles.smallTextContainer}>
+          <Text style={textStyles.smallText}>{topicsStatus}</Text>
+        </View>
+        <View style={[textStyles.mainTextContainer, { alignSelf: "flex-end" }]}>
+          <FlatList
+            data={rows}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => handleTopicPress(item.topic)}>
+                <View style={newEntriesStyles.row}>
+                  <Text style={[newEntriesStyles.leftCell, { textAlign: "left" }]}>
+                    {item.topic}
+                  </Text>
+                  <Text style={[newEntriesStyles.rightCell, { textAlign: "right" }]}>
+                    {item.value}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
+    </View>
   );
 }
 
