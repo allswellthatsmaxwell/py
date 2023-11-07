@@ -196,9 +196,10 @@ export const onDelete = async (userId: string, transcriptId: string, entries: st
             .doc(transcriptId);
 
           const entryIds = await fetchIdsField(transcriptRef);
-
+          console.log("ENTRIES IN onDelete: ", entries);
           // Delete entries
           for (const entry of JSON.parse(entries)) {
+            console.log("ENTRY in onDelete loop: ", entry);
             await deleteMatchingEntries(userId, entry.topic, entryIds, batch);
           }
 

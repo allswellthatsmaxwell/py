@@ -379,7 +379,8 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
         ids: ids
       });
     setTranscriptId(docRef.id);
-    setEntriesField(parsedEntries.entriesList);
+    console.log("ENTRIES: ", entries);
+    setEntriesField(entries);
     console.log("Transcript written with ID: ", docRef.id);
     return parsedEntries;
   }
