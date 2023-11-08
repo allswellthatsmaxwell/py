@@ -5,6 +5,10 @@ import firebase from "firebase/app";
 
 import {getStyles} from "./styles";
 import HeaderContext from './HeaderContext';
+import { getAuth, signOut } from "firebase/auth";
+
+const auth = getAuth();
+
 
 const styles = getStyles();
 
@@ -46,7 +50,7 @@ export function Header({navigation}: any) {
                 <Text>Signed in as {user.email}.</Text>
                 <Button
                     title="Sign Out"
-                    onPress={() => firebase.auth().signOut()}
+                    onPress={() => signOut(auth)}
                 />
                 <Button title="Close" onPress={handlePress}/>
               </View>
