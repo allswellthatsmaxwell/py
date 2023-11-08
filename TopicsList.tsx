@@ -7,7 +7,10 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { getFirestore, collection, doc, onSnapshot, getDocs, limit, query } from 'firebase/firestore';
+import { 
+  getFirestore, collection, doc, onSnapshot, getDocs, limit, query,
+  DocumentData,
+  DocumentReference } from 'firebase/firestore';
 import moment from "moment";
 
 import {getStyles} from "./styles";
@@ -41,6 +44,16 @@ const rowStyles = StyleSheet.create({
   },
 });
 
+
+interface TopicDocument {
+  id: string;
+  ref: DocumentReference<DocumentData>;
+}
+
+interface DayCount {
+  [date: string]: number;
+}
+
 export function TopicsList({userId, setSelectedTopic}: 
     { userId: string, 
       setSelectedTopic: (topic: string) => void }) {
@@ -57,13 +70,13 @@ export function TopicsList({userId, setSelectedTopic}:
   };
 
   function getEntriesDayCounts(topicsWithEntries: any) {
-    const dayCounts: Record<string, Record<string, number>> = {};
+    const dayCounts: Record<string, DayCount> = {};
 
     topicsWithEntries.forEach((topicDoc: any) => {
       const topic = topicDoc.id;
-      const entriesSnapshot = topicDoc.ref.collection("entries");
+      const entriesSnapshot = collection(topicDoc.ref, "entries");
 
-      entriesSnapshot.onSnapshot((snapshot: any) => {
+      onSnapshot(entriesSnapshot, (snapshot: any) => {
         const counts: Record<string, number> = {};
 
         snapshot.docs.forEach((doc: any) => {

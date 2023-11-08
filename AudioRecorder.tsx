@@ -12,7 +12,7 @@ import { Audio } from "expo-av";
 import { FontAwesome } from "@expo/vector-icons";
 
 
-import { getFirestore, collection, doc } from 'firebase/firestore';
+import { getFirestore, collection, doc, orderBy, limit, getDocs, query } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 import { OPENAI_API_KEY } from "./Keys";
@@ -132,7 +132,7 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
   const topicsCollection = collection(db, "users", userId, "topics");
 
   async function getMostRecentLogging() {
-    const snapshot = await transcriptsCollection.orderBy("timestamp", "desc").limit(1).get();
+    const snapshot = await getDocs(query(transcriptsCollection, orderBy("timestamp", "desc"), limit(1)))
     if (snapshot.docs.length > 0) {
       const transcript = snapshot.docs[0].data();
       console.log('Most recent transcript: "', transcript.text, '" with entries: ', transcript.entries);
