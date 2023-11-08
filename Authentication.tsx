@@ -2,14 +2,8 @@ import * as React from 'react';
 import { View, Button, TextInput, StyleSheet, Text } from 'react-native';
 import firebase from "firebase/app";
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import {
-  getFirestore, collection, doc, onSnapshot, getDocs, limit, query,
-  DocumentData,
-  DocumentReference, setDoc, Timestamp
-} from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, Timestamp } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-// import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const styles = StyleSheet.create({
@@ -60,8 +54,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -75,8 +67,13 @@ const firebaseConfig = {
   measurementId: "G-5SDFE3KY7B",
 };
 
+
+// const auth = initializeAuth(app, {
+//   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+// });
+
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-// const auth = !getAuth() initializeAuth(app, {
+// const auth = initializeAuth(app, {
 //   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 // });
 const auth = getAuth(app);
@@ -84,7 +81,7 @@ const auth = getAuth(app);
 
 const uploadExampleData = async (user: any) => {
   const db = getFirestore();
-  
+
   if (user) {
     // The user has been created, and now you can add example data to Firestore
     const userId = user.uid; // Unique ID for the signed-up user
@@ -104,7 +101,7 @@ const uploadExampleData = async (user: any) => {
       transcript: "Example transcript for Lima beans.",
       value: 1
     };
-    
+
     await setDoc(exampleEntryRef, entryData);
   }
 };
@@ -116,7 +113,7 @@ function SignUpOrSignIn() {
 
   const handleSignInWithEmailAndPassword = async () => {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error(error);
     }
