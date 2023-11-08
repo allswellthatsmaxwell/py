@@ -12,7 +12,8 @@ import { Audio } from "expo-av";
 import { FontAwesome } from "@expo/vector-icons";
 
 
-import { getFirestore, collection, doc, orderBy, limit, getDocs, query } from 'firebase/firestore';
+import { getFirestore, collection, doc, orderBy, limit, getDocs, 
+         query, getDoc, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 import { OPENAI_API_KEY } from "./Keys";
@@ -217,35 +218,31 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
       return;
     }
 
-    const topicCollection = firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("topics");
-    const topicDoc = await topicCollection.doc(topic).get();
-    if (!topicDoc.exists) {
-      topicCollection.doc(topic).set({
+    const topicCollectionRef = collection(db, "users", userId, "topics");
+    const topicDocRef = doc(topicCollectionRef, topic);
+    const topicDocSnapshot = await getDoc(topicDocRef);
+    if (!topicDocSnapshot.exists()) {
+      await setDoc(topicDocRef, {
         timestamp: log_timestamp,
       });
     }
 
     // add the entry to the topic
-    const topicEntriesCollection = topicCollection
-      .doc(topic)
-      .collection("entries");
+    const topicEntriesCollectionRef = collection(topicDocRef, "entries");
 
-    return await topicEntriesCollection.add({
-      transcript: transcript,
-      value: value,
-      time: time,
-      date: date,
-      log_time: log_timestamp
-    }).then(function (docRef) {
+    try {
+      const docRef = await addDoc(topicEntriesCollectionRef, {
+        transcript: transcript,
+        value: value,
+        time: time,
+        date: date,
+        log_time: log_timestamp
+      });
       console.log("Entry added to topic: ", docRef.id);
       return docRef.id;
-    }).catch(function (error) {
+    } catch (error) {
       console.error("Error adding entry to topic: ", error);
-    });
+    }
   }
 
   async function writeEntriesToDB(transcript, entriesList, timestamp) {
@@ -269,7 +266,7 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
   }
 
   async function stopRecording() {
-    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+    const timestamp = serverTimestamp();
     console.log("Stopping recording..");
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
@@ -367,11 +364,8 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
     const parsedEntries = parseEntriesFromJson(entries);
     const ids = await writeEntriesToDB(transcript, parsedEntries.entriesList, timestamp);
     console.log("computeAndWriteTopics ids:", ids);
-    const docRef = await transcriptsCollection
-      .add({
-        text: transcript, entries: parsedEntries.entriesString, timestamp: timestamp,
-        ids: ids
-      });
+    const docRef = await addDoc(transcriptsCollection,
+      { text: transcript, entries: parsedEntries.entriesString, timestamp: timestamp, ids: ids });
     setTranscriptId(docRef.id);
     console.log("ENTRIES: ", entries);
     setEntriesField(entries);
@@ -420,11 +414,14 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
   async function makeInputDictForLLM(text: string) {
     let topicsString;
 
-    await topicsCollection.get().then((querySnapshot) => {
-      const topics = querySnapshot.docs.map((doc) => doc.id);
+    try {
+      const querySnapshot = await getDocs(topicsCollection);
+      const topics = querySnapshot.docs.map(doc => doc.id);
       topicsString = topics.join(', ');
-      console.log("existing topicsString: ", topicsString);
-    });
+      console.log("Existing topicsString: ", topicsString);
+    } catch (error) {
+      console.error("Error getting documents: ", error);
+    }
 
     const date = get_current_date();
     const time = get_current_time();

@@ -3,9 +3,16 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
 } from "react-native";
-import firebase from "firebase/app";
+
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  getFirestore,
+  doc
+} from 'firebase/firestore';
 
 import { formatDate, onDelete } from "./Utilities";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,22 +25,22 @@ const styles = getStyles();
 export function TranscriptHistory({ route, navigation }: any) {
   const { userId } = route.params;
   const [transcripts, setTranscripts] = useState([]);
+  const db = getFirestore();
 
   useEffect(() => {
-    const unsubscribe = firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("transcripts")
-      .orderBy("timestamp", "desc")
-      .onSnapshot((snapshot) => {
-        const fetchedTranscripts = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        console.log("fetchedTranscripts: ", fetchedTranscripts);
-        setTranscripts(fetchedTranscripts);
-      });
+    const q = query(
+      collection(db, "users", userId, "transcripts"),
+      orderBy("timestamp", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedTranscripts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      console.log("Fetched Transcripts: ", fetchedTranscripts);
+      setTranscripts(fetchedTranscripts);
+    });
 
     return () => unsubscribe();
   }, [userId]);

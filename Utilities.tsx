@@ -1,6 +1,8 @@
 
 import firebase from "firebase/app";
 import { Alert } from 'react-native';
+import { doc, Firestore, getDoc, writeBatch, getFirestore } from 'firebase/firestore';
+
 
 export function sortDateTime(a, b) {
   {
@@ -135,45 +137,39 @@ export function getEnglishTimeDifference(timestamp: string) {
 }
 
 export const deleteMatchingEntries = async (
-  userId: string, topic: string, entryIds: string[],
-  batch: firebase.firestore.WriteBatch): Promise<void> => {
-  const entriesRef = firebase
-    .firestore()
-    .collection('users')
-    .doc(userId)
-    .collection('topics')
-    .doc(topic)
-    .collection('entries');
-
+    db: Firestore, userId: string, topic: string, entryIds: any, batch: any) => {
   for (const entryId of entryIds) {
-    const entryRef = entriesRef.doc(entryId);
-    const entryDoc = await entryRef.get();
-    if (entryDoc.exists) {
+    const entryRef = doc(db, 'users', userId, 'topics', topic, 'entries', entryId);
+    const entryDoc = await getDoc(entryRef);
+    if (entryDoc.exists()) {
       const entryData = entryDoc.data();
       console.log("Deleting entryRef with entryData: ", entryData);
     }
     batch.delete(entryRef);
   }
-}
+};
 
 
-
-export const fetchIdsField = async (ref: firebase.firestore.DocumentReference) => {
+export const fetchIdsField = async (ref) => {
   try {
-    const doc = await ref.get();
-    if (doc.exists) {
-      const idsList = doc.data().ids;
+    const docSnapshot = await getDoc(ref);
+    if (docSnapshot.exists()) {
+      const idsList = docSnapshot.data().ids;
       console.log('ids list:', idsList);
       return idsList;
     } else {
       console.log('No such document!');
+      return []; // Return an empty array if the document doesn't exist
     }
   } catch (error) {
     console.error('Error fetching ids field:', error);
+    throw error; // Rethrow the error if you need to handle it upstream
   }
 }
 
 export const onDelete = async (userId: string, transcriptId: string, entries: string) => {
+  const db = getFirestore();
+
   Alert.alert(
     "Delete Transcript",
     "Are you sure you want to delete this transcript and its entries?",
@@ -185,24 +181,20 @@ export const onDelete = async (userId: string, transcriptId: string, entries: st
       {
         text: "OK",
         onPress: async () => {
-          const batch = firebase.firestore().batch();
-
+          const batch = writeBatch(db);
+      
           // Delete transcript
-          const transcriptRef = firebase
-            .firestore()
-            .collection("users")
-            .doc(userId)
-            .collection("transcripts")
-            .doc(transcriptId);
-
+          const transcriptRef = doc(db, "users", userId, "transcripts", transcriptId);
+      
           const entryIds = await fetchIdsField(transcriptRef);
           console.log("ENTRIES IN onDelete: ", entries);
+      
           // Delete entries
           for (const entry of JSON.parse(entries)) {
             console.log("ENTRY in onDelete loop: ", entry);
-            await deleteMatchingEntries(userId, entry.topic, entryIds, batch);
+            await deleteMatchingEntries(db, userId, entry.topic, entryIds, batch);
           }
-
+      
           batch.delete(transcriptRef);
           await batch.commit();
         },
