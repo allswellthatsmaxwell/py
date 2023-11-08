@@ -1,7 +1,7 @@
 import {Button, Modal, Text, TouchableOpacity, View, StyleSheet} from "react-native";
 import * as React from "react";
 import {Feather, FontAwesome, MaterialCommunityIcons} from "@expo/vector-icons";
-import firebase from "firebase";
+import firebase from "firebase/app";
 
 import {getStyles} from "./styles";
 import HeaderContext from './HeaderContext';

@@ -1,5 +1,5 @@
 
-import firebase from "firebase";
+import firebase from "firebase/app";
 import { Alert } from 'react-native';
 
 export function sortDateTime(a, b) {

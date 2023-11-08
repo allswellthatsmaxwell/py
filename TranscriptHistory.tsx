@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import firebase from "firebase";
+import firebase from "firebase/app";
 
 import { formatDate, onDelete } from "./Utilities";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";

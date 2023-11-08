@@ -9,21 +9,19 @@ import {
   Button
 } from "react-native";
 import { Audio } from "expo-av";
-import { FontAwesome, Feather } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 
 
-import firebase from "firebase";
+import { getFirestore, collection, doc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
-import { OPENAI_API_KEY, ANTHROPIC_API_KEY } from "./Keys";
+import { OPENAI_API_KEY } from "./Keys";
 import { useEffect } from "react";
 import { parseEntriesFromJson } from "./Utilities";
 import { prompt } from "./prompt";
-import { Client } from "@anthropic-ai/sdk";
 
 import { onDeleteWithSetters } from "./Utilities";
 
-
-const client = new Client(ANTHROPIC_API_KEY);
 
 
 const textStyles = StyleSheet.create({
@@ -124,20 +122,14 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
   const [entriesField, setEntriesField] = React.useState({});
 
   const NO_TRANSCRIPTION_TEXT_MSG = "I didn't hear anything - sorry!";
+  
+  const db = getFirestore();
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const userId = user ? user.uid : null;
 
-  const userId = fbase.auth().currentUser.uid;
-
-  const transcriptsCollection = firebase
-    .firestore()
-    .collection("users")
-    .doc(userId)
-    .collection("transcripts");
-
-  const topicsCollection = firebase
-    .firestore()
-    .collection('users')
-    .doc(userId)
-    .collection('topics');
+  const transcriptsCollection = collection(db, "users", userId, "transcripts");
+  const topicsCollection = collection(db, "users", userId, "topics");
 
   async function getMostRecentLogging() {
     const snapshot = await transcriptsCollection.orderBy("timestamp", "desc").limit(1).get();
@@ -421,24 +413,6 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
       .replace("json\n", "")
       .replace("```", "")
       .replace("```", "");
-    console.log("new_entry: ", new_entry);
-    return new_entry;
-  }
-
-  async function getEntryClaude(input: string) {
-    const full_prompt = prompt + '\n' + input;
-    console.log("full_prompt for Claude: ", full_prompt);
-    const data = {
-      model: 'claude-instant-v1',
-      prompt: full_prompt,
-      max_tokens_to_sample: 200,
-      stop_sequences: ["\n\nHuman:", "## input"],
-      temperature: 0.3,
-    };
-
-    const completion = await client.complete(data).then(res => res);
-    console.log("Completion: ", completion);
-    const new_entry = completion['completion'];
     console.log("new_entry: ", new_entry);
     return new_entry;
   }

@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import firebase from "firebase";
+import { getFirestore, collection, doc, onSnapshot, getDocs, limit, query } from 'firebase/firestore';
 import moment from "moment";
 
 import {getStyles} from "./styles";
@@ -41,7 +41,11 @@ const rowStyles = StyleSheet.create({
   },
 });
 
-export function TopicsList({userId, setSelectedTopic}) {
+export function TopicsList({userId, setSelectedTopic}: 
+    { userId: string, 
+      setSelectedTopic: (topic: string) => void }) {
+  
+  const db = getFirestore();
   const [entriesDayCounts, setEntriesDayCounts] = React.useState({});
 
   const handleTopicPress = (topic: string) => {
@@ -52,18 +56,17 @@ export function TopicsList({userId, setSelectedTopic}) {
     return <View style={{height: 1, backgroundColor: "gray"}}/>;
   };
 
+  function getEntriesDayCounts(topicsWithEntries: any) {
+    const dayCounts: Record<string, Record<string, number>> = {};
 
-  function getEntriesDayCounts(topicsWithEntries) {
-    const dayCounts = {};
-
-    topicsWithEntries.forEach((topicDoc) => {
+    topicsWithEntries.forEach((topicDoc: any) => {
       const topic = topicDoc.id;
       const entriesSnapshot = topicDoc.ref.collection("entries");
 
-      entriesSnapshot.onSnapshot((snapshot) => {
-        const counts = {};
+      entriesSnapshot.onSnapshot((snapshot: any) => {
+        const counts: Record<string, number> = {};
 
-        snapshot.docs.forEach((doc) => {
+        snapshot.docs.forEach((doc: any) => {
           const data = doc.data();
           const day = data.date;
           if (!counts[day]) {
@@ -83,18 +86,19 @@ export function TopicsList({userId, setSelectedTopic}) {
   }
 
   useEffect(() => {
-    const topicsCollection = firebase
-        .firestore()
-        .collection('users')
-        .doc(userId)
-        .collection('topics');
+    if (!userId) return;
 
-    const unsubscribe = topicsCollection.onSnapshot(async (snapshot) => {
+    const topicsCollectionRef = collection(db, "users", userId, "topics");
+    const q = query(topicsCollectionRef);
+    
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       const topics = snapshot.docs;
-      const topicsWithEntries = [];
+      const topicsWithEntries: any[] = [];
 
       const checkEntriesPromises = topics.map(async (topicDoc) => {
-        const entriesSnapshot = await topicDoc.ref.collection('entries').limit(1).get();
+        const entriesCollectionRef = await collection(topicDoc.ref, 'entries');
+        const entriesQuery = query(entriesCollectionRef, limit(1));
+        const entriesSnapshot = await getDocs(entriesQuery);
         if (!entriesSnapshot.empty) {
           topicsWithEntries.push(topicDoc);
         }

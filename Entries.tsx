@@ -1,7 +1,7 @@
 import {TouchableOpacity, View, FlatList, Text, StyleSheet} from "react-native";
 import * as React from "react";
 import {useEffect, useRef} from "react";
-import firebase from "firebase";
+import firebase from "firebase/app";
 import {Swipeable} from "react-native-gesture-handler";
 
 import {getStyles} from "./styles";
