@@ -1,8 +1,13 @@
 import * as React from 'react';
-import {View, Button, TextInput, StyleSheet, Text} from 'react-native';
+import { View, Button, TextInput, StyleSheet, Text } from 'react-native';
 import firebase from "firebase/app";
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  getFirestore, collection, doc, onSnapshot, getDocs, limit, query,
+  DocumentData,
+  DocumentReference, setDoc, Timestamp
+} from 'firebase/firestore';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 // import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -78,26 +83,29 @@ const auth = getAuth(app);
 
 
 const uploadExampleData = async (user: any) => {
+  const db = getFirestore();
+  
   if (user) {
     // The user has been created, and now you can add example data to Firestore
     const userId = user.uid; // Unique ID for the signed-up user
-    const topicsCollection = firebase.firestore().collection('users').doc(userId).collection('topics');
+
+    const topicsCollectionRef = collection(db, 'users', userId, 'topics');
 
     // Here, we add an example topic and an entry for the new user
-    const exampleTopicRef = topicsCollection.doc(); // Create a new topic document reference with an auto-generated ID
-    const exampleEntryRef = exampleTopicRef.collection('entries').doc(); // Create a new entry document reference
-    
-    // Example data to be added for the new user
+    // Create a new topic document reference with an auto-generated ID
+    const exampleTopicRef = doc(topicsCollectionRef);
+    // Create a new entry document reference within the 'entries' subcollection
+    const exampleEntryRef = doc(collection(exampleTopicRef, 'entries')); // Example data to be added for the new user
+
     const entryData = {
       date: "2023-03-28",
-      log_time: firebase.firestore.Timestamp.fromDate(new Date('2023-03-28T21:41:58-05:00')), // Timestamp
+      log_time: Timestamp.fromDate(new Date('2023-03-28T21:41:58-05:00')), // Using Timestamp from the modular SDK
       time: "21:41",
       transcript: "Example transcript for Lima beans.",
       value: 1
     };
-
-    // Add the example data to Firestore
-    await exampleEntryRef.set(entryData);
+    
+    await setDoc(exampleEntryRef, entryData);
   }
 };
 
@@ -124,40 +132,40 @@ function SignUpOrSignIn() {
   };
 
   return (
-      <View>
-        <Text style={styles.title}>Sonic Scribe</Text>
-        <View style={styles.centerContainer}>
+    <View>
+      <Text style={styles.title}>Sonic Scribe</Text>
+      <View style={styles.centerContainer}>
         {/*<Text style={styles.textContainer}>Sign in to view your logs, or make an account to begin.</Text>*/}
         <View style={styles.inputContainer}>
           <TextInput
-              placeholder="Email"
-              onChangeText={setEmail}
-              value={email}
-              keyboardType="email-address"
-              style={styles.input}
+            placeholder="Email"
+            onChangeText={setEmail}
+            value={email}
+            keyboardType="email-address"
+            style={styles.input}
           />
         </View>
         <View style={styles.inputContainer}>
           <TextInput
-              placeholder="Password"
-              onChangeText={setPassword}
-              value={password}
-              secureTextEntry
-              style={styles.input}
+            placeholder="Password"
+            onChangeText={setPassword}
+            value={password}
+            secureTextEntry
+            style={styles.input}
           />
         </View>
         <View style={styles.button}>
-          <Button title="Sign In" onPress={handleSignInWithEmailAndPassword} color={styles.buttonText.color}/>
+          <Button title="Sign In" onPress={handleSignInWithEmailAndPassword} color={styles.buttonText.color} />
         </View>
         <View style={styles.button}>
-          <Button title="Sign Up" onPress={handleSignUpWithEmailAndPassword} color={styles.buttonText.color}/>
+          <Button title="Sign Up" onPress={handleSignUpWithEmailAndPassword} color={styles.buttonText.color} />
         </View>
         {/* <Button title="Sign In with Google" onPress={handleSignInWithGoogle} />
       <Button title="Sign Up with Google" onPress={handleSignUpWithGoogle} /> */}
       </View>
-</View>
-)
-  ;
+    </View>
+  )
+    ;
 }
 
 export default SignUpOrSignIn;
