@@ -267,7 +267,7 @@ function AudioRecorder({ fbase, setSelectedTopic }: any) {
 
   async function stopRecording() {
     const timestamp = serverTimestamp();
-    console.log("Stopping recording..");
+    console.log("Stopping recording.");
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
     await Audio.setAudioModeAsync({

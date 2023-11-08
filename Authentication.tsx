@@ -2,7 +2,7 @@ import * as React from 'react';
 import { View, Button, TextInput, StyleSheet, Text } from 'react-native';
 import firebase from "firebase/app";
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 
@@ -82,17 +82,24 @@ const auth = getAuth(app);
 const uploadExampleData = async (user: any) => {
   const db = getFirestore();
 
+  console.log("in uploadExampleData");
+
   if (user) {
+    console.log("uploadExampleData: user not null");
     // The user has been created, and now you can add example data to Firestore
     const userId = user.uid; // Unique ID for the signed-up user
+    console.log("uploadExampleData: userId: " + userId);
 
     const topicsCollectionRef = collection(db, 'users', userId, 'topics');
 
-    // Here, we add an example topic and an entry for the new user
-    // Create a new topic document reference with an auto-generated ID
-    const exampleTopicRef = doc(topicsCollectionRef);
+    // Here, we add an example topic for the new user, named 'miles walked'
+    const exampleTopicRef = doc(topicsCollectionRef, 'miles walked');
+    await setDoc(exampleTopicRef, {
+      // any initial data, for example:
+      createdAt: Timestamp.fromDate(new Date()),
+    });
     // Create a new entry document reference within the 'entries' subcollection
-    const exampleEntryRef = doc(collection(exampleTopicRef, 'entries')); // Example data to be added for the new user
+    const exampleEntryRef = collection(exampleTopicRef, 'entries'); // Example data to be added for the new user
 
     const entryData = {
       date: "2023-03-28",
@@ -102,8 +109,11 @@ const uploadExampleData = async (user: any) => {
       value: 1
     };
 
-    await setDoc(exampleEntryRef, entryData);
+    await setDoc(doc(exampleEntryRef), entryData);
+  } else {
+    console.log("uploadExampleData: user null");
   }
+  console.log("uploadExampleData: finished");
 };
 
 
