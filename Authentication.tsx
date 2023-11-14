@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { View, Button, TextInput, StyleSheet, Text } from 'react-native';
-import firebase from "firebase/app";
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
+import { useUploadContext } from './UploadContext';
 
 const styles = StyleSheet.create({
   centerContainer: {
@@ -79,7 +79,10 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
 
-const uploadExampleData = async (user: any) => {
+const { setUploadComplete } = useUploadContext();
+
+const uploadExampleData = async (user: any) => {  
+
   const db = getFirestore();
 
   console.log("in uploadExampleData");
@@ -113,6 +116,7 @@ const uploadExampleData = async (user: any) => {
   } else {
     console.log("uploadExampleData: user null");
   }
+  setUploadComplete(true);
   console.log("uploadExampleData: finished");
 };
 

@@ -8,7 +8,7 @@ import { Swipeable } from "react-native-gesture-handler";
 
 import { getStyles } from "./styles";
 import { sortDateTime, Entry } from "./Utilities";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons"; 
 
 import { Header } from "./Header";
 import HeaderContext from './HeaderContext';

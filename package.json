@@ -17,7 +17,7 @@
     "@types/react": "~18.2.14",
     "@types/react-native": "~0.70.6",
     "d3-scale": "^4.0.2",
-    "expo": "^49.0.16",
+    "expo": "^49.0.18",
     "expo-av": "~13.4.1",
     "expo-dev-client": "~2.4.11",
     "expo-file-system": "~15.4.4",

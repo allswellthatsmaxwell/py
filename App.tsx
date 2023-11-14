@@ -1,21 +1,22 @@
 import * as React from "react";
-import {View} from "react-native";
-import {useEffect} from "react";
+import { View } from "react-native";
+import { useEffect } from "react";
 
-import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
-import {NavigationContainer} from '@react-navigation/native';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
 
 import firebase from "firebase/app";
 
 import SignUpOrSignIn from "./Authentication";
 import AudioRecorder from "./AudioRecorder";
-import {TopicsList} from "./TopicsList";
-import {EntriesForTopic} from "./Entries";
-import {TranscriptHistory} from "./TranscriptHistory";
-import {Header} from "./Header";
-import {getStyles} from "./styles";
-import {HeaderProvider} from './HeaderContext';
+import { TopicsList } from "./TopicsList";
+import { EntriesForTopic } from "./Entries";
+import { TranscriptHistory } from "./TranscriptHistory";
+import { Header } from "./Header";
+import { getStyles } from "./styles";
+import { HeaderProvider } from './HeaderContext';
+import { UploadProvider } from './UploadContext';
 
 const styles = getStyles();
 
@@ -70,28 +71,28 @@ function AppNavigator() {
 
   function LoginPage() {
     return (
-        <View style={styles.loginWrapContainer}>
-          <SignUpOrSignIn/>
-        </View>
+      <View style={styles.loginWrapContainer}>
+        <SignUpOrSignIn />
+      </View>
     );
   }
 
 
   function MainDisplay() {
     return (
-        <View>
-          <View style={[styles.topContainer, {height: 600}]}>
-            <TopicsList userId={user.uid}
-                        setSelectedTopic={setSelectedTopic}/>
-          </View>
-          <View style={styles.footer}>
-            <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic}/>
-          </View>
+      <View>
+        <View style={[styles.topContainer, { height: 600 }]}>
+          <TopicsList userId={user.uid}
+            setSelectedTopic={setSelectedTopic} />
         </View>
+        <View style={styles.footer}>
+          <AudioRecorder fbase={firebase} setSelectedTopic={setSelectedTopic} />
+        </View>
+      </View>
     );
   }
 
-  function HomePage({navigation}: any) {
+  function HomePage({ navigation }: any) {
     useEffect(() => {
       if (selectedTopic) {
         navigation.navigate("EntriesForTopic");
@@ -100,45 +101,47 @@ function AppNavigator() {
 
     useEffect(() => {
       if (historySelected) {
-        navigation.navigate("TranscriptHistory", {userId: user.uid, historySelected: historySelected});
+        navigation.navigate("TranscriptHistory", { userId: user.uid, historySelected: historySelected });
       }
     }, [historySelected, navigation]);
 
     return (
-        <View style={styles.globalBackground}>
-          <Header navigation={navigation}/>
-          <MainDisplay/>
-        </View>
+      <View style={styles.globalBackground}>
+        <Header navigation={navigation} />
+        <MainDisplay />
+      </View>
     );
   }
 
   return (
-      <NavigationContainer>
+    <NavigationContainer>
+      <UploadProvider>
         <HeaderProvider
-            value={{
-              user,
-              selectedTopic,
-              setSelectedTopic,
-              historySelected,
-              setHistorySelected
-            }}
+          value={{
+            user,
+            selectedTopic,
+            setSelectedTopic,
+            historySelected,
+            setHistorySelected
+          }}
         >
           <Stack.Navigator screenOptions={screenOptions}>
             {user ? (
-                <>
-                  <Stack.Screen name="HomePage" component={HomePage}/>
-                  <Stack.Screen name="EntriesForTopic" component={EntriesForTopic}/>
-                  <Stack.Screen name="TranscriptHistory" component={TranscriptHistory}/>
-                </>
+              <>
+                <Stack.Screen name="HomePage" component={HomePage} />
+                <Stack.Screen name="EntriesForTopic" component={EntriesForTopic} />
+                <Stack.Screen name="TranscriptHistory" component={TranscriptHistory} />
+              </>
             ) : (
-                <Stack.Screen name="LoginPage" component={LoginPage}/>
+              <Stack.Screen name="LoginPage" component={LoginPage} />
             )}
           </Stack.Navigator>
         </HeaderProvider>
-      </NavigationContainer>
+      </UploadProvider>
+    </NavigationContainer>
   );
 }
 
 export default function App() {
-  return <AppNavigator/>;
+  return <AppNavigator />;
 }

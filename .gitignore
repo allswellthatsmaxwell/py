@@ -18,3 +18,4 @@ yarn.lock
 android/
 ios/
 dist/
+Keys.tsx
