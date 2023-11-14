@@ -115,7 +115,8 @@ function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <UploadProvider>
+      
+      
         <HeaderProvider
           value={{
             user,
